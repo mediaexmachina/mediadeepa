@@ -1,0 +1,37 @@
+# Options
+
+-h Help
+-v version
+-o options, ffmpeg filters, ffmpeg version
+
+-i --input FILE
+-t DURATION see https://ffmpeg.org/ffmpeg-utils.html#time-duration-syntax
+-ss POSITION see https://ffmpeg.org/ffmpeg-utils.html#time-duration-syntax
+-max DURATION limit the time to process
+
+-vn ignore all video filters
+-an ignore all audio filters
+-fo --filter-only FILTER allow only filter list
+-fn --filter-no FILTER not use this filter list
+-vf FILTERCHAIN set personalized video filter configuration
+-af FILTERCHAIN set personalized audio filter configuration
+
+-c --container do a container analysing
+-mn --media-no disable media analysing
+
+--extract-alavfi TEXT_FILE extract raw ffmpeg datas from LAVFI audio metadata filter
+--extract-vlavfi TEXT_FILE extract raw ffmpeg datas from LAVFI video metadata filter
+--extract-ebur128 TEXT_FILE extract raw ffmpeg datas from ebur128 (stderr) filter
+--extract-stderr TEXT_FILE extract raw ffmpeg datas from stderr (not ebur128) filter
+--extract-container TEXT_FILE extract raw ffprobe datas from container analyser
+
+--temp DIR temp dir to use in the case of the need to export to a temp file
+
+--import-lavfi TEXT_FILE... import raw ffmpeg datas from LAVFI metadata filter
+--import-stderr TEXT_FILE import raw ffmpeg datas from stderr filter
+--import-container TEXT_FILE import raw ffprobe datas from container analyser
+
+-f --format FORMAT_TYPE format to export datas: txt|stat|graph
+-e --export DIRECTORY export datas to this directory
+
+Output data = LavfiMetadataFilterParser + Ebur128Summary + R128 stats + ffprobe summary + container

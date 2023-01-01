@@ -1,0 +1,49 @@
+.demo-media-files/
+
+# Windows / macOS
+desktop.ini
+.DS_Store
+Thumbs.db
+
+# Maven
+target/
+!**/src/main/**
+!**/src/test/**
+
+# Node / Javascript
+.lock-wscript
+.wafpickle-N
+.*.swp
+._*
+npm-debug.log
+#.npmrc
+node_modules
+#config.gypi
+*.orig
+
+# STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# IntelliJ IDEA
+.idea
+*.iws
+*.iml
+*.ipr
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+# VS Code
+.vscode/
+*.code-workspace
