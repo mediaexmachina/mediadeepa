@@ -41,7 +41,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 
 	@Override
 	public void run(final String... args) throws Exception {
-		exitCode = new CommandLine(command, factory).execute(args);
+		exitCode = new CommandLine(command, factory).execute(args);// TODO multiple commands ?
 	}
 
 }

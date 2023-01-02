@@ -32,11 +32,10 @@ public class MediaDeepACommand implements Callable<Integer> {
 
 	@Override
 	public Integer call() throws Exception {
-
 		if (version) {
-			System.out.println("Version");
+			// System.out.println("Version");
 		} else {
-			System.out.println("NOPE Version");
+			// System.out.println("NOPE Version");
 		}
 
 		return 0;
