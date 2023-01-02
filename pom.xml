@@ -18,9 +18,26 @@
     </parent>
 
     <properties>
+        <picocli.version>4.7.0</picocli.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>${picocli.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli-spring-boot-starter</artifactId>
+            <version>${picocli.version}</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.springframework.boot</groupId>
+            		<artifactId>spring-boot-starter</artifactId>
+            	</exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <scm>

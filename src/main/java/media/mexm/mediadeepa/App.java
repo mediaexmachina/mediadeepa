@@ -26,7 +26,15 @@ public class App {
 		System.setProperty("spring.main.web-application-type", "NONE");
 		System.setProperty("spring.main.banner-mode", "off");
 		System.setProperty("spring.main.log-startup-info", "false");
-		SpringApplication.run(App.class, args);
+
+		System.exit(SpringApplication.exit(SpringApplication.run(App.class, args)));
+
+		/*
+		 * https://www.innoq.com/en/articles/2022/01/java-cli-libraries/
+		 * https://fullstackdeveloper.guru/2020/06/18/how-to-create-a-command-line-tool-using-java/
+		 * https://picocli.info/#_spring_boot_example
+		 * */
+
 	}
 
 }
