@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+	<Appenders>
+		<Console name="Console OUT" target="SYSTEM_OUT" follow="true">
+			<PatternLayout pattern="%d{HH:mm:ss,SSS} %-5p %c{1} &#8249;%t&#8250;&#9;&#8220;%m&#8221;%n &#8227; %C.%M(%F:%L)%n%n" />
+			<ThresholdFilter level="WARN" onMatch="DENY" onMismatch="NEUTRAL" />
+		</Console>
+
+		<Console name="Console ERR" target="SYSTEM_ERR" follow="true">
+			<PatternLayout pattern="%d{HH:mm:ss,SSS} %-5p %c{1} &#8249;%t&#8250;&#9;&#8220;%m&#8221;%n &#8227; %C.%M(%F:%L)%n%n" />
+			<ThresholdFilter level="WARN" />
+		</Console>
+
+		<Console name="Console OUT Light" target="SYSTEM_OUT" follow="true">
+			<PatternLayout pattern="%-5p %m%n" />
+			<ThresholdFilter level="WARN" onMatch="DENY" onMismatch="NEUTRAL" />
+		</Console>
+
+		<Console name="Console ERR Light" target="SYSTEM_ERR" follow="true">
+			<PatternLayout pattern="%-5p %m%n" />
+			<ThresholdFilter level="WARN" />
+		</Console>
+	</Appenders>
+
+	<Loggers>
+		<Root level="warn">
+			<AppenderRef ref="Console OUT Light" />
+			<AppenderRef ref="Console ERR Light" />
+		</Root>
+	</Loggers>
+
+</Configuration>
