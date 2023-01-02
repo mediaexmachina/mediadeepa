@@ -23,6 +23,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class App {
 
 	public static void main(final String[] args) {
+		System.setProperty("spring.main.web-application-type", "NONE");
+		System.setProperty("spring.main.banner-mode", "off");
+		System.setProperty("spring.main.log-startup-info", "false");
 		SpringApplication.run(App.class, args);
 	}
 
