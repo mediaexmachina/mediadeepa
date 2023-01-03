@@ -16,7 +16,9 @@
  */
 package media.mexm.mediadeepa;
 
-import tv.hd3g.commons.codepolicyvalidation.CheckPolicy;
+import org.springframework.context.annotation.Configuration;
 
-public class CodePolicyValidationTest extends CheckPolicy {
+@Configuration
+public class Setup {
+
 }
