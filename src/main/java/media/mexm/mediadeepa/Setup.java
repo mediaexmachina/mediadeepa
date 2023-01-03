@@ -16,9 +16,47 @@
  */
 package media.mexm.mediadeepa;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import tv.hd3g.fflauncher.FFmpeg;
+import tv.hd3g.fflauncher.FFprobe;
+import tv.hd3g.fflauncher.about.FFAbout;
+import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
+import tv.hd3g.processlauncher.cmdline.Parameters;
 
 @Configuration
 public class Setup {
+
+	@Value("${mediadeepa.ffmpegExecName:ffmpeg}")
+	private String ffmpegExecName;
+	@Value("${mediadeepa.ffmpegExecName:ffprobe}")
+	private String ffprobeExecName;
+
+	@Bean
+	public ExecutableFinder getExecutableFinder() {
+		return new ExecutableFinder();
+	}
+
+	@Bean(name = "ffmpegExecName")
+	public String getFFmpegExecName(final ExecutableFinder executableFinder) {
+		return ffmpegExecName;
+	}
+
+	@Bean(name = "ffprobeExecName")
+	public String getFFprobeExecName(final ExecutableFinder executableFinder) {
+		return ffprobeExecName;
+	}
+
+	@Bean(name = "ffmpegAbout")
+	public FFAbout getFFmpegAbout(final ExecutableFinder executableFinder) {
+		return new FFmpeg(ffmpegExecName, new Parameters()).getAbout(executableFinder);
+	}
+
+	@Bean(name = "ffprobeAbout")
+	public FFAbout getFFprobeAbout(final ExecutableFinder executableFinder) {
+		return new FFprobe(ffprobeExecName, new Parameters()).getAbout(executableFinder);
+	}
 
 }

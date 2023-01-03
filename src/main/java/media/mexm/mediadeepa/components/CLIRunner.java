@@ -41,11 +41,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
+import media.mexm.mediadeepa.service.FFmpegService;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Help;
 import picocli.CommandLine.IFactory;
 import picocli.CommandLine.Option;
+import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Component
 public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
@@ -55,6 +57,14 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	private IFactory factory;
 	@Autowired
 	private ApplicationContext context;
+	@Autowired
+	private FFmpegService ffmpegService;
+	@Autowired
+	private String ffmpegExecName;
+	@Autowired
+	private String ffprobeExecName;
+	@Autowired
+	private ExecutableFinder executableFinder;
 
 	private CommandLine commandLine;
 	private int exitCode;
@@ -62,6 +72,57 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	@PostConstruct
 	void init() {
 		commandLine = new CommandLine(new AppCommand(), factory);
+	}
+
+	@Command(name = "mediadeepa",
+			 description = "Extract technical informations from audio and videos files and streams",
+			 version = { "Media Deep Analysis %1$s",
+						 "Copyright (C) 2022-%2$s Media ex Machina, under the GNU General Public License" })
+	public class AppCommand implements Callable<Integer> {
+
+		@Option(names = { "-v", "--version" }, description = "Show application version")
+		private boolean version;
+
+		@Option(names = { "-h", "--help" }, description = "Show usage help", usageHelp = true)
+		private boolean help;
+
+		@Option(names = { "-o", "--options" }, description = "Show avaliable options on this system")
+		private boolean options;
+
+		@Override
+		public Integer call() throws Exception {
+			if (version) {
+				printVersion();
+			} else if (options) {
+				out().println("Use:");
+				out().format("%-15s%-15s\n", "ffmpeg", executableFinder.get(ffmpegExecName)); // NOSONAR S3457
+				out().format("%-15s%-15s\n", "ffprobe", executableFinder.get(ffprobeExecName)); // NOSONAR S3457
+
+				out().println("");
+				out().println("Versions:");
+				ffmpegService.getVersions().forEach((k, v) -> {
+					out().format("%-15s%-15s\n", k, v); // NOSONAR S3457
+				});
+				out().println("");
+				out().println("Detected (and usable) filters:");
+				ffmpegService.getMtdFiltersAvaliable().forEach((k, v) -> {
+					out().format("%-15s%-15s\n", k, v); // NOSONAR S3457
+				});
+			} else {
+				out().println("hello");
+			}
+
+			return 0;
+		}
+
+	}
+
+	public PrintWriter out() {
+		return commandLine.getOut();
+	}
+
+	public PrintWriter err() {
+		return commandLine.getErr();
 	}
 
 	public void printVersion() {
@@ -98,39 +159,6 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 				Help.Ansi.AUTO,
 				version,
 				LocalDate.now().getYear());
-	}
-
-	public PrintWriter out() {
-		return commandLine.getOut();
-	}
-
-	public PrintWriter err() {
-		return commandLine.getErr();
-	}
-
-	@Command(name = "mediadeepa",
-			 description = "Extract technical informations from audio and videos files and streams",
-			 version = { "Media Deep Analysis %1$s",
-						 "Copyright (C) 2022-%2$s Media ex Machina, under the GNU General Public License" })
-	public class AppCommand implements Callable<Integer> {
-
-		@Option(names = { "-v", "--version" }, description = "Show version") // versionHelp = true,
-		private boolean version;
-
-		@Option(names = { "-h", "--help" }, description = "Show usage help")
-		private boolean help;
-
-		@Override
-		public Integer call() throws Exception {
-			if (version) {
-				printVersion();
-			} else {
-				out().println("hello");
-			}
-
-			return 0;
-		}
-
 	}
 
 	@Override

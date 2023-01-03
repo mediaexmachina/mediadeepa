@@ -19,6 +19,7 @@
 
     <properties>
         <picocli.version>4.7.0</picocli.version>
+        <medialib.version>10.0.0</medialib.version>
     </properties>
 
     <dependencies>
@@ -28,14 +29,19 @@
             <version>${picocli.version}</version>
         </dependency>
         <dependency>
+            <groupId>tv.hd3g</groupId>
+            <artifactId>fflauncher</artifactId>
+            <version>${medialib.version}</version>
+        </dependency>
+        <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli-spring-boot-starter</artifactId>
             <version>${picocli.version}</version>
             <exclusions>
-            	<exclusion>
-            		<groupId>org.springframework.boot</groupId>
-            		<artifactId>spring-boot-starter</artifactId>
-            	</exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
     </dependencies>
