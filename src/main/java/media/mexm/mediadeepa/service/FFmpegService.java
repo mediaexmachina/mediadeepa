@@ -16,6 +16,7 @@
  */
 package media.mexm.mediadeepa.service;
 
+import java.io.File;
 import java.util.Map;
 
 public interface FFmpegService {
@@ -23,5 +24,7 @@ public interface FFmpegService {
 	Map<String, String> getMtdFiltersAvaliable();
 
 	Map<String, String> getVersions();
+
+	void doExtractMtd(File source);
 
 }

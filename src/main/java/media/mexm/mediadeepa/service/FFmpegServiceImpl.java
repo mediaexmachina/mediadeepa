@@ -18,10 +18,12 @@ package media.mexm.mediadeepa.service;
 
 import static java.util.stream.Collectors.toUnmodifiableMap;
 
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 
 import org.apache.logging.log4j.LogManager;
@@ -57,6 +59,9 @@ import tv.hd3g.fflauncher.filtering.VideoFilterMEstimate;
 import tv.hd3g.fflauncher.filtering.VideoFilterMetadata;
 import tv.hd3g.fflauncher.filtering.VideoFilterSiti;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyser;
+import tv.hd3g.fflauncher.recipes.MediaAnalyser;
+import tv.hd3g.fflauncher.recipes.ProbeMedia;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Service
@@ -91,9 +96,15 @@ public class FFmpegServiceImpl implements FFmpegService {
 	@Autowired
 	private ExecutableFinder executableFinder;
 	@Autowired
+	private String ffmpegExecName;
+	@Autowired
+	private String ffprobeExecName;
+	@Autowired
 	private FFAbout ffmpegAbout;
 	@Autowired
 	private FFAbout ffprobeAbout;
+	@Autowired
+	private ScheduledExecutorService maxExecTimeScheduler;
 
 	@Override
 	public Map<String, String> getMtdFiltersAvaliable() {
@@ -137,4 +148,23 @@ public class FFmpegServiceImpl implements FFmpegService {
 		return result;
 	}
 
+	@Override
+	public void doExtractMtd(final File source) {
+		final var pm = new ProbeMedia(executableFinder, maxExecTimeScheduler);
+		final var ffprobeJAXB = pm.doAnalysing(source);
+		// TODO display ffprobeJAXB
+
+		final var ma = new MediaAnalyser(ffmpegExecName, executableFinder, ffmpegAbout);
+		// XXX ma.setProgress(progressListener, progressCallback);
+		final var maSession = ma.createSession(source);
+		// XXX session.setEbur128EventConsumer(ebur128EventConsumer);
+		// XXX session.setFFprobeResult(ffprobeResult)
+		// XXX session.setRawStdErrEventConsumer(rawStdErrEventConsumer);
+		final var maResult = maSession.process();
+		// maResult.ebur128Summary();
+		// XXX maResult.lavfiMetadatas();
+
+		final ContainerAnalyser ca;
+
+	}
 }

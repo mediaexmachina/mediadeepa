@@ -18,6 +18,7 @@ package media.mexm.mediadeepa.components;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
@@ -47,6 +48,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Help;
 import picocli.CommandLine.IFactory;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.ParameterException;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Component
@@ -80,39 +82,117 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 						 "Copyright (C) 2022-%2$s Media ex Machina, under the GNU General Public License" })
 	public class AppCommand implements Callable<Integer> {
 
-		@Option(names = { "-v", "--version" }, description = "Show application version")
+		@Option(names = { "-v", "--version" }, description = "Show the application version")
 		private boolean version;
 
-		@Option(names = { "-h", "--help" }, description = "Show usage help", usageHelp = true)
+		@Option(names = { "-h", "--help" }, description = "Show the usage help", usageHelp = true)
 		private boolean help;
 
-		@Option(names = { "-o", "--options" }, description = "Show avaliable options on this system")
+		@Option(names = { "-o", "--options" }, description = "Show the avaliable options on this system")
 		private boolean options;
+
+		// XXX https://picocli.info/#_mutually_dependent_options
+		@Option(names = { "-i", "--input" }, description = "Input (media) file to process", paramLabel = "FILE")
+		private File input;
 
 		@Override
 		public Integer call() throws Exception {
 			if (version) {
 				printVersion();
 			} else if (options) {
-				out().println("Use:");
-				out().format("%-15s%-15s\n", "ffmpeg", executableFinder.get(ffmpegExecName)); // NOSONAR S3457
-				out().format("%-15s%-15s\n", "ffprobe", executableFinder.get(ffprobeExecName)); // NOSONAR S3457
-
-				out().println("");
-				out().println("Versions:");
-				ffmpegService.getVersions().forEach((k, v) -> {
-					out().format("%-15s%-15s\n", k, v); // NOSONAR S3457
-				});
-				out().println("");
-				out().println("Detected (and usable) filters:");
-				ffmpegService.getMtdFiltersAvaliable().forEach((k, v) -> {
-					out().format("%-15s%-15s\n", k, v); // NOSONAR S3457
-				});
+				printOptions();
 			} else {
-				out().println("hello");
+				if (input == null) {
+					throw new ParameterException(commandLine, "You must set an input file");
+				} else if (input.exists() == false) {
+					throw new ParameterException(commandLine, "Can't found the provided input file",
+							new FileNotFoundException(input.getPath()));
+				} else if (input.isFile() == false) {
+					throw new ParameterException(commandLine, "The provided input file is not a regular file",
+							new FileNotFoundException(input.getPath()));
+				}
+				out().println("AAAA");
+				out().print("|===        |\r");
+				out().flush();
+				Thread.sleep(300);
+				out().print("|====       |\r");
+				out().flush();
+				Thread.sleep(300);
+				out().print("|=====      |\r");
+				out().flush();
+				Thread.sleep(300);
+				out().print("|======     |\r");
+				out().flush();
+				Thread.sleep(300);
+				out().print("|=======    |\r");
+				out().flush();
+				Thread.sleep(300);
+				out().print("|========   |\r");
+				out().flush();
+				Thread.sleep(300);
+				out().print("|========== |\r");
+				out().flush();
+				Thread.sleep(300);
+				out().print("|===========|\r");
+				out().flush();
+				out().println("BBBB");
+
 			}
 
 			return 0;
+		}
+
+		private void printVersion() {
+			final var strVersion = context.getBeansWithAnnotation(SpringBootApplication.class).entrySet().stream()
+					.findFirst()
+					.flatMap(es -> {
+						final var iv = es.getValue().getClass().getPackage().getImplementationVersion();
+						return Optional.ofNullable(iv);
+					})
+					.or(() -> {
+						final var pom = new File("pom.xml");
+						if (pom.exists()) {
+							try {
+								final var fileIS = new FileInputStream(pom);
+								final var builderFactory = DocumentBuilderFactory.newInstance();
+								final var builder = builderFactory.newDocumentBuilder();
+								final var xmlDocument = builder.parse(fileIS);
+								final var xPath = XPathFactory.newInstance().newXPath();
+								return Optional.ofNullable((String) xPath.compile("/project/version")
+										.evaluate(xmlDocument, XPathConstants.STRING));
+							} catch (final IOException
+										   | ParserConfigurationException
+										   | XPathExpressionException
+										   | SAXException e) {
+								log.warn("Can't load pom.xml file", e);
+							}
+						}
+						return Optional.empty();
+					})
+					.orElse("SNAPSHOT");
+
+			commandLine.printVersionHelp(
+					commandLine.getOut(),
+					Help.Ansi.AUTO,
+					strVersion,
+					LocalDate.now().getYear());
+		}
+
+		private void printOptions() throws FileNotFoundException {
+			out().println("Use:");
+			out().format("%-15s%-15s\n", "ffmpeg", executableFinder.get(ffmpegExecName)); // NOSONAR S3457
+			out().format("%-15s%-15s\n", "ffprobe", executableFinder.get(ffprobeExecName)); // NOSONAR S3457
+
+			out().println("");
+			out().println("Versions:");
+			ffmpegService.getVersions().forEach((k, v) -> {
+				out().format("%-15s%-15s\n", k, v); // NOSONAR S3457
+			});
+			out().println("");
+			out().println("Detected (and usable) filters:");
+			ffmpegService.getMtdFiltersAvaliable().forEach((k, v) -> {
+				out().format("%-15s%-15s\n", k, v); // NOSONAR S3457
+			});
 		}
 
 	}
@@ -123,42 +203,6 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 
 	public PrintWriter err() {
 		return commandLine.getErr();
-	}
-
-	public void printVersion() {
-		final var version = context.getBeansWithAnnotation(SpringBootApplication.class).entrySet().stream()
-				.findFirst()
-				.flatMap(es -> {
-					final var iv = es.getValue().getClass().getPackage().getImplementationVersion();
-					return Optional.ofNullable(iv);
-				})
-				.or(() -> {
-					final var pom = new File("pom.xml");
-					if (pom.exists()) {
-						try {
-							final var fileIS = new FileInputStream(pom);
-							final var builderFactory = DocumentBuilderFactory.newInstance();
-							final var builder = builderFactory.newDocumentBuilder();
-							final var xmlDocument = builder.parse(fileIS);
-							final var xPath = XPathFactory.newInstance().newXPath();
-							return Optional.ofNullable((String) xPath.compile("/project/version")
-									.evaluate(xmlDocument, XPathConstants.STRING));
-						} catch (final IOException
-									   | ParserConfigurationException
-									   | XPathExpressionException
-									   | SAXException e) {
-							log.warn("Can't load pom.xml file", e);
-						}
-					}
-					return Optional.empty();
-				})
-				.orElse("SNAPSHOT");
-
-		commandLine.printVersionHelp(
-				commandLine.getOut(),
-				Help.Ansi.AUTO,
-				version,
-				LocalDate.now().getYear());
 	}
 
 	@Override

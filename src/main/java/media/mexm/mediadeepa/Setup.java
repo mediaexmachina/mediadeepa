@@ -16,6 +16,9 @@
  */
 package media.mexm.mediadeepa;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,6 +60,11 @@ public class Setup {
 	@Bean(name = "ffprobeAbout")
 	public FFAbout getFFprobeAbout(final ExecutableFinder executableFinder) {
 		return new FFprobe(ffprobeExecName, new Parameters()).getAbout(executableFinder);
+	}
+
+	@Bean
+	public ScheduledExecutorService getMaxExecTimeScheduler() {
+		return Executors.newSingleThreadScheduledExecutor();
 	}
 
 }
