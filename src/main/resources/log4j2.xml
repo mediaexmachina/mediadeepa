@@ -23,6 +23,8 @@
 	</Appenders>
 
 	<Loggers>
+		<Logger name="media.mexm" level="info" />
+
 		<Root level="warn">
 			<AppenderRef ref="Console OUT Light" />
 			<AppenderRef ref="Console ERR Light" />

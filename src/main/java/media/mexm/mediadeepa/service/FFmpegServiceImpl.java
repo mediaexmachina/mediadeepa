@@ -31,6 +31,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import media.mexm.mediadeepa.ProgressCLI;
 import media.mexm.mediadeepa.components.FFmpegSupplier;
 import tv.hd3g.fflauncher.about.FFAbout;
 import tv.hd3g.fflauncher.about.FFAboutFilter;
@@ -59,8 +60,11 @@ import tv.hd3g.fflauncher.filtering.VideoFilterMEstimate;
 import tv.hd3g.fflauncher.filtering.VideoFilterMetadata;
 import tv.hd3g.fflauncher.filtering.VideoFilterSiti;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyser;
+import tv.hd3g.fflauncher.progress.ProgressBlock;
+import tv.hd3g.fflauncher.progress.ProgressCallback;
+import tv.hd3g.fflauncher.progress.ProgressListener;
 import tv.hd3g.fflauncher.recipes.MediaAnalyser;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.recipes.ProbeMedia;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
@@ -105,6 +109,8 @@ public class FFmpegServiceImpl implements FFmpegService {
 	private FFAbout ffprobeAbout;
 	@Autowired
 	private ScheduledExecutorService maxExecTimeScheduler;
+	@Autowired
+	private ProgressListener progressListener;
 
 	@Override
 	public Map<String, String> getMtdFiltersAvaliable() {
@@ -144,27 +150,79 @@ public class FFmpegServiceImpl implements FFmpegService {
 	public Map<String, String> getVersions() {
 		final var result = new LinkedHashMap<String, String>();
 		result.put("ffmpeg", ffmpegAbout.getVersion().headerVersion);
-		result.put("ffprobe", ffprobeAbout.getVersion().headerVersion);// TODO correct with https://github.com/hdsdi3g/medialib/issues/27
+		result.put("ffprobe", ffprobeAbout.getVersion().headerVersion);// TODO2 correct with https://github.com/hdsdi3g/medialib/issues/27
 		return result;
 	}
 
+	private AudioFilterSupplier filterIfPresent(final AudioFilterSupplier f) {
+		log.info("Setup {} audio filter", f.toFilter());
+		return f;
+	}
+
+	private void filterIfPresent(final VideoFilterSupplier f) {
+		log.info("Setup {} video filter", f.toFilter());
+	}
+
 	@Override
-	public void doExtractMtd(final File source) {
+	public MediaAnalyserResult doExtractMtd(final File source,
+											final ProgressCLI progressCLI,
+											final boolean audioNo,
+											final boolean videoNo) {
 		final var pm = new ProbeMedia(executableFinder, maxExecTimeScheduler);
 		final var ffprobeJAXB = pm.doAnalysing(source);
-		// TODO display ffprobeJAXB
+
+		final var programDurationSec = ffprobeJAXB.getFormat().getDuration();
+		log.info("ffprobe result: {} ({} sec)",
+				ffprobeJAXB.getFormat().getFormatName(),
+				programDurationSec);// TODO2 better display ffprobeJAXB https://github.com/hdsdi3g/medialib/issues/28
 
 		final var ma = new MediaAnalyser(ffmpegExecName, executableFinder, ffmpegAbout);
-		// XXX ma.setProgress(progressListener, progressCallback);
+		setProgress(progressCLI, programDurationSec, ma);
+
+		if (audioNo == false) {
+			ma.addFilterPhasemeter(this::filterIfPresent); // TODO https://github.com/hdsdi3g/medialib/issues/30
+			ma.addFilterAstats(a -> filterIfPresent(a.setSelectedMetadatas()));
+			ma.addFilterSilencedetect(this::filterIfPresent);
+			ma.addFilterEbur128(this::filterIfPresent);
+		}
+
+		if (videoNo == false) {
+			ma.addFilterBlackdetect(this::filterIfPresent);
+			ma.addFilterBlockdetect(this::filterIfPresent);
+			ma.addFilterBlurdetect(this::filterIfPresent);
+			ma.addFilterCropdetect(VideoFilterCropdetect.Mode.BLACK, this::filterIfPresent);
+			ma.addFilterIdet(this::filterIfPresent);
+			ma.addFilterSiti(this::filterIfPresent);
+			ma.addFilterFreezedetect(this::filterIfPresent);
+		}
+
 		final var maSession = ma.createSession(source);
-		// XXX session.setEbur128EventConsumer(ebur128EventConsumer);
-		// XXX session.setFFprobeResult(ffprobeResult)
-		// XXX session.setRawStdErrEventConsumer(rawStdErrEventConsumer);
-		final var maResult = maSession.process();
-		// maResult.ebur128Summary();
-		// XXX maResult.lavfiMetadatas();
+		maSession.setFFprobeResult(ffprobeJAXB);
+		// TODO2 graph maSession.setEbur128EventConsumer(ebur128EventConsumer);
 
-		final ContainerAnalyser ca;
+		return maSession.process();
+	}
 
+	// TODO create ContainerAnalyser
+
+	private void setProgress(final ProgressCLI progressCLI, final float programDurationSec, final MediaAnalyser ma) {
+		ma.setProgress(progressListener, new ProgressCallback() {
+
+			@Override
+			public void onFFmpegConnection(final int localhostTcpPort) {
+				progressCLI.startProgress();
+			}
+
+			@Override
+			public void onProgress(final int localhostTcpPort, final ProgressBlock progressBlock) {
+				progressCLI.displayProgress(progressBlock.getOutTimeMs().toSeconds() / programDurationSec);
+			}
+
+			@Override
+			public void onEndProgress(final int localhostTcpPort) {
+				progressCLI.endsProgress();
+			}
+
+		});
 	}
 }

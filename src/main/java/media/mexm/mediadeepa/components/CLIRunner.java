@@ -42,6 +42,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
+import media.mexm.mediadeepa.ProgressCLI;
 import media.mexm.mediadeepa.service.FFmpegService;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -95,6 +96,12 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		@Option(names = { "-i", "--input" }, description = "Input (media) file to process", paramLabel = "FILE")
 		private File input;
 
+		@Option(names = { "-an", "--audio-no" }, description = "Don't process audio stream metadatas")
+		private boolean audioNo;
+
+		@Option(names = { "-vn", "--video-no" }, description = "Don't process video stream metadatas")
+		private boolean videoNo;
+
 		@Override
 		public Integer call() throws Exception {
 			if (version) {
@@ -111,30 +118,33 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 					throw new ParameterException(commandLine, "The provided input file is not a regular file",
 							new FileNotFoundException(input.getPath()));
 				}
-				out().println("AAAA");
-				out().print("|===        |\r");
-				out().flush();
-				Thread.sleep(300);
-				out().print("|====       |\r");
-				out().flush();
-				Thread.sleep(300);
-				out().print("|=====      |\r");
-				out().flush();
-				Thread.sleep(300);
-				out().print("|======     |\r");
-				out().flush();
-				Thread.sleep(300);
-				out().print("|=======    |\r");
-				out().flush();
-				Thread.sleep(300);
-				out().print("|========   |\r");
-				out().flush();
-				Thread.sleep(300);
-				out().print("|========== |\r");
-				out().flush();
-				Thread.sleep(300);
-				out().println("|===========|\r");
-				out().println("BBBB");
+				final var mtd = ffmpegService.doExtractMtd(input, new ProgressCLI(out()), audioNo, videoNo);
+				log.info("Mtd: {}", mtd);
+
+				/*
+				final var r128s = maResult.ebur128Summary();
+				Optional.ofNullable(r128s).ifPresent(r -> log.info("LUFS: {}", r));
+				
+				final var m = maResult.lavfiMetadatas();
+				
+				afAPhasemeter.getEvents(m).;
+				afAPhasemeter.getMetadatas(m);
+				 *
+				 *
+				final var afAPhasemeter = new AudioFilterAPhasemeter();
+				final var afAstats = new AudioFilterAstats();
+				final var afSilencedetect = new AudioFilterSilencedetect();
+				final var afEbur128 = new AudioFilterEbur128();
+				
+				final var vfBlackdetect = new VideoFilterBlackdetect();
+				final var vfBlockdetect = new VideoFilterBlockdetect();
+				final var vfBlurdetect = new VideoFilterBlurdetect();
+				final var vfCropdetect = new VideoFilterCropdetect(VideoFilterCropdetect.Mode.BLACK);
+				final var vfFreezedetect = new VideoFilterFreezedetect();
+				final var vfIdet = new VideoFilterIdet();
+				final var vfMEstimate = new VideoFilterMEstimate();
+				final var vfSiti = new VideoFilterSiti();
+				*/
 
 			}
 

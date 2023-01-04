@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Configuration;
 import tv.hd3g.fflauncher.FFmpeg;
 import tv.hd3g.fflauncher.FFprobe;
 import tv.hd3g.fflauncher.about.FFAbout;
+import tv.hd3g.fflauncher.progress.ProgressListener;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
@@ -65,6 +66,11 @@ public class Setup {
 	@Bean
 	public ScheduledExecutorService getMaxExecTimeScheduler() {
 		return Executors.newSingleThreadScheduledExecutor();
+	}
+
+	@Bean
+	public ProgressListener getProgressListener() {
+		return new ProgressListener();
 	}
 
 }

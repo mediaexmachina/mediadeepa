@@ -19,12 +19,15 @@ package media.mexm.mediadeepa.service;
 import java.io.File;
 import java.util.Map;
 
+import media.mexm.mediadeepa.ProgressCLI;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+
 public interface FFmpegService {
 
 	Map<String, String> getMtdFiltersAvaliable();
 
 	Map<String, String> getVersions();
 
-	void doExtractMtd(File source);
+	MediaAnalyserResult doExtractMtd(File source, ProgressCLI progressCLI, boolean audioNo, boolean videoNo);
 
 }
