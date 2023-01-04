@@ -133,8 +133,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 				out().print("|========== |\r");
 				out().flush();
 				Thread.sleep(300);
-				out().print("|===========|\r");
-				out().flush();
+				out().println("|===========|\r");
 				out().println("BBBB");
 
 			}
