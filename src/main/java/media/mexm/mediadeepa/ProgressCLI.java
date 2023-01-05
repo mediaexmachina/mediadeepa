@@ -33,15 +33,11 @@ public class ProgressCLI {
 	}
 
 	public void startProgress() {
-		out.print("|");
-		out.print(repeat(BLANK, WIDTH));
-		out.print("|");
-		out.print("\r");
-		out.flush();
 	}
 
 	// TODO manage last value / duplicate
 
+	// FIXME strange progress
 	public void displayProgress(final double value) {
 		if (value <= 0) {
 			out.print("|");
@@ -55,8 +51,7 @@ public class ProgressCLI {
 			out.print("|");
 			out.print(repeat(PROGRESS, WIDTH));
 			out.print("|");
-			out.print("\r");
-			out.flush();
+			out.println();
 			return;
 		}
 
@@ -72,9 +67,6 @@ public class ProgressCLI {
 	}
 
 	public void endsProgress() {
-		out.print("|");
-		out.print(repeat(PROGRESS, WIDTH));
-		out.println("|");
 	}
 
 }

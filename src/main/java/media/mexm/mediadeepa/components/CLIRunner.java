@@ -119,8 +119,15 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 							new FileNotFoundException(input.getPath()));
 				}
 				final var mtd = ffmpegService.doExtractMtd(input, new ProgressCLI(out()), audioNo, videoNo);
-				log.info("Mtd: {}", mtd);
 
+				final var lavfi = mtd.lavfiMetadatas();
+				final var filters = lavfi.stream()
+						.flatMap(f -> f.getValuesByFilterKeysByFilterName().keySet().stream())
+						.distinct()
+						.toList();
+				log.info("Mtd: {}, {}, {}", lavfi.size(), mtd.ebur128Summary(), filters);
+
+				// TODO test video
 				/*
 				final var r128s = maResult.ebur128Summary();
 				Optional.ofNullable(r128s).ifPresent(r -> log.info("LUFS: {}", r));

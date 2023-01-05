@@ -19,6 +19,7 @@ package media.mexm.mediadeepa.service;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 
 import java.io.File;
+import java.net.SocketException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -180,7 +181,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 		setProgress(progressCLI, programDurationSec, ma);
 
 		if (audioNo == false) {
-			ma.addFilterPhasemeter(this::filterIfPresent); // TODO https://github.com/hdsdi3g/medialib/issues/30
+			ma.addFilterPhasemeter(this::filterIfPresent);
 			ma.addFilterAstats(a -> filterIfPresent(a.setSelectedMetadatas()));
 			ma.addFilterSilencedetect(this::filterIfPresent);
 			ma.addFilterEbur128(this::filterIfPresent);
@@ -198,6 +199,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 
 		final var maSession = ma.createSession(source);
 		maSession.setFFprobeResult(ffprobeJAXB);
+		// FIXME missing R128
 		// TODO2 graph maSession.setEbur128EventConsumer(ebur128EventConsumer);
 
 		return maSession.process();
@@ -221,6 +223,11 @@ public class FFmpegServiceImpl implements FFmpegService {
 			@Override
 			public void onEndProgress(final int localhostTcpPort) {
 				progressCLI.endsProgress();
+			}
+
+			@Override
+			public void onConnectionReset(final int localhostTcpPort, final SocketException e) {
+				log.warn("Lost ffmpeg connection...");
 			}
 
 		});
