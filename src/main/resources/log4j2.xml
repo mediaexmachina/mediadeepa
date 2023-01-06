@@ -25,6 +25,8 @@
 	<Loggers>
 		<Logger name="media.mexm" level="info" />
         <Logger name="tv.hd3g.fflauncher.recipes" level="debug" />
+        <Logger name="tv.hd3g.fflauncher.resultparser.RawStdErrEventParser" level="info" />
+        
 
 		<Root level="warn">
 			<AppenderRef ref="Console OUT Light" />

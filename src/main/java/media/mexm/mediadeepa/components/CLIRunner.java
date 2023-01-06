@@ -125,15 +125,23 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 						.flatMap(f -> f.getValuesByFilterKeysByFilterName().keySet().stream())
 						.distinct()
 						.toList();
-				log.info("Mtd: {}, {}, {}", lavfi.size(), mtd.ebur128Summary(), filters);
+
+				log.info("Mtd: {}, {}, I={} LU", lavfi.size(), filters, mtd.ebur128Summary().getIntegrated());
+
+				/*lavfi.stream()
+						.forEach(f -> System.out.println(f.getLavfiMtdPosition().frame()
+														 + "\t"
+														 + f.getValuesByFilterKeysByFilterName().size()));*/
+
+				// FIXME missing silence detect
 
 				// TODO test video
 				/*
 				final var r128s = maResult.ebur128Summary();
 				Optional.ofNullable(r128s).ifPresent(r -> log.info("LUFS: {}", r));
-				
+
 				final var m = maResult.lavfiMetadatas();
-				
+
 				afAPhasemeter.getEvents(m).;
 				afAPhasemeter.getMetadatas(m);
 				 *
@@ -142,7 +150,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 				final var afAstats = new AudioFilterAstats();
 				final var afSilencedetect = new AudioFilterSilencedetect();
 				final var afEbur128 = new AudioFilterEbur128();
-				
+
 				final var vfBlackdetect = new VideoFilterBlackdetect();
 				final var vfBlockdetect = new VideoFilterBlockdetect();
 				final var vfBlurdetect = new VideoFilterBlurdetect();

@@ -155,15 +155,6 @@ public class FFmpegServiceImpl implements FFmpegService {
 		return result;
 	}
 
-	private AudioFilterSupplier filterIfPresent(final AudioFilterSupplier f) {
-		log.info("Setup {} audio filter", f.toFilter());
-		return f;
-	}
-
-	private void filterIfPresent(final VideoFilterSupplier f) {
-		log.info("Setup {} video filter", f.toFilter());
-	}
-
 	@Override
 	public MediaAnalyserResult doExtractMtd(final File source,
 											final ProgressCLI progressCLI,
@@ -181,20 +172,22 @@ public class FFmpegServiceImpl implements FFmpegService {
 		setProgress(progressCLI, programDurationSec, ma);
 
 		if (audioNo == false) {
-			ma.addFilterPhasemeter(this::filterIfPresent);
-			ma.addFilterAstats(a -> filterIfPresent(a.setSelectedMetadatas()));
-			ma.addFilterSilencedetect(this::filterIfPresent);
-			ma.addFilterEbur128(this::filterIfPresent);
+			ma.addFilterPhasemeter(this::logFilterPresence);
+			ma.addFilterAstats(this::logFilterPresence);
+			ma.addFilterSilencedetect(this::logFilterPresence);
+			ma.addFilterAMetadata(this::logFilterPresence);
+			ma.addFilterEbur128(this::logFilterPresence);
 		}
 
 		if (videoNo == false) {
-			ma.addFilterBlackdetect(this::filterIfPresent);
-			ma.addFilterBlockdetect(this::filterIfPresent);
-			ma.addFilterBlurdetect(this::filterIfPresent);
-			ma.addFilterCropdetect(VideoFilterCropdetect.Mode.BLACK, this::filterIfPresent);
-			ma.addFilterIdet(this::filterIfPresent);
-			ma.addFilterSiti(this::filterIfPresent);
-			ma.addFilterFreezedetect(this::filterIfPresent);
+			ma.addFilterBlackdetect(this::logFilterPresence);
+			ma.addFilterBlockdetect(this::logFilterPresence);
+			ma.addFilterBlurdetect(this::logFilterPresence);
+			ma.addFilterCropdetect(VideoFilterCropdetect.Mode.BLACK, this::logFilterPresence);
+			ma.addFilterIdet(this::logFilterPresence);
+			ma.addFilterSiti(this::logFilterPresence);
+			ma.addFilterFreezedetect(this::logFilterPresence);
+			ma.addFilterMetadata(this::logFilterPresence);
 		}
 
 		final var maSession = ma.createSession(source);
@@ -206,6 +199,15 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	// TODO create ContainerAnalyser
+
+	private void logFilterPresence(final VideoFilterSupplier f) {
+		log.info("Setup {} video filter", f.toFilter());
+	}
+
+	private AudioFilterSupplier logFilterPresence(final AudioFilterSupplier f) {
+		log.info("Setup {} audio filter", f.toFilter());
+		return f;
+	}
 
 	private void setProgress(final ProgressCLI progressCLI, final float programDurationSec, final MediaAnalyser ma) {
 		ma.setProgress(progressListener, new ProgressCallback() {
