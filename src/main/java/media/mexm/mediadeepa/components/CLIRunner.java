@@ -203,15 +203,13 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		}
 
 		private void printOptions() throws FileNotFoundException {
+			final var versions = ffmpegService.getVersions();
 			out().println("Use:");
 			out().format("%-15s%-15s\n", "ffmpeg", executableFinder.get(ffmpegExecName)); // NOSONAR S3457
-			out().format("%-15s%-15s\n", "ffprobe", executableFinder.get(ffprobeExecName)); // NOSONAR S3457
-
+			out().format("%-15s%-15s\n", "", versions.get("ffmpeg"));// NOSONAR S3457
 			out().println("");
-			out().println("Versions:");
-			ffmpegService.getVersions().forEach((k, v) -> {
-				out().format("%-15s%-15s\n", k, v); // NOSONAR S3457
-			});
+			out().format("%-15s%-15s\n", "ffprobe", executableFinder.get(ffprobeExecName)); // NOSONAR S3457
+			out().format("%-15s%-15s\n", "", versions.get("ffprobe"));// NOSONAR S3457
 			out().println("");
 			out().println("Detected (and usable) filters:");
 			ffmpegService.getMtdFiltersAvaliable().forEach((k, v) -> {

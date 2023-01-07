@@ -151,7 +151,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 	public Map<String, String> getVersions() {
 		final var result = new LinkedHashMap<String, String>();
 		result.put("ffmpeg", ffmpegAbout.getVersion().headerVersion);
-		result.put("ffprobe", ffprobeAbout.getVersion().headerVersion);// TODO2 correct with https://github.com/hdsdi3g/medialib/issues/27
+		result.put("ffprobe", ffprobeAbout.getVersion().headerVersion);
 		return result;
 	}
 
@@ -192,7 +192,6 @@ public class FFmpegServiceImpl implements FFmpegService {
 
 		final var maSession = ma.createSession(source);
 		maSession.setFFprobeResult(ffprobeJAXB);
-		// FIXME missing R128
 		// TODO2 graph maSession.setEbur128EventConsumer(ebur128EventConsumer);
 
 		return maSession.process();
