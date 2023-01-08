@@ -19,54 +19,89 @@ package media.mexm.mediadeepa;
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 import java.io.PrintWriter;
+import java.time.Duration;
 
-public class ProgressCLI {
+import org.apache.commons.lang3.StringUtils;
+
+public class ProgressCLI {// TODO test
 
 	private static final int WIDTH = 20;
 	private static final char PROGRESS = '=';
 	private static final char BLANK = ' ';
 
 	private final PrintWriter out;
+	private long startTime;
+	private String lastEntry;
 
 	public ProgressCLI(final PrintWriter out) {
 		this.out = out;
 	}
 
-	public void startProgress() {
+	private String makePercent(final double value) {
+		return StringUtils.right("    " + Math.round(value * 100d) + "%", 4);
 	}
 
-	// TODO manage last value / duplicate
+	private String makeETA(final double value) {
+		if (value == 0d) {
+			return "";
+		}
+		final var agoSec = (System.currentTimeMillis() - startTime) / 1000d;
+		final var eta = Duration.ofSeconds(Math.round(agoSec / value * (1d - value)));
 
-	// FIXME strange progress
-	public void displayProgress(final double value) {
+		return " ETA " +
+			   StringUtils.right("0" + eta.toHoursPart(), 2) + ":" +
+			   StringUtils.right("0" + eta.toMinutesPart(), 2) + ":" +
+			   StringUtils.right("0" + eta.toSecondsPart(), 2);
+	}
+
+	private String makeSpeed(final float speed) {
+		return ", x" + String.format("%02.1f", speed);
+	}
+
+	private void writeLn(final String value) {
+		if (value.equals(lastEntry)) {
+			return;
+		}
+		lastEntry = value;
+		out.print(value);
+		out.print("\r");
+		out.flush();
+	}
+
+	private void writeFlush(final String value) {
+		if (value.equals(lastEntry)) {
+			return;
+		}
+		lastEntry = value;
+		out.print(value);
+		out.println();
+	}
+
+	public void start() {
+		startTime = System.currentTimeMillis();
+		writeFlush("|" + repeat(".", WIDTH) + "|");
+	}
+
+	public void displayProgress(final double value, final float speed) {
 		if (value <= 0) {
-			out.print("|");
-			out.print(repeat(BLANK, WIDTH));
-			out.print("|");
-			out.print("\r");
-			out.flush();
+			start();
 			return;
 		}
 		if (value >= 1) {
-			out.print("|");
-			out.print(repeat(PROGRESS, WIDTH));
-			out.print("|");
-			out.println();
+			end();
 			return;
 		}
 
 		final var pSize = Math.round((float) Math.floor(value * WIDTH));
 		final var bSize = WIDTH - pSize;
 
-		out.print("|");
-		out.print(repeat(PROGRESS, pSize));
-		out.print(repeat(BLANK, bSize));
-		out.print("|");
-		out.print("\r");
-		out.flush();
+		writeFlush("|" + repeat(PROGRESS, pSize) + repeat(BLANK, bSize) + "|" +
+				   makePercent(value)
+				   + makeETA(value)
+				   + makeSpeed(speed));
 	}
 
-	public void endsProgress() {
+	public void end() {
+		writeLn("|" + repeat(PROGRESS, WIDTH) + "|" + makePercent(1));
 	}
-
 }

@@ -182,12 +182,12 @@ public class FFmpegServiceImpl implements FFmpegService {
 		if (videoNo == false) {
 			ma.addFilterBlackdetect(this::logFilterPresence);
 			ma.addFilterBlockdetect(this::logFilterPresence);
-			ma.addFilterBlurdetect(this::logFilterPresence);
-			ma.addFilterCropdetect(VideoFilterCropdetect.Mode.BLACK, this::logFilterPresence);
-			ma.addFilterIdet(this::logFilterPresence);
-			ma.addFilterSiti(this::logFilterPresence);
-			ma.addFilterFreezedetect(this::logFilterPresence);
-			ma.addFilterMetadata(this::logFilterPresence);
+			// ma.addFilterBlurdetect(this::logFilterPresence);
+			// ma.addFilterCropdetect(VideoFilterCropdetect.Mode.BLACK, this::logFilterPresence);
+			// XXX ma.addFilterIdet(this::logFilterPresence);
+			// XXX ma.addFilterSiti(this::logFilterPresence);
+			// XXX ma.addFilterFreezedetect(this::logFilterPresence);
+			// XXX ma.addFilterMetadata(this::logFilterPresence);
 		}
 
 		final var maSession = ma.createSession(source);
@@ -212,18 +212,9 @@ public class FFmpegServiceImpl implements FFmpegService {
 		ma.setProgress(progressListener, new ProgressCallback() {
 
 			@Override
-			public void onFFmpegConnection(final int localhostTcpPort) {
-				progressCLI.startProgress();
-			}
-
-			@Override
 			public void onProgress(final int localhostTcpPort, final ProgressBlock progressBlock) {
-				progressCLI.displayProgress(progressBlock.getOutTimeMs().toSeconds() / programDurationSec);
-			}
-
-			@Override
-			public void onEndProgress(final int localhostTcpPort) {
-				progressCLI.endsProgress();
+				progressCLI.displayProgress(progressBlock.getOutTimeDuration().toSeconds() / programDurationSec,
+						progressBlock.getSpeedX());
 			}
 
 			@Override
@@ -231,6 +222,10 @@ public class FFmpegServiceImpl implements FFmpegService {
 				log.warn("Lost ffmpeg connection...");
 			}
 
+			@Override
+			public void onEndProgress(final int localhostTcpPort) {
+				progressCLI.end();
+			}
 		});
 	}
 }

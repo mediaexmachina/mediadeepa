@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 
 import javax.annotation.PostConstruct;
@@ -118,6 +119,17 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 					throw new ParameterException(commandLine, "The provided input file is not a regular file",
 							new FileNotFoundException(input.getPath()));
 				}
+
+				final var consoleT = new Thread(() -> {// TODO move it in this class
+					out().println("Press [ENTER] to quit...");
+					final var keyboard = new Scanner(System.in);
+					keyboard.nextLine();
+					keyboard.close();
+					System.exit(0);
+				});
+				consoleT.setDaemon(true);
+				consoleT.start();
+
 				final var mtd = ffmpegService.doExtractMtd(input, new ProgressCLI(out()), audioNo, videoNo);
 
 				final var lavfi = mtd.lavfiMetadatas();
@@ -139,9 +151,9 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 				/*
 				final var r128s = maResult.ebur128Summary();
 				Optional.ofNullable(r128s).ifPresent(r -> log.info("LUFS: {}", r));
-
+				
 				final var m = maResult.lavfiMetadatas();
-
+				
 				afAPhasemeter.getEvents(m).;
 				afAPhasemeter.getMetadatas(m);
 				 *
@@ -150,7 +162,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 				final var afAstats = new AudioFilterAstats();
 				final var afSilencedetect = new AudioFilterSilencedetect();
 				final var afEbur128 = new AudioFilterEbur128();
-
+				
 				final var vfBlackdetect = new VideoFilterBlackdetect();
 				final var vfBlockdetect = new VideoFilterBlockdetect();
 				final var vfBlurdetect = new VideoFilterBlurdetect();
