@@ -89,7 +89,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 			new VideoFilterBlackdetect(),
 			new VideoFilterBlockdetect(),
 			new VideoFilterBlurdetect(),
-			new VideoFilterCropdetect(VideoFilterCropdetect.Mode.BLACK),
+			new VideoFilterCropdetect(),
 			new VideoFilterFreezedetect(),
 			new VideoFilterIdet(),
 			new VideoFilterMEstimate(),
@@ -182,12 +182,15 @@ public class FFmpegServiceImpl implements FFmpegService {
 		if (videoNo == false) {
 			ma.addFilterBlackdetect(this::logFilterPresence);
 			ma.addFilterBlockdetect(this::logFilterPresence);
-			// ma.addFilterBlurdetect(this::logFilterPresence);
-			// ma.addFilterCropdetect(VideoFilterCropdetect.Mode.BLACK, this::logFilterPresence);
+			ma.addFilterBlurdetect(this::logFilterPresence);
+			ma.addFilterCropdetect(this::logFilterPresence);
 			// XXX ma.addFilterIdet(this::logFilterPresence);
 			// XXX ma.addFilterSiti(this::logFilterPresence);
 			// XXX ma.addFilterFreezedetect(this::logFilterPresence);
-			// XXX ma.addFilterMetadata(this::logFilterPresence);
+			ma.addFilterMetadata(f -> {
+				f.setFile("target/vmetadata.txt");
+				logFilterPresence(f);
+			});
 		}
 
 		final var maSession = ma.createSession(source);
