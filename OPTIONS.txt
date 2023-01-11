@@ -1,0 +1,53 @@
+# Options
+
+-h Help
+-v version
+-o options, ffmpeg filters, ffmpeg version
+
+process
+-i FILE
+-vn
+-an
+Select filters ? allow/block list ?
+ffprobe long process ?
+To <Export options>
+Temp file (lavfi) ?
+
+extract
+-i FILE
+-vn
+-an
+Select filters ? allow/block list ?
+ffprobe long process ?
+To <Text files>
+
+import
+From <Text files>
+To <Export options>
+
+Text files
+- ffmpeg/lavfi[]
+- ffmpeg/stderr
+- ffprobe/xml/short
+- ffprobe/xml/long
+
+Export options
+<Output data> => <format type> => file output selection
+<Output data> => transform (stat, graph...) => file output selection
+
+Output data
+- LAVFI:
+  - ?
+- R128 stats
+- R128 Summary
+- ffprobe summary
+- ffprobe long
+...?
+
+Format type
+- TXT (tab)
+- CSV
+- XML (jackson)
+- JSON (jackson)
+...
+
