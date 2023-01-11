@@ -46,11 +46,13 @@ import org.xml.sax.SAXException;
 import media.mexm.mediadeepa.ProgressCLI;
 import media.mexm.mediadeepa.service.FFmpegService;
 import picocli.CommandLine;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Help;
 import picocli.CommandLine.IFactory;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParameterException;
+import picocli.CommandLine.ParentCommand;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Component
@@ -76,32 +78,28 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	@PostConstruct
 	void init() {
 		commandLine = new CommandLine(new AppCommand(), factory);
+		commandLine.addSubcommand(new ExtractCommand());
+		commandLine.addSubcommand(new ImportCommand());
+		commandLine.addSubcommand(new ProcessCommand());
+	}
+
+	private class BaseCommand {
+		@Option(names = { "-h", "--help" }, description = "Show the usage help", usageHelp = true)
+		boolean help;
 	}
 
 	@Command(name = "mediadeepa",
-			 description = "Extract technical informations from audio and videos files and streams",
+			 description = "Extract/process technical informations from audio/videos files/streams",
 			 version = { "Media Deep Analysis %1$s",
-						 "Copyright (C) 2022-%2$s Media ex Machina, under the GNU General Public License" })
-	public class AppCommand implements Callable<Integer> {
+						 "Copyright (C) 2022-%2$s Media ex Machina, under the GNU General Public License" },
+			 sortOptions = false)
+	public class AppCommand extends BaseCommand implements Callable<Integer> {
 
 		@Option(names = { "-v", "--version" }, description = "Show the application version")
-		private boolean version;
-
-		@Option(names = { "-h", "--help" }, description = "Show the usage help", usageHelp = true)
-		private boolean help;
+		boolean version;
 
 		@Option(names = { "-o", "--options" }, description = "Show the avaliable options on this system")
-		private boolean options;
-
-		// XXX https://picocli.info/#_mutually_dependent_options
-		@Option(names = { "-i", "--input" }, description = "Input (media) file to process", paramLabel = "FILE")
-		private File input;
-
-		@Option(names = { "-an", "--audio-no" }, description = "Don't process audio stream metadatas")
-		private boolean audioNo;
-
-		@Option(names = { "-vn", "--video-no" }, description = "Don't process video stream metadatas")
-		private boolean videoNo;
+		boolean options;
 
 		@Override
 		public Integer call() throws Exception {
@@ -109,70 +107,6 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 				printVersion();
 			} else if (options) {
 				printOptions();
-			} else {
-				if (input == null) {
-					throw new ParameterException(commandLine, "You must set an input file");
-				} else if (input.exists() == false) {
-					throw new ParameterException(commandLine, "Can't found the provided input file",
-							new FileNotFoundException(input.getPath()));
-				} else if (input.isFile() == false) {
-					throw new ParameterException(commandLine, "The provided input file is not a regular file",
-							new FileNotFoundException(input.getPath()));
-				}
-
-				final var consoleT = new Thread(() -> {// TODO move it in this class
-					out().println("Press [ENTER] to quit...");
-					final var keyboard = new Scanner(System.in);
-					keyboard.nextLine();
-					keyboard.close();
-					System.exit(0);
-				});
-				consoleT.setDaemon(true);
-				consoleT.start();
-
-				final var mtd = ffmpegService.doExtractMtd(input, new ProgressCLI(out()), audioNo, videoNo);
-
-				final var lavfi = mtd.lavfiMetadatas();
-				final var filters = lavfi.stream()
-						.flatMap(f -> f.getValuesByFilterKeysByFilterName().keySet().stream())
-						.distinct()
-						.toList();
-
-				log.info("Mtd: {}, {}, I={} LU", lavfi.size(), filters, mtd.ebur128Summary().getIntegrated());
-
-				/*lavfi.stream()
-						.forEach(f -> System.out.println(f.getLavfiMtdPosition().frame()
-														 + "\t"
-														 + f.getValuesByFilterKeysByFilterName().size()));*/
-
-				// FIXME missing silence detect
-
-				// TODO test video
-				/*
-				final var r128s = maResult.ebur128Summary();
-				Optional.ofNullable(r128s).ifPresent(r -> log.info("LUFS: {}", r));
-				
-				final var m = maResult.lavfiMetadatas();
-				
-				afAPhasemeter.getEvents(m).;
-				afAPhasemeter.getMetadatas(m);
-				 *
-				 *
-				final var afAPhasemeter = new AudioFilterAPhasemeter();
-				final var afAstats = new AudioFilterAstats();
-				final var afSilencedetect = new AudioFilterSilencedetect();
-				final var afEbur128 = new AudioFilterEbur128();
-				
-				final var vfBlackdetect = new VideoFilterBlackdetect();
-				final var vfBlockdetect = new VideoFilterBlockdetect();
-				final var vfBlurdetect = new VideoFilterBlurdetect();
-				final var vfCropdetect = new VideoFilterCropdetect(VideoFilterCropdetect.Mode.BLACK);
-				final var vfFreezedetect = new VideoFilterFreezedetect();
-				final var vfIdet = new VideoFilterIdet();
-				final var vfMEstimate = new VideoFilterMEstimate();
-				final var vfSiti = new VideoFilterSiti();
-				*/
-
 			}
 
 			return 0;
@@ -229,6 +163,126 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 			});
 		}
 
+	}
+
+	private abstract class BaseCommandExecFF extends BaseCommand {
+		// TODO add ffprobe...
+
+		@ParentCommand
+		AppCommand parent;
+
+		@Option(names = { "-i", "--input" },
+				description = "Input (media) file to process",
+				paramLabel = "FILE",
+				required = true)
+		File input;
+
+		@ArgGroup(exclusive = true)
+		TypeExclusive typeExclusive;
+
+		static class TypeExclusive {
+			@Option(names = { "-an", "--audio-no" },
+					description = "Don't process audio stream metadatas",
+					required = false)
+			boolean audioNo;
+
+			@Option(names = { "-vn", "--video-no" },
+					description = "Don't process video stream metadatas",
+					required = false)
+			boolean videoNo;
+		}
+
+		void validate() throws ParameterException {
+			if (input == null) {
+				throw new ParameterException(commandLine, "You must set an input file");
+			} else if (input.exists() == false) {
+				throw new ParameterException(commandLine, "Can't found the provided input file",
+						new FileNotFoundException(input.getPath()));
+			} else if (input.isFile() == false) {
+				throw new ParameterException(commandLine, "The provided input file is not a regular file",
+						new FileNotFoundException(input.getPath()));
+			}
+		}
+
+	}
+
+	@Command(name = "extract",
+			 description = "Run ffmpeg/ffprobe and extract raw datas to text files from it",
+			 sortOptions = false)
+	public class ExtractCommand extends BaseCommandExecFF implements Callable<Integer> {
+
+		@Override
+		public Integer call() throws Exception {
+			validate();
+			final var consoleT = new Thread(() -> {// TODO move it in this class
+				out().println("Press [ENTER] to quit...");
+				final var keyboard = new Scanner(System.in);
+				keyboard.nextLine();
+				keyboard.close();
+				System.exit(0);
+			});
+			consoleT.setDaemon(true);
+			consoleT.start();
+
+			final var mtd = ffmpegService.doExtractMtd(input, new ProgressCLI(out()),
+					typeExclusive.audioNo,
+					typeExclusive.videoNo);
+
+			final var lavfi = mtd.lavfiMetadatas();
+			/*final var filters = lavfi.stream()
+					.flatMap(f -> f.getValuesByFilterKeysByFilterName().keySet().stream())
+					.distinct()
+					.toList();*/
+
+			// XXX log.info("Mtd: {}, {}, I={} LU", lavfi.size(), filters, mtd.ebur128Summary().getIntegrated());
+
+			/*lavfi.stream()
+					.forEach(f -> System.out.println(f.getLavfiMtdPosition().frame()
+													 + "\t"
+													 + f.getValuesByFilterKeysByFilterName().size()));*/
+
+			// FIXME missing silence detect
+
+			// TODO test video
+			/*
+			final var r128s = maResult.ebur128Summary();
+			Optional.ofNullable(r128s).ifPresent(r -> log.info("LUFS: {}", r));
+
+			final var m = maResult.lavfiMetadatas();
+
+			afAPhasemeter.getEvents(m).;
+			afAPhasemeter.getMetadatas(m);
+			*/
+
+			return 0;
+		}
+	}
+
+	@Command(name = "process",
+			 description = "Run ffmpeg/ffprobe and process extracted datas",
+			 sortOptions = false)
+	public class ProcessCommand extends BaseCommandExecFF implements Callable<Integer> {
+
+		@Override
+		public Integer call() throws Exception {
+			validate();
+			// TODO Auto-generated method stub
+			return 0;
+		}
+	}
+
+	@Command(name = "import",
+			 description = "Import extracted raw datas from ffmpeg/ffprobe and process it",
+			 sortOptions = false)
+	public class ImportCommand extends BaseCommand implements Callable<Integer> {
+		@ParentCommand
+		private AppCommand parent;
+
+		@Override
+		public Integer call() throws Exception {
+			// TODO Auto-generated method stub
+			return 0;
+		}
 	}
 
 	public PrintWriter out() {

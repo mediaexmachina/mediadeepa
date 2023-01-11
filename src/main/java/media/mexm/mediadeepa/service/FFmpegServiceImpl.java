@@ -23,6 +23,7 @@ import java.net.SocketException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
@@ -197,7 +198,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 		maSession.setFFprobeResult(ffprobeJAXB);
 		// TODO2 graph maSession.setEbur128EventConsumer(ebur128EventConsumer);
 
-		return maSession.process();
+		return maSession.process(Optional.empty());// XXX set process
 	}
 
 	// TODO create ContainerAnalyser
