@@ -190,13 +190,8 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 					paramLabel = "TEXT_FILE")
 			File vlavfi;
 
-			@Option(names = { "--extract-ebur128" },
-					description = "Extract raw ffmpeg datas from ebur128 (stderr) filter",
-					paramLabel = "TEXT_FILE")
-			File ebur128;
-
 			@Option(names = { "--extract-stderr" },
-					description = "Extract raw ffmpeg datas from stderr (not ebur128) filter",
+					description = "Extract raw ffmpeg datas from stderr",
 					paramLabel = "TEXT_FILE")
 			File stderr;
 

@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import media.mexm.mediadeepa.ProgressCLI;
+import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ProcessFile;
 import media.mexm.mediadeepa.components.FFmpegSupplier;
 import tv.hd3g.fflauncher.about.FFAbout;
 import tv.hd3g.fflauncher.about.FFAboutFilter;
@@ -65,8 +66,11 @@ import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
 import tv.hd3g.fflauncher.progress.ProgressBlock;
 import tv.hd3g.fflauncher.progress.ProgressCallback;
 import tv.hd3g.fflauncher.progress.ProgressListener;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyser;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
 import tv.hd3g.fflauncher.recipes.MediaAnalyser;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
 import tv.hd3g.fflauncher.recipes.ProbeMedia;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
@@ -157,6 +161,31 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	@Override
+	public MediaAnalyserSession createMediaAnalyserSession(final ProcessFile processFile,
+														   final File lavfiSecondaryVideoFile) {
+		// TODO Auto-generated method stub
+		processFile.getInput();
+		processFile.getAFilterChain();
+		processFile.getVFilterChain();
+		processFile.getDuration();
+		processFile.getStartTime();
+		processFile.getFiltersIgnore();
+		processFile.getFiltersOnly();
+		processFile.getTypeExclusive();
+
+		// lavfiSecondaryFile
+
+		return null;
+	}
+
+	@Override
+	public ContainerAnalyserSession createContainerAnalyserSession(final ProcessFile processFile) {
+		final var ca = new ContainerAnalyser(ffprobeExecName, executableFinder);
+		return ca.createSession(processFile.getInput());
+	}
+
+	@Override
+	@Deprecated
 	public MediaAnalyserResult doExtractMtd(final File source,
 											final ProgressCLI progressCLI,
 											final boolean audioNo,

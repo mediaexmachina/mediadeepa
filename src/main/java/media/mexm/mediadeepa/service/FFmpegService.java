@@ -20,7 +20,10 @@ import java.io.File;
 import java.util.Map;
 
 import media.mexm.mediadeepa.ProgressCLI;
+import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ProcessFile;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
 
 public interface FFmpegService {
 
@@ -28,6 +31,11 @@ public interface FFmpegService {
 
 	Map<String, String> getVersions();
 
+	MediaAnalyserSession createMediaAnalyserSession(ProcessFile processFile, File lavfiSecondaryVideoFile);
+
+	ContainerAnalyserSession createContainerAnalyserSession(ProcessFile processFile);
+
+	@Deprecated
 	MediaAnalyserResult doExtractMtd(File source, ProgressCLI progressCLI, boolean audioNo, boolean videoNo);
 
 }

@@ -17,6 +17,7 @@
 package media.mexm.mediadeepa.service;
 
 import java.io.File;
+import java.io.IOException;
 
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExportTo;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExtractTo;
@@ -44,6 +45,6 @@ public interface AppSessionService {
 					   ExtractTo extractTo,
 					   ImportFrom importFrom,
 					   ProcessFile processFile,
-					   File tempDir);
+					   File tempDir) throws IOException;
 
 }

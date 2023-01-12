@@ -19,8 +19,14 @@ package media.mexm.mediadeepa.service;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -61,6 +67,12 @@ public class AppSessionServiceImpl implements AppSessionService {
 			^ (importFrom != null && exportTo != null)) {
 			throw new ParameterException(commandLine,
 					"You can't cumulate options like --input/--import, --extract/--export");
+		} else if (processFile == null
+				   && extractTo == null
+				   && exportTo == null
+				   && importFrom == null) {
+			throw new ParameterException(commandLine,
+					"You must setup options like --input --import --extract --export");
 		}
 
 		if (processFile != null) {
@@ -72,8 +84,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 			Optional.ofNullable(extractTo.getAlavfi())
 					.ifPresent(f -> validateOutputFile(commandLine, f));
 			Optional.ofNullable(extractTo.getContainer())
-					.ifPresent(f -> validateOutputFile(commandLine, f));
-			Optional.ofNullable(extractTo.getEbur128())
 					.ifPresent(f -> validateOutputFile(commandLine, f));
 			Optional.ofNullable(extractTo.getStderr())
 					.ifPresent(f -> validateOutputFile(commandLine, f));
@@ -143,37 +153,123 @@ public class AppSessionServiceImpl implements AppSessionService {
 							  final ExtractTo extractTo,
 							  final ImportFrom importFrom,
 							  final ProcessFile processFile,
-							  final File tempDir) {
+							  final File tempDir) throws IOException {
+		if (processFile != null && extractTo != null) {
+			log.info("Prepare extraction session");
+
+			if (processFile.isNoMediaAnalysing() == false) {
+				final var lavfiSecondaryFile = prepareTempFile(tempDir);
+				final var maSession = ffmpegService.createMediaAnalyserSession(processFile, lavfiSecondaryFile);
+				maSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()));
+
+				final var stderrList = new ArrayList<String>();
+
+				if (maSession.getAudioFilters().isEmpty() == false) {
+					final var aLavfiList = new ArrayList<String>();
+					final var cAlavfi = makeConsumerToList(aLavfiList, extractTo.getAlavfi());
+					final var cStderr = makeConsumerToList(stderrList, extractTo.getStderr());
+
+					maSession.extract(cAlavfi, cStderr);
+
+					writeNonEmptyLines(extractTo.getAlavfi(), aLavfiList);
+					writeNonEmptyLines(extractTo.getStderr(), stderrList);
+
+					if (maSession.getVideoFilters().isEmpty() == false
+						&& lavfiSecondaryFile.exists()) {
+						if (lavfiSecondaryFile.length() == 0
+							|| extractTo.getVlavfi() == null) {
+							FileUtils.deleteQuietly(lavfiSecondaryFile);
+						} else {
+							FileUtils.moveFile(lavfiSecondaryFile, extractTo.getVlavfi());
+						}
+					}
+				} else {
+					final var vLavfiList = new ArrayList<String>();
+					final var cVlavfi = makeConsumerToList(vLavfiList, extractTo.getVlavfi());
+					final var cStderr = makeConsumerToList(stderrList, extractTo.getStderr());
+
+					maSession.extract(cVlavfi, cStderr);
+					writeNonEmptyLines(extractTo.getVlavfi(), vLavfiList);
+					writeNonEmptyLines(extractTo.getStderr(), stderrList);
+				}
+			}
+
+			if (processFile.isContainerAnalysing()) {
+				final var caSession = ffmpegService.createContainerAnalyserSession(processFile);
+				caSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()));
+				Objects.requireNonNull(extractTo.getContainer(), "You must set a --extract-container FILE");
+
+				try (var pw = new PrintWriter(extractTo.getContainer())) {
+					caSession.extract(pw::println);
+				}
+			}
+		} else if (processFile != null && exportTo != null) {
+			log.info("Prepare processing session from media file");
+			// XXX
+
+			exportTo.getExport();
+			exportTo.getFormat();
+
+		} else if (importFrom != null && exportTo != null) {
+			log.info("Prepare processing session from offline ffmpeg/ffprobe exports");
+			// XXX
+		} else {
+			throw new IllegalArgumentException("Nothing to do");
+		}
+
+		if (processFile != null) {
+			// validateInputFile(commandLine, processFile.getInput());
+		}
+		if (extractTo != null) {
+			/*Optional.ofNullable(extractTo.getVlavfi())
+					.ifPresent(f -> validateOutputFile(commandLine, f));
+			Optional.ofNullable(extractTo.getAlavfi())
+					.ifPresent(f -> validateOutputFile(commandLine, f));
+			Optional.ofNullable(extractTo.getContainer())
+					.ifPresent(f -> validateOutputFile(commandLine, f));
+			Optional.ofNullable(extractTo.getEbur128())
+					.ifPresent(f -> validateOutputFile(commandLine, f));
+			Optional.ofNullable(extractTo.getStderr())
+					.ifPresent(f -> validateOutputFile(commandLine, f));*/
+		}
+		if (exportTo != null) {
+			/*validateOutputDir(commandLine, exportTo.getExport());
+			if (exportTo.getFormat() == null || exportTo.getFormat().isEmpty()) {
+				throw new ParameterException(commandLine, "Export format can't be empty");
+			}*/
+		}
+		if (importFrom != null) {
+			/*Optional.ofNullable(importFrom.getContainer())
+					.ifPresent(f -> validateInputFile(commandLine, f));
+			Optional.ofNullable(importFrom.getLavfi())
+					.stream()
+					.flatMap(Set::stream)
+					.forEach(f -> validateInputFile(commandLine, f));
+			Optional.ofNullable(importFrom.getStderr())
+					.ifPresent(f -> validateInputFile(commandLine, f));*/
+		}
+
 	}
 
-	/*final var mtd = ffmpegService.doExtractMtd(input, new ProgressCLI(out()),
-	typeExclusive.audioNo,
-	typeExclusive.videoNo);
+	File prepareTempFile(final File tempDir) {
+		return null; // TODO
+	}
 
-	final var lavfi = mtd.lavfiMetadatas();
-	final var filters = lavfi.stream()
-	.flatMap(f -> f.getValuesByFilterKeysByFilterName().keySet().stream())
-	.distinct()
-	.toList();*/
+	void writeNonEmptyLines(final File file, final List<String> lines) throws IOException {// TODO expprt
+		if (lines.isEmpty()) {
+			return;
+		}
+		FileUtils.writeLines(file, lines, false);
+	}
 
-	// XXX log.info("Mtd: {}, {}, I={} LU", lavfi.size(), filters, mtd.ebur128Summary().getIntegrated());
-
-	/*lavfi.stream()
-		.forEach(f -> System.out.println(f.getLavfiMtdPosition().frame()
-										 + "\t"
-										 + f.getValuesByFilterKeysByFilterName().size()));*/
+	Consumer<String> makeConsumerToList(final List<String> list, final File reference) {// TODO expprt
+		if (reference == null) {
+			return line -> {
+			};
+		}
+		return list::add;
+	}
 
 	// FIXME missing silence detect
-
-	// TODO test video
-	/*
-	final var r128s = maResult.ebur128Summary();
-	Optional.ofNullable(r128s).ifPresent(r -> log.info("LUFS: {}", r));
-
-	final var m = maResult.lavfiMetadatas();
-
-	afAPhasemeter.getEvents(m).;
-	afAPhasemeter.getMetadatas(m);
-	*/
 
 }
