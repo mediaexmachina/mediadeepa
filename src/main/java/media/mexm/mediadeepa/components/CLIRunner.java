@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import javax.annotation.PostConstruct;
@@ -43,7 +44,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
-import media.mexm.mediadeepa.ProgressCLI;
+import lombok.Getter;
+import media.mexm.mediadeepa.service.AppSessionService;
 import media.mexm.mediadeepa.service.FFmpegService;
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
@@ -51,8 +53,6 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Help;
 import picocli.CommandLine.IFactory;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.ParameterException;
-import picocli.CommandLine.ParentCommand;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Component
@@ -71,6 +71,8 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	private String ffprobeExecName;
 	@Autowired
 	private ExecutableFinder executableFinder;
+	@Autowired
+	private AppSessionService appSessionService;
 
 	private CommandLine commandLine;
 	private int exitCode;
@@ -78,28 +80,169 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	@PostConstruct
 	void init() {
 		commandLine = new CommandLine(new AppCommand(), factory);
-		commandLine.addSubcommand(new ExtractCommand());
-		commandLine.addSubcommand(new ImportCommand());
-		commandLine.addSubcommand(new ProcessCommand());
-	}
-
-	private class BaseCommand {
-		@Option(names = { "-h", "--help" }, description = "Show the usage help", usageHelp = true)
-		boolean help;
 	}
 
 	@Command(name = "mediadeepa",
 			 description = "Extract/process technical informations from audio/videos files/streams",
 			 version = { "Media Deep Analysis %1$s",
 						 "Copyright (C) 2022-%2$s Media ex Machina, under the GNU General Public License" },
-			 sortOptions = false)
-	public class AppCommand extends BaseCommand implements Callable<Integer> {
+			 sortOptions = false,
+			 separator = " ")
+	public class AppCommand implements Callable<Integer> {
+
+		@Option(names = { "-h", "--help" }, description = "Show the usage help", usageHelp = true)
+		boolean help;
 
 		@Option(names = { "-v", "--version" }, description = "Show the application version")
 		boolean version;
 
 		@Option(names = { "-o", "--options" }, description = "Show the avaliable options on this system")
 		boolean options;
+
+		@ArgGroup(exclusive = false)
+		ProcessFile processFile;
+
+		@Getter
+		public static class ProcessFile {
+			@Option(names = { "-i", "--input" },
+					description = "Input (media) file to process",
+					paramLabel = "FILE")
+			File input;
+
+			@Option(names = { "-c", "--container" },
+					description = "Do a container analysing (ffprobe streams)")
+			boolean containerAnalysing;
+
+			@Option(names = { "-t" },
+					description = { "Duration of input file to proces it",
+									"See https://ffmpeg.org/ffmpeg-utils.html#time-duration-syntax" },
+					paramLabel = "DURATION")
+			String duration;
+
+			@Option(names = { "-ss" },
+					description = { "Seek time in input file before to proces it",
+									"See https://ffmpeg.org/ffmpeg-utils.html#time-duration-syntax" },
+					paramLabel = "DURATION")
+			String startTime;
+
+			@Option(names = { "-max" },
+					description = { "Max time let to process a file" },
+					paramLabel = "SECONDS")
+			int maxSec;
+
+			@Option(names = { "-fo", "--filter-only" },
+					description = { "Allow only this filter(s) to process (-o to get list)" },
+					paramLabel = "FILTER")
+			Set<String> filtersOnly;
+
+			@Option(names = { "-fn", "--filter-no" },
+					description = { "Not use this filter(s) to process (-o to get list)" },
+					paramLabel = "FILTER")
+			Set<String> filtersIgnore;
+
+			@Option(names = { "-vf" },
+					description = { "Set personalized video ffmpeg filter chain configuration" },
+					paramLabel = "FILTERCHAIN")
+			String vFilterChain;
+
+			@Option(names = { "-af" },
+					description = { "Set personalized audio ffmpeg filter chain configuration" },
+					paramLabel = "FILTERCHAIN")
+			String aFilterChain;
+
+			@ArgGroup(exclusive = true)
+			TypeExclusive typeExclusive;
+
+			static class TypeExclusive {
+				@Option(names = { "-an", "--audio-no" },
+						description = "Ignore all video filters",
+						required = false)
+				boolean audioNo;
+
+				@Option(names = { "-vn", "--video-no" },
+						description = "Ignore all audio filters",
+						required = false)
+				boolean videoNo;
+			}
+
+			@Option(names = { "-mn", "--media-no" },
+					description = "Disable media analysing (ffmpeg)")
+			boolean noMediaAnalysing;
+		}
+
+		@Option(names = { "--temp" },
+				description = "Temp dir to use in the case of the needs to export to a temp file",
+				paramLabel = "DIRECTORY")
+		File tempDir;
+
+		@ArgGroup(exclusive = false)
+		ExtractTo extractTo;
+
+		@Getter
+		public static class ExtractTo {
+			@Option(names = { "--extract-alavfi" },
+					description = "Extract raw ffmpeg datas from LAVFI audio metadata filter",
+					paramLabel = "TEXT_FILE")
+			File alavfi;
+
+			@Option(names = { "--extract-vlavfi" },
+					description = "Extract raw ffmpeg datas from LAVFI video metadata filter",
+					paramLabel = "TEXT_FILE")
+			File vlavfi;
+
+			@Option(names = { "--extract-ebur128" },
+					description = "Extract raw ffmpeg datas from ebur128 (stderr) filter",
+					paramLabel = "TEXT_FILE")
+			File ebur128;
+
+			@Option(names = { "--extract-stderr" },
+					description = "Extract raw ffmpeg datas from stderr (not ebur128) filter",
+					paramLabel = "TEXT_FILE")
+			File stderr;
+
+			@Option(names = { "--extract-container" },
+					description = "Extract raw ffprobe datas from container analyser",
+					paramLabel = "TEXT_FILE")
+			File container;
+		}
+
+		@ArgGroup(exclusive = false)
+		ImportFrom importFrom;
+
+		@Getter
+		public static class ImportFrom {
+			@Option(names = { "--import-lavfi" },
+					description = "Import raw ffmpeg datas from LAVFI metadata filter",
+					paramLabel = "TEXT_FILE")
+			Set<File> lavfi;
+
+			@Option(names = { "--import-stderr" },
+					description = "Import raw ffmpeg datas from stderr filter",
+					paramLabel = "TEXT_FILE")
+			File stderr;
+
+			@Option(names = { "--import-container" },
+					description = "Import raw ffprobe datas from container analyser",
+					paramLabel = "TEXT_FILE")
+			File container;
+		}
+
+		@ArgGroup(exclusive = false)
+		ExportTo exportTo;
+
+		@Getter
+		public static class ExportTo {
+
+			@Option(names = { "-f", "--format" },
+					description = "Format to export datas",
+					paramLabel = "FORMAT_TYPE")
+			Set<String> format;
+
+			@Option(names = { "-e", "--export" },
+					description = "Export datas to this directory",
+					paramLabel = "DIRECTORY")
+			File export;
+		}
 
 		@Override
 		public Integer call() throws Exception {
@@ -108,6 +251,20 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 			} else if (options) {
 				printOptions();
 			}
+
+			appSessionService.verifyOptions(commandLine, exportTo, extractTo, importFrom, processFile, tempDir);
+
+			final var consoleT = new Thread(() -> {// TODO move it in this class
+				out().println("Press [ENTER] to quit...");
+				final var keyboard = new Scanner(System.in);
+				keyboard.nextLine();
+				keyboard.close();
+				System.exit(0);
+			});
+			consoleT.setDaemon(true);
+			consoleT.start();
+
+			appSessionService.createSession(exportTo, extractTo, importFrom, processFile, tempDir);
 
 			return 0;
 		}
@@ -163,126 +320,6 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 			});
 		}
 
-	}
-
-	private abstract class BaseCommandExecFF extends BaseCommand {
-		// TODO add ffprobe...
-
-		@ParentCommand
-		AppCommand parent;
-
-		@Option(names = { "-i", "--input" },
-				description = "Input (media) file to process",
-				paramLabel = "FILE",
-				required = true)
-		File input;
-
-		@ArgGroup(exclusive = true)
-		TypeExclusive typeExclusive;
-
-		static class TypeExclusive {
-			@Option(names = { "-an", "--audio-no" },
-					description = "Don't process audio stream metadatas",
-					required = false)
-			boolean audioNo;
-
-			@Option(names = { "-vn", "--video-no" },
-					description = "Don't process video stream metadatas",
-					required = false)
-			boolean videoNo;
-		}
-
-		void validate() throws ParameterException {
-			if (input == null) {
-				throw new ParameterException(commandLine, "You must set an input file");
-			} else if (input.exists() == false) {
-				throw new ParameterException(commandLine, "Can't found the provided input file",
-						new FileNotFoundException(input.getPath()));
-			} else if (input.isFile() == false) {
-				throw new ParameterException(commandLine, "The provided input file is not a regular file",
-						new FileNotFoundException(input.getPath()));
-			}
-		}
-
-	}
-
-	@Command(name = "extract",
-			 description = "Run ffmpeg/ffprobe and extract raw datas to text files from it",
-			 sortOptions = false)
-	public class ExtractCommand extends BaseCommandExecFF implements Callable<Integer> {
-
-		@Override
-		public Integer call() throws Exception {
-			validate();
-			final var consoleT = new Thread(() -> {// TODO move it in this class
-				out().println("Press [ENTER] to quit...");
-				final var keyboard = new Scanner(System.in);
-				keyboard.nextLine();
-				keyboard.close();
-				System.exit(0);
-			});
-			consoleT.setDaemon(true);
-			consoleT.start();
-
-			final var mtd = ffmpegService.doExtractMtd(input, new ProgressCLI(out()),
-					typeExclusive.audioNo,
-					typeExclusive.videoNo);
-
-			final var lavfi = mtd.lavfiMetadatas();
-			/*final var filters = lavfi.stream()
-					.flatMap(f -> f.getValuesByFilterKeysByFilterName().keySet().stream())
-					.distinct()
-					.toList();*/
-
-			// XXX log.info("Mtd: {}, {}, I={} LU", lavfi.size(), filters, mtd.ebur128Summary().getIntegrated());
-
-			/*lavfi.stream()
-					.forEach(f -> System.out.println(f.getLavfiMtdPosition().frame()
-													 + "\t"
-													 + f.getValuesByFilterKeysByFilterName().size()));*/
-
-			// FIXME missing silence detect
-
-			// TODO test video
-			/*
-			final var r128s = maResult.ebur128Summary();
-			Optional.ofNullable(r128s).ifPresent(r -> log.info("LUFS: {}", r));
-
-			final var m = maResult.lavfiMetadatas();
-
-			afAPhasemeter.getEvents(m).;
-			afAPhasemeter.getMetadatas(m);
-			*/
-
-			return 0;
-		}
-	}
-
-	@Command(name = "process",
-			 description = "Run ffmpeg/ffprobe and process extracted datas",
-			 sortOptions = false)
-	public class ProcessCommand extends BaseCommandExecFF implements Callable<Integer> {
-
-		@Override
-		public Integer call() throws Exception {
-			validate();
-			// TODO Auto-generated method stub
-			return 0;
-		}
-	}
-
-	@Command(name = "import",
-			 description = "Import extracted raw datas from ffmpeg/ffprobe and process it",
-			 sortOptions = false)
-	public class ImportCommand extends BaseCommand implements Callable<Integer> {
-		@ParentCommand
-		private AppCommand parent;
-
-		@Override
-		public Integer call() throws Exception {
-			// TODO Auto-generated method stub
-			return 0;
-		}
 	}
 
 	public PrintWriter out() {
