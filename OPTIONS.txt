@@ -11,10 +11,10 @@
 
 -vn ignore all video filters
 -an ignore all audio filters
--fo --filter-only FILTERS allow only filter list
--fn --filter-no FILTERS not use this filter list
--vf set personalized video filter configuration
--af set personalized audio filter configuration
+-fo --filter-only FILTER allow only filter list
+-fn --filter-no FILTER not use this filter list
+-vf FILTERCHAIN set personalized video filter configuration
+-af FILTERCHAIN set personalized audio filter configuration
 
 -c --container do a container analysing
 -mn --media-no disable media analysing
@@ -25,7 +25,7 @@
 --extract-stderr TEXT_FILE extract raw ffmpeg datas from stderr (not ebur128) filter
 --extract-container TEXT_FILE extract raw ffprobe datas from container analyser
 
---temp DIR temp dir to use in the case of LAVFI metadata filter need to export to a temp file
+--temp DIR temp dir to use in the case of the need to export to a temp file
 
 --import-lavfi TEXT_FILE... import raw ffmpeg datas from LAVFI metadata filter
 --import-stderr TEXT_FILE import raw ffmpeg datas from stderr filter
