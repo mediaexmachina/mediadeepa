@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
@@ -54,6 +55,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 	private String ffprobeExecName;
 	@Autowired
 	private ExecutableFinder executableFinder;
+	@Autowired
+	private ScheduledExecutorService scheduledExecutorService;
 
 	@Override
 	public void verifyOptions(final CommandLine commandLine,
@@ -160,7 +163,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 			if (processFile.isNoMediaAnalysing() == false) {
 				final var lavfiSecondaryFile = prepareTempFile(tempDir);
 				final var maSession = ffmpegService.createMediaAnalyserSession(processFile, lavfiSecondaryFile);
-				maSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()));
+				maSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()), scheduledExecutorService);
 
 				final var stderrList = new ArrayList<String>();
 
@@ -196,7 +199,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 			if (processFile.isContainerAnalysing()) {
 				final var caSession = ffmpegService.createContainerAnalyserSession(processFile);
-				caSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()));
+				caSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()), scheduledExecutorService);
 				Objects.requireNonNull(extractTo.getContainer(), "You must set a --extract-container FILE");
 
 				try (var pw = new PrintWriter(extractTo.getContainer())) {
