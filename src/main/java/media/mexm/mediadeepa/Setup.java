@@ -73,4 +73,8 @@ public class Setup {
 		return new ProgressListener();
 	}
 
+	@Bean
+	public KeyPressToExit getKeyPressToExit() {
+		return new KeyPressToExit(System.in);
+	}
 }

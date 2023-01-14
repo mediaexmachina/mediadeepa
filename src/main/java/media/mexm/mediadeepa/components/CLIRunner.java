@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -45,6 +44,7 @@ import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
 import lombok.Getter;
+import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.service.AppSessionService;
 import media.mexm.mediadeepa.service.FFmpegService;
 import picocli.CommandLine;
@@ -73,6 +73,8 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	private ExecutableFinder executableFinder;
 	@Autowired
 	private AppSessionService appSessionService;
+	@Autowired
+	private KeyPressToExit keyPressToExit;
 
 	private CommandLine commandLine;
 	private int exitCode;
@@ -195,9 +197,19 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 					paramLabel = "TEXT_FILE")
 			File stderr;
 
-			@Option(names = { "--extract-container" },
-					description = "Extract raw ffprobe datas from container analyser",
+			@Option(names = { "--extract-probeheaders" },
+					description = "Extract XML ffprobe datas from container headers",
+					paramLabel = "XML_FILE")
+			File probeHeaders;
+
+			@Option(names = { "--extract-probesummary" },
+					description = "Extract simple ffprobe data summary from container headers",
 					paramLabel = "TEXT_FILE")
+			File probeSummary;
+
+			@Option(names = { "--extract-container" },
+					description = "Extract XML ffprobe datas from container analyser",
+					paramLabel = "XML_FILE")
 			File container;
 		}
 
@@ -216,9 +228,14 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 					paramLabel = "TEXT_FILE")
 			File stderr;
 
+			@Option(names = { "--import-probeheaders" },
+					description = "Import XML ffprobe datas from container headers",
+					paramLabel = "XML_FILE")
+			File probeHeaders;
+
 			@Option(names = { "--import-container" },
 					description = "Import raw ffprobe datas from container analyser",
-					paramLabel = "TEXT_FILE")
+					paramLabel = "XML_FILE")
 			File container;
 		}
 
@@ -248,18 +265,20 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 			}
 
 			appSessionService.verifyOptions(commandLine, exportTo, extractTo, importFrom, processFile, tempDir);
+			keyPressToExit.start();
 
-			final var consoleT = new Thread(() -> {// TODO move it in this class
-				out().println("Press [ENTER] to quit...");
-				final var keyboard = new Scanner(System.in);
-				keyboard.nextLine();
-				keyboard.close();
-				System.exit(0);
-			});
-			consoleT.setDaemon(true);
-			consoleT.start();
-
-			appSessionService.createSession(exportTo, extractTo, importFrom, processFile, tempDir);
+			if (processFile != null && extractTo != null) {
+				log.info("Prepare extraction session");
+				appSessionService.createExtractionSession(processFile, extractTo, tempDir);
+			} else if (processFile != null && exportTo != null) {
+				log.info("Prepare processing session from media file");
+				appSessionService.createProcessingSession(processFile, exportTo, tempDir);
+			} else if (importFrom != null && exportTo != null) {
+				log.info("Prepare processing session from offline ffmpeg/ffprobe exports");
+				appSessionService.createOfflineProcessingSession(importFrom, exportTo);
+			} else {
+				throw new IllegalArgumentException("Nothing to do");
+			}
 
 			return 0;
 		}
@@ -310,9 +329,9 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 			out().format("%-15s%-15s\n", "", versions.get("ffprobe"));// NOSONAR S3457
 			out().println("");
 			out().println("Detected (and usable) filters:");
-			ffmpegService.getMtdFiltersAvaliable().forEach((k, v) -> {
-				out().format("%-15s%-15s\n", k, v); // NOSONAR S3457
-			});
+			ffmpegService.getMtdFiltersAvaliable()
+					.forEach((k, v) -> out().format("%-15s%-15s\n", k, v) // NOSONAR S3457
+					);
 		}
 
 	}

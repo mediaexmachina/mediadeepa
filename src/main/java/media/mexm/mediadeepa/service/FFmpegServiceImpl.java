@@ -72,6 +72,7 @@ import tv.hd3g.fflauncher.recipes.MediaAnalyser;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
 import tv.hd3g.fflauncher.recipes.ProbeMedia;
+import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Service
@@ -175,6 +176,8 @@ public class FFmpegServiceImpl implements FFmpegService {
 
 		// lavfiSecondaryFile
 
+		// FIXME missing silence detect
+
 		return null;
 	}
 
@@ -182,6 +185,14 @@ public class FFmpegServiceImpl implements FFmpegService {
 	public ContainerAnalyserSession createContainerAnalyserSession(final ProcessFile processFile) {
 		final var ca = new ContainerAnalyser(ffprobeExecName, executableFinder);
 		return ca.createSession(processFile.getInput());
+	}
+
+	@Override
+	public FFprobeJAXB getFFprobeJAXBFromFileToProcess(final ProcessFile processFile) {
+		final var ffprobeJAXB = new ProbeMedia(executableFinder, maxExecTimeScheduler)
+				.doAnalysing(processFile.getInput());
+		log.info("ffprobe result: {}", ffprobeJAXB);
+		return ffprobeJAXB;
 	}
 
 	@Override
@@ -229,8 +240,6 @@ public class FFmpegServiceImpl implements FFmpegService {
 
 		return maSession.process(Optional.empty());// XXX set process
 	}
-
-	// TODO create ContainerAnalyser
 
 	private void logFilterPresence(final VideoFilterSupplier f) {
 		log.info("Setup {} video filter", f.toFilter());

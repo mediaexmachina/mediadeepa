@@ -24,6 +24,7 @@ import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ProcessFile;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
+import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
 public interface FFmpegService {
 
@@ -37,5 +38,7 @@ public interface FFmpegService {
 
 	@Deprecated
 	MediaAnalyserResult doExtractMtd(File source, ProgressCLI progressCLI, boolean audioNo, boolean videoNo);
+
+	FFprobeJAXB getFFprobeJAXBFromFileToProcess(ProcessFile processFile);
 
 }

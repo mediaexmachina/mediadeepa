@@ -18,6 +18,9 @@ package media.mexm.mediadeepa.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExportTo;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExtractTo;
@@ -35,16 +38,23 @@ public interface AppSessionService {
 					   ProcessFile processFile,
 					   File tempDir) throws ParameterException;
 
-	void validateInputFile(final CommandLine commandLine, final File file) throws ParameterException;
+	void validateInputFile(CommandLine commandLine, File file) throws ParameterException;
 
-	void validateOutputFile(final CommandLine commandLine, final File file) throws ParameterException;
+	void validateOutputFile(CommandLine commandLine, File file) throws ParameterException;
 
-	void validateOutputDir(final CommandLine commandLine, final File dir) throws ParameterException;
+	void validateOutputDir(CommandLine commandLine, File dir) throws ParameterException;
 
-	void createSession(ExportTo exportTo,
-					   ExtractTo extractTo,
-					   ImportFrom importFrom,
-					   ProcessFile processFile,
-					   File tempDir) throws IOException;
+	void createExtractionSession(ProcessFile processFile, ExtractTo extractTo, File tempDir) throws IOException;
 
+	void createProcessingSession(ProcessFile processFile, ExportTo exportTo, File tempDir) throws IOException;
+
+	void createOfflineProcessingSession(ImportFrom importFrom, ExportTo exportTo) throws IOException;
+
+	File prepareTempFile(File tempDir);
+
+	void writeNonEmptyLines(File file, List<String> lines) throws IOException;
+
+	Consumer<String> makeConsumerToList(List<String> list, File reference);
+
+	Stream<String> openFileToLineStream(File file);
 }
