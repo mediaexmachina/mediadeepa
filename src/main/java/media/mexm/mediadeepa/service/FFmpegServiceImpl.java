@@ -161,6 +161,8 @@ public class FFmpegServiceImpl implements FFmpegService {
 		return result;
 	}
 
+	// FIXME missing silence detect
+
 	@Override
 	public MediaAnalyserSession createMediaAnalyserSession(final ProcessFile processFile,
 														   final File lavfiSecondaryVideoFile) {
@@ -175,8 +177,6 @@ public class FFmpegServiceImpl implements FFmpegService {
 		processFile.getTypeExclusive();
 
 		// lavfiSecondaryFile
-
-		// FIXME missing silence detect
 
 		return null;
 	}
@@ -207,7 +207,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 		final var programDurationSec = ffprobeJAXB.getFormat().getDuration();
 		log.info("ffprobe result: {} ({} sec)",
 				ffprobeJAXB.getFormat().getFormatName(),
-				programDurationSec);// TODO2 better display ffprobeJAXB https://github.com/hdsdi3g/medialib/issues/28
+				programDurationSec);
 
 		final var ma = new MediaAnalyser(ffmpegExecName, executableFinder, ffmpegAbout);
 		setProgress(progressCLI, programDurationSec, ma);
@@ -225,9 +225,9 @@ public class FFmpegServiceImpl implements FFmpegService {
 			ma.addFilterBlockdetect(this::logFilterPresence);
 			ma.addFilterBlurdetect(this::logFilterPresence);
 			ma.addFilterCropdetect(this::logFilterPresence);
-			// XXX ma.addFilterIdet(this::logFilterPresence);
-			// XXX ma.addFilterSiti(this::logFilterPresence);
-			// XXX ma.addFilterFreezedetect(this::logFilterPresence);
+			ma.addFilterIdet(this::logFilterPresence);
+			ma.addFilterSiti(this::logFilterPresence);
+			ma.addFilterFreezedetect(this::logFilterPresence);
 			ma.addFilterMetadata(f -> {
 				f.setFile("target/vmetadata.txt");
 				logFilterPresence(f);
@@ -236,9 +236,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 
 		final var maSession = ma.createSession(source);
 		maSession.setFFprobeResult(ffprobeJAXB);
-		// TODO2 graph maSession.setEbur128EventConsumer(ebur128EventConsumer);
-
-		return maSession.process(Optional.empty());// XXX set process
+		return maSession.process(Optional.empty());
 	}
 
 	private void logFilterPresence(final VideoFilterSupplier f) {

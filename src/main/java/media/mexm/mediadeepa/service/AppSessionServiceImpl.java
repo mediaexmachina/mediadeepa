@@ -183,7 +183,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 	public void createExtractionSession(final ProcessFile processFile,
 										final ExtractTo extractTo,
 										final File tempDir) throws IOException {
-		// TODO add logs
 		if (processFile.isNoMediaAnalysing() == false) {
 			log.debug("Prepare media analysing...");
 
@@ -201,8 +200,10 @@ public class AppSessionServiceImpl implements AppSessionService {
 				final var cAlavfi = makeConsumerToList(aLavfiList, extractTo.getAlavfi());
 				final var cStderr = makeConsumerToList(stderrList, extractTo.getStderr());
 
+				log.debug("Start media analysing session...");
 				maSession.extract(cAlavfi, cStderr);
 
+				log.debug("Save media analysing to file(s)...");
 				writeNonEmptyLines(extractTo.getAlavfi(), aLavfiList);
 				writeNonEmptyLines(extractTo.getStderr(), stderrList);
 
@@ -220,19 +221,23 @@ public class AppSessionServiceImpl implements AppSessionService {
 				final var cVlavfi = makeConsumerToList(vLavfiList, extractTo.getVlavfi());
 				final var cStderr = makeConsumerToList(stderrList, extractTo.getStderr());
 
+				log.debug("Start container analysing session...");
 				maSession.extract(cVlavfi, cStderr);
+
+				log.debug("Save container analysing to file(s)...");
 				writeNonEmptyLines(extractTo.getVlavfi(), vLavfiList);
 				writeNonEmptyLines(extractTo.getStderr(), stderrList);
 			}
 		}
 
 		if (processFile.isContainerAnalysing()) {
-			log.debug("Prepare continer analysing...");
+			log.debug("Prepare container analysing...");
 
 			final var caSession = ffmpegService.createContainerAnalyserSession(processFile);
 			caSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()), scheduledExecutorService);
 			Objects.requireNonNull(extractTo.getContainer(), "You must set a --extract-container FILE");
 
+			log.debug("Save container analysing to file...");
 			try (var pw = new PrintWriter(extractTo.getContainer())) {
 				caSession.extract(pw::println);
 			}
@@ -243,8 +248,9 @@ public class AppSessionServiceImpl implements AppSessionService {
 	public void createProcessingSession(final ProcessFile processFile,
 										final ExportTo exportTo,
 										final File tempDir) throws IOException {
-		// TODO add logs
 		if (processFile.isNoMediaAnalysing() == false) {
+			log.debug("Prepare media analysing...");
+
 			final var lavfiSecondaryFile = prepareTempFile(tempDir);
 			final var maSession = ffmpegService.createMediaAnalyserSession(processFile, lavfiSecondaryFile);
 			final var ffprobeResult = ffmpegService.getFFprobeJAXBFromFileToProcess(processFile);
@@ -257,10 +263,12 @@ public class AppSessionServiceImpl implements AppSessionService {
 			final var rawStdErrEvents = new ArrayList<RawStdErrFilterEvent>();
 			maSession.setRawStdErrEventConsumer((s, event) -> rawStdErrEvents.add(event));
 
+			log.debug("Start media analysing session...");
 			final var maResult = maSession.process(
 					Optional.ofNullable(() -> openFileToLineStream(lavfiSecondaryFile)));
 			FileUtils.deleteQuietly(lavfiSecondaryFile);
 
+			log.debug("Export media analytics");
 			mediaAnalyticsTransformerService.exportMediaAnalytics(
 					processFile.getInput().getName(),
 					maResult,
@@ -270,10 +278,13 @@ public class AppSessionServiceImpl implements AppSessionService {
 					exportTo);
 		}
 		if (processFile.isContainerAnalysing()) {
+			log.debug("Prepare container analysing...");
+
 			final var caSession = ffmpegService.createContainerAnalyserSession(processFile);
 			caSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()), scheduledExecutorService);
 			final var caResult = caSession.process();
 
+			log.debug("Export container analysing...");
 			mediaAnalyticsTransformerService.exportContainerAnalytics(
 					processFile.getInput().getName(),
 					caResult,
@@ -323,7 +334,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 				.map(File::getName)
 				.orElse("(no source)");
 
-		log.debug("Export MediaAnalytics...");
+		log.debug("Export media analytics");
 		mediaAnalyticsTransformerService.exportMediaAnalytics(
 				sourceName,
 				maResult,
@@ -343,8 +354,11 @@ public class AppSessionServiceImpl implements AppSessionService {
 						throw new UncheckedIOException("Can't read file", e);
 					}
 				})
-				.ifPresent(caResult -> mediaAnalyticsTransformerService
-						.exportContainerAnalytics(sourceName, caResult, exportTo));
+				.ifPresent(caResult -> {
+					log.debug("Export container analytics...");
+					mediaAnalyticsTransformerService
+							.exportContainerAnalytics(sourceName, caResult, exportTo);
+				});
 	}
 
 	@Override
