@@ -44,8 +44,10 @@ import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
 import lombok.Getter;
+import media.mexm.mediadeepa.ExportFormatManager;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.ProgressCLI;
+import media.mexm.mediadeepa.exportformat.TabularTextExportFormat;
 import media.mexm.mediadeepa.service.AppSessionService;
 import media.mexm.mediadeepa.service.FFmpegService;
 import media.mexm.mediadeepa.service.ProgressCLISupplierService;
@@ -77,12 +79,15 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator, Progress
 	private AppSessionService appSessionService;
 	@Autowired
 	private KeyPressToExit keyPressToExit;
+	@Autowired
+	private ExportFormatManager exportFormatManager;
 
 	private CommandLine commandLine;
 	private int exitCode;
 
 	@PostConstruct
 	void init() {
+		exportFormatManager.register("txt", new TabularTextExportFormat());
 		commandLine = new CommandLine(new AppCommand(), factory);
 	}
 
@@ -325,6 +330,8 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator, Progress
 			ffmpegService.getMtdFiltersAvaliable()
 					.forEach((k, v) -> out().format("%-15s%-15s\n", k, v) // NOSONAR S3457
 					);
+
+			// TODO exportFormatManager list
 		}
 
 	}

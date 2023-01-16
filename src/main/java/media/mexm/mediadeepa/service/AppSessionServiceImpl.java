@@ -17,6 +17,7 @@
 package media.mexm.mediadeepa.service;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.joining;
 
 import java.io.BufferedInputStream;
@@ -43,6 +44,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import media.mexm.mediadeepa.ExportFormatManager;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExportTo;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExtractTo;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ImportFrom;
@@ -65,6 +67,8 @@ public class AppSessionServiceImpl implements AppSessionService {// TODO test
 	private ScheduledExecutorService scheduledExecutorService;
 	@Autowired
 	private MediaAnalyticsTransformerService mediaAnalyticsTransformerService;
+	@Autowired
+	private ExportFormatManager exportFormatManager;
 
 	@Override
 	public void verifyOptions(final CommandLine commandLine,
@@ -86,41 +90,52 @@ public class AppSessionServiceImpl implements AppSessionService {// TODO test
 					"You must setup options like --input --import --extract --export");
 		}
 
-		if (processFile != null) {
-			validateInputFile(commandLine, processFile.getInput());
-		}
-		if (extractTo != null) {
-			Optional.ofNullable(extractTo.getVlavfi())
+		Optional.ofNullable(processFile).ifPresent(p -> {
+			validateInputFile(commandLine, p.getInput());
+		});
+
+		Optional.ofNullable(extractTo).ifPresent(et -> {
+			Optional.ofNullable(et.getVlavfi())
 					.ifPresent(f -> validateOutputFile(commandLine, f));
-			Optional.ofNullable(extractTo.getAlavfi())
+			Optional.ofNullable(et.getAlavfi())
 					.ifPresent(f -> validateOutputFile(commandLine, f));
-			Optional.ofNullable(extractTo.getContainer())
+			Optional.ofNullable(et.getContainer())
 					.ifPresent(f -> validateOutputFile(commandLine, f));
-			Optional.ofNullable(extractTo.getStderr())
+			Optional.ofNullable(et.getStderr())
 					.ifPresent(f -> validateOutputFile(commandLine, f));
-			Optional.ofNullable(extractTo.getProbeHeaders())
+			Optional.ofNullable(et.getProbeHeaders())
 					.ifPresent(f -> validateOutputFile(commandLine, f));
-			Optional.ofNullable(extractTo.getProbeSummary())
+			Optional.ofNullable(et.getProbeSummary())
 					.ifPresent(f -> validateOutputFile(commandLine, f));
-		}
-		if (exportTo != null) {
-			validateOutputDir(commandLine, exportTo.getExport());
-			if (exportTo.getFormat() == null || exportTo.getFormat().isEmpty()) {
+		});
+
+		Optional.ofNullable(exportTo).ifPresent(et -> {
+			validateOutputDir(commandLine, et.getExport());
+			if (et.getFormat() == null || et.getFormat().isEmpty()) {
 				throw new ParameterException(commandLine, "Export format can't be empty");
+			} else {
+				final var notExists = et.getFormat().stream()
+						.filter(not(exportFormatManager::isFormatExists))
+						.toList();
+				if (notExists.isEmpty() == false) {
+					throw new ParameterException(commandLine, "Can't found this export format: "
+															  + notExists.stream().collect(joining(", ")));
+				}
 			}
-		}
-		if (importFrom != null) {
-			Optional.ofNullable(importFrom.getContainer())
+		});
+
+		Optional.ofNullable(importFrom).ifPresent(i -> {
+			Optional.ofNullable(i.getContainer())
 					.ifPresent(f -> validateInputFile(commandLine, f));
-			Optional.ofNullable(importFrom.getLavfi())
+			Optional.ofNullable(i.getLavfi())
 					.stream()
 					.flatMap(Set::stream)
 					.forEach(f -> validateInputFile(commandLine, f));
-			Optional.ofNullable(importFrom.getStderr())
+			Optional.ofNullable(i.getStderr())
 					.ifPresent(f -> validateInputFile(commandLine, f));
-			Optional.ofNullable(importFrom.getProbeHeaders())
+			Optional.ofNullable(i.getProbeHeaders())
 					.ifPresent(f -> validateInputFile(commandLine, f));
-		}
+		});
 	}
 
 	@Override

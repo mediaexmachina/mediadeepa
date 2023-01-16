@@ -21,8 +21,10 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import media.mexm.mediadeepa.ExportFormatManager;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExportTo;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
@@ -34,6 +36,9 @@ import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTransformerService {
 	private static final Logger log = LogManager.getLogger();
 
+	@Autowired
+	private ExportFormatManager exportFormatManager;
+
 	@Override
 	public void exportMediaAnalytics(final String source,
 									 final MediaAnalyserResult maResult,
@@ -41,13 +46,27 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 									 final List<RawStdErrFilterEvent> rawStdErrEvents,
 									 final Optional<FFprobeJAXB> oFFprobeResult,
 									 final ExportTo exportTo) {
-		// TODO Auto-generated method stub
-
-		/*
-		 * 				exportTo.getExport();
-					exportTo.getFormat();
-		*/
-		maResult.isEmpty();
+		exportTo.getFormat().stream()
+				.map(exportFormatManager::getExportFormat)
+				.forEach(exportFormat -> {
+					final var exportDirectory = exportTo.getExport();
+					if (maResult.isEmpty() == false) {
+						log.debug("Export MediaAnalyserResult to {} with {}", source, exportFormat);
+						exportFormat.exportMediaAnalyserResult(source, maResult, exportDirectory);
+					}
+					if (ebur128events.isEmpty() == false) {
+						log.debug("Export ebur128events to {} with {}", source, exportFormat);
+						exportFormat.exportEbur128StrErrFilterEvent(source, ebur128events, exportDirectory);
+					}
+					if (rawStdErrEvents.isEmpty() == false) {
+						log.debug("Export rawStdErrEvents to {} with {}", source, exportFormat);
+						exportFormat.exportRawStdErrFilterEvent(source, rawStdErrEvents, exportDirectory);
+					}
+					oFFprobeResult.ifPresent(ffprobeResult -> {
+						log.debug("Export ffprobeResult to {} with {}", source, exportFormat);
+						exportFormat.exportFFprobeJAXB(source, ffprobeResult, exportDirectory);
+					});
+				});
 	}
 
 	@Override

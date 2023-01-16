@@ -77,4 +77,9 @@ public class Setup {
 	public KeyPressToExit getKeyPressToExit() {
 		return new KeyPressToExit(System.in);
 	}
+
+	@Bean
+	public ExportFormatManager getExportFormatManager() {
+		return new ExportFormatManager();
+	}
 }
