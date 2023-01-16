@@ -187,8 +187,13 @@ public class AppSessionServiceImpl implements AppSessionService {
 			log.debug("Prepare media analysing...");
 
 			final var lavfiSecondaryFile = prepareTempFile(tempDir);
-			final var maSession = ffmpegService.createMediaAnalyserSession(processFile, lavfiSecondaryFile);
 			final var probeResult = ffmpegService.getFFprobeJAXBFromFileToProcess(processFile);
+			log.info("Source file: {}", probeResult);
+
+			final var maSession = ffmpegService.createMediaAnalyserSession(
+					processFile,
+					lavfiSecondaryFile,
+					probeResult);
 			maSession.setFFprobeResult(probeResult);
 			maSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()), scheduledExecutorService);
 			ffprobeToFiles(extractTo, probeResult);
@@ -252,8 +257,13 @@ public class AppSessionServiceImpl implements AppSessionService {
 			log.debug("Prepare media analysing...");
 
 			final var lavfiSecondaryFile = prepareTempFile(tempDir);
-			final var maSession = ffmpegService.createMediaAnalyserSession(processFile, lavfiSecondaryFile);
 			final var ffprobeResult = ffmpegService.getFFprobeJAXBFromFileToProcess(processFile);
+			log.info("Source file: {}", ffprobeResult);
+
+			final var maSession = ffmpegService.createMediaAnalyserSession(
+					processFile,
+					lavfiSecondaryFile,
+					ffprobeResult);
 			maSession.setFFprobeResult(ffprobeResult);
 			maSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()), scheduledExecutorService);
 

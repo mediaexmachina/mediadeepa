@@ -45,8 +45,10 @@ import org.xml.sax.SAXException;
 
 import lombok.Getter;
 import media.mexm.mediadeepa.KeyPressToExit;
+import media.mexm.mediadeepa.ProgressCLI;
 import media.mexm.mediadeepa.service.AppSessionService;
 import media.mexm.mediadeepa.service.FFmpegService;
+import media.mexm.mediadeepa.service.ProgressCLISupplierService;
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -56,7 +58,7 @@ import picocli.CommandLine.Option;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Component
-public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
+public class CLIRunner implements CommandLineRunner, ExitCodeGenerator, ProgressCLISupplierService {
 	private static Logger log = LogManager.getLogger();
 
 	@Autowired
@@ -142,20 +144,11 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 					paramLabel = "FILTER")
 			Set<String> filtersIgnore;
 
-			@Option(names = { "-vf" },
-					description = { "Set personalized video ffmpeg filter chain configuration" },
-					paramLabel = "FILTERCHAIN")
-			String vFilterChain;
-
-			@Option(names = { "-af" },
-					description = { "Set personalized audio ffmpeg filter chain configuration" },
-					paramLabel = "FILTERCHAIN")
-			String aFilterChain;
-
 			@ArgGroup(exclusive = true)
 			TypeExclusive typeExclusive;
 
-			static class TypeExclusive {
+			@Getter
+			public static class TypeExclusive {
 				@Option(names = { "-an", "--audio-no" },
 						description = "Ignore all video filters",
 						required = false)
@@ -352,6 +345,11 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	@Override
 	public void run(final String... args) throws Exception {
 		exitCode = commandLine.execute(args);
+	}
+
+	@Override
+	public ProgressCLI createProgressCLI() {
+		return new ProgressCLI(out());
 	}
 
 }

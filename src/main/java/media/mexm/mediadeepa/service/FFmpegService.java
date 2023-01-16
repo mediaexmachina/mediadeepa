@@ -19,10 +19,9 @@ package media.mexm.mediadeepa.service;
 import java.io.File;
 import java.util.Map;
 
-import media.mexm.mediadeepa.ProgressCLI;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ProcessFile;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyser;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
@@ -32,13 +31,17 @@ public interface FFmpegService {
 
 	Map<String, String> getVersions();
 
-	MediaAnalyserSession createMediaAnalyserSession(ProcessFile processFile, File lavfiSecondaryVideoFile);
+	MediaAnalyserSession createMediaAnalyserSession(ProcessFile processFile,
+													File lavfiSecondaryVideoFile,
+													final FFprobeJAXB ffprobeJAXB);
 
 	ContainerAnalyserSession createContainerAnalyserSession(ProcessFile processFile);
 
-	@Deprecated
-	MediaAnalyserResult doExtractMtd(File source, ProgressCLI progressCLI, boolean audioNo, boolean videoNo);
-
 	FFprobeJAXB getFFprobeJAXBFromFileToProcess(ProcessFile processFile);
 
+	void applyMediaAnalyserFilterChain(ProcessFile processFile,
+									   File lavfiSecondaryVideoFile,
+									   boolean sourceHasVideo,
+									   boolean sourceHasAudio,
+									   MediaAnalyser ma);
 }

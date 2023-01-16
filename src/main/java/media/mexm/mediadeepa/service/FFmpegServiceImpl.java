@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toUnmodifiableMap;
 
 import java.io.File;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,11 +36,11 @@ import org.springframework.stereotype.Service;
 
 import media.mexm.mediadeepa.ProgressCLI;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ProcessFile;
-import media.mexm.mediadeepa.components.FFmpegSupplier;
 import tv.hd3g.fflauncher.about.FFAbout;
 import tv.hd3g.fflauncher.about.FFAboutFilter;
 import tv.hd3g.fflauncher.enums.Channel;
 import tv.hd3g.fflauncher.enums.ChannelLayout;
+import tv.hd3g.fflauncher.filtering.AbstractFilterMetadata;
 import tv.hd3g.fflauncher.filtering.AbstractFilterMetadata.Mode;
 import tv.hd3g.fflauncher.filtering.AudioFilterAMetadata;
 import tv.hd3g.fflauncher.filtering.AudioFilterAPhasemeter;
@@ -48,6 +49,7 @@ import tv.hd3g.fflauncher.filtering.AudioFilterAstats;
 import tv.hd3g.fflauncher.filtering.AudioFilterChannelmap;
 import tv.hd3g.fflauncher.filtering.AudioFilterChannelsplit;
 import tv.hd3g.fflauncher.filtering.AudioFilterEbur128;
+import tv.hd3g.fflauncher.filtering.AudioFilterEbur128.Peak;
 import tv.hd3g.fflauncher.filtering.AudioFilterJoin;
 import tv.hd3g.fflauncher.filtering.AudioFilterSilencedetect;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
@@ -69,7 +71,6 @@ import tv.hd3g.fflauncher.progress.ProgressListener;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyser;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
 import tv.hd3g.fflauncher.recipes.MediaAnalyser;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
 import tv.hd3g.fflauncher.recipes.ProbeMedia;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
@@ -103,8 +104,6 @@ public class FFmpegServiceImpl implements FFmpegService {
 			new VideoFilterSiti());
 
 	@Autowired
-	private FFmpegSupplier ffmpegSupplier;
-	@Autowired
 	private ExecutableFinder executableFinder;
 	@Autowired
 	private String ffmpegExecName;
@@ -118,6 +117,8 @@ public class FFmpegServiceImpl implements FFmpegService {
 	private ScheduledExecutorService maxExecTimeScheduler;
 	@Autowired
 	private ProgressListener progressListener;
+	@Autowired
+	private ProgressCLISupplierService progressCLISupplierService;
 
 	@Override
 	public Map<String, String> getMtdFiltersAvaliable() {
@@ -165,87 +166,123 @@ public class FFmpegServiceImpl implements FFmpegService {
 
 	@Override
 	public MediaAnalyserSession createMediaAnalyserSession(final ProcessFile processFile,
-														   final File lavfiSecondaryVideoFile) {
-		// TODO Auto-generated method stub
-		processFile.getInput();
-		processFile.getAFilterChain();
-		processFile.getVFilterChain();
-		processFile.getDuration();
-		processFile.getStartTime();
-		processFile.getFiltersIgnore();
-		processFile.getFiltersOnly();
-		processFile.getTypeExclusive();
-
-		// lavfiSecondaryFile
-
-		return null;
-	}
-
-	@Override
-	public ContainerAnalyserSession createContainerAnalyserSession(final ProcessFile processFile) {
-		final var ca = new ContainerAnalyser(ffprobeExecName, executableFinder);
-		return ca.createSession(processFile.getInput());
-	}
-
-	@Override
-	public FFprobeJAXB getFFprobeJAXBFromFileToProcess(final ProcessFile processFile) {
-		final var ffprobeJAXB = new ProbeMedia(executableFinder, maxExecTimeScheduler)
-				.doAnalysing(processFile.getInput());
-		log.info("ffprobe result: {}", ffprobeJAXB);
-		return ffprobeJAXB;
-	}
-
-	@Override
-	@Deprecated
-	public MediaAnalyserResult doExtractMtd(final File source,
-											final ProgressCLI progressCLI,
-											final boolean audioNo,
-											final boolean videoNo) {
-		final var pm = new ProbeMedia(executableFinder, maxExecTimeScheduler);
-		final var ffprobeJAXB = pm.doAnalysing(source);
+														   final File lavfiSecondaryVideoFile,
+														   final FFprobeJAXB ffprobeJAXB) {
+		final var ma = new MediaAnalyser(ffmpegExecName, executableFinder, ffmpegAbout);
 
 		final var programDurationSec = ffprobeJAXB.getFormat().getDuration();
-		log.info("ffprobe result: {} ({} sec)",
-				ffprobeJAXB.getFormat().getFormatName(),
-				programDurationSec);
+		setProgress(progressCLISupplierService.createProgressCLI(), programDurationSec, ma);
 
-		final var ma = new MediaAnalyser(ffmpegExecName, executableFinder, ffmpegAbout);
-		setProgress(progressCLI, programDurationSec, ma);
+		applyMediaAnalyserFilterChain(
+				processFile,
+				lavfiSecondaryVideoFile,
+				ffprobeJAXB.getFirstVideoStream().isPresent(),
+				ffprobeJAXB.getAudiosStreams().findAny().isPresent(),
+				ma);
 
-		if (audioNo == false) {
-			ma.addFilterPhasemeter(this::logFilterPresence);
-			ma.addFilterAstats(this::logFilterPresence);
-			ma.addFilterSilencedetect(this::logFilterPresence);
-			ma.addFilterAMetadata(this::logFilterPresence);
-			ma.addFilterEbur128(this::logFilterPresence);
+		final var session = ma.createSession(processFile.getInput());
+		session.setPgmFFDuration(processFile.getDuration());
+		session.setPgmFFStartTime(processFile.getStartTime());
+		return session;
+	}
+
+	private boolean countFilter(final List<Boolean> countFilter) {
+		return countFilter.stream().anyMatch(Boolean::booleanValue);
+	}
+
+	@Override
+	public void applyMediaAnalyserFilterChain(final ProcessFile processFile,
+											  final File lavfiSecondaryVideoFile,
+											  final boolean sourceHasVideo,
+											  final boolean sourceHasAudio,
+											  final MediaAnalyser ma) {
+		var useMtdAudio = false;
+		final var fIgnore = Optional.ofNullable(processFile.getFiltersIgnore()).orElse(Set.of());
+		final var fOnly = Optional.ofNullable(processFile.getFiltersOnly()).orElse(Set.of());
+
+		if (sourceHasAudio && processFile.getTypeExclusive().isAudioNo() == false) {
+			final var countFilter = new ArrayList<Boolean>();
+
+			countFilter.add(addFilter(ma, fIgnore, fOnly, new AudioFilterAPhasemeter()));
+			countFilter.add(addFilter(ma, fIgnore, fOnly, new AudioFilterAstats()));
+			countFilter.add(addFilter(ma, fIgnore, fOnly, new AudioFilterSilencedetect()));
+
+			if (countFilter(countFilter)) {
+				final var aMetadata = new AudioFilterAMetadata(AbstractFilterMetadata.Mode.PRINT);
+				aMetadata.setFile("-");
+				addFilter(ma, fIgnore, fOnly, aMetadata);
+			}
+
+			final var ebur128 = new AudioFilterEbur128();
+			ebur128.setPeakMode(Set.of(Peak.SAMPLE, Peak.TRUE));
+			countFilter.add(addFilter(ma, fIgnore, fOnly, ebur128));
+
+			useMtdAudio = countFilter(countFilter);
 		}
 
-		if (videoNo == false) {
-			ma.addFilterBlackdetect(this::logFilterPresence);
-			ma.addFilterBlockdetect(this::logFilterPresence);
-			ma.addFilterBlurdetect(this::logFilterPresence);
-			ma.addFilterCropdetect(this::logFilterPresence);
-			ma.addFilterIdet(this::logFilterPresence);
-			ma.addFilterSiti(this::logFilterPresence);
-			ma.addFilterFreezedetect(this::logFilterPresence);
-			ma.addFilterMetadata(f -> {
-				f.setFile("target/vmetadata.txt");
-				logFilterPresence(f);
-			});
-		}
+		if (sourceHasVideo && processFile.getTypeExclusive().isVideoNo() == false) {
+			final var countFilter = new ArrayList<Boolean>();
 
-		final var maSession = ma.createSession(source);
-		maSession.setFFprobeResult(ffprobeJAXB);
-		return maSession.process(Optional.empty());
+			countFilter.add(addFilter(ma, fIgnore, fOnly, new VideoFilterBlackdetect()));
+			countFilter.add(addFilter(ma, fIgnore, fOnly, new VideoFilterBlockdetect()));
+			countFilter.add(addFilter(ma, fIgnore, fOnly, new VideoFilterBlurdetect()));
+			countFilter.add(addFilter(ma, fIgnore, fOnly, new VideoFilterCropdetect()));
+			countFilter.add(addFilter(ma, fIgnore, fOnly, new VideoFilterIdet()));
+			countFilter.add(addFilter(ma, fIgnore, fOnly, new VideoFilterSiti()));
+			countFilter.add(addFilter(ma, fIgnore, fOnly, new VideoFilterFreezedetect()));
+
+			if (countFilter(countFilter)) {
+				final var vMetadata = new VideoFilterMetadata(AbstractFilterMetadata.Mode.PRINT);
+				if (useMtdAudio) {
+					vMetadata.setFile(lavfiSecondaryVideoFile.getPath());
+				} else {
+					vMetadata.setFile("-");
+				}
+				addFilter(ma, fIgnore, fOnly, vMetadata);
+			}
+		}
+	}
+
+	private boolean addFilter(final MediaAnalyser ma,
+							  final Set<String> fIgnore,
+							  final Set<String> fOnly,
+							  final AudioFilterSupplier filter) {
+		final var filterName = filter.toFilter().getFilterName();
+		if (fOnly.isEmpty()) {
+			if (fIgnore.contains(filterName) == false) {
+				return ma.addOptionalFilter(filter, this::logFilterPresence);
+			}
+		} else {
+			if (fOnly.contains(filterName)) {
+				return ma.addOptionalFilter(filter, this::logFilterPresence);
+			}
+		}
+		return false;
+	}
+
+	private boolean addFilter(final MediaAnalyser ma,
+							  final Set<String> fIgnore,
+							  final Set<String> fOnly,
+							  final VideoFilterSupplier filter) {
+		final var filterName = filter.toFilter().getFilterName();
+		if (fOnly.isEmpty()) {
+			if (fIgnore.contains(filterName) == false) {
+				return ma.addOptionalFilter(filter, this::logFilterPresence);
+			}
+		} else {
+			if (fOnly.contains(filterName)) {
+				return ma.addOptionalFilter(filter, this::logFilterPresence);
+			}
+		}
+		return false;
 	}
 
 	private void logFilterPresence(final VideoFilterSupplier f) {
-		log.info("Setup {} video filter", f.toFilter());
+		log.info("Setup {} video filter", f::toFilter);
 	}
 
-	private AudioFilterSupplier logFilterPresence(final AudioFilterSupplier f) {
-		log.info("Setup {} audio filter", f.toFilter());
-		return f;
+	private void logFilterPresence(final AudioFilterSupplier f) {
+		log.info("Setup {} audio filter", f::toFilter);
 	}
 
 	private void setProgress(final ProgressCLI progressCLI, final float programDurationSec, final MediaAnalyser ma) {
@@ -268,4 +305,19 @@ public class FFmpegServiceImpl implements FFmpegService {
 			}
 		});
 	}
+
+	@Override
+	public ContainerAnalyserSession createContainerAnalyserSession(final ProcessFile processFile) {
+		final var ca = new ContainerAnalyser(ffprobeExecName, executableFinder);
+		return ca.createSession(processFile.getInput());
+	}
+
+	@Override
+	public FFprobeJAXB getFFprobeJAXBFromFileToProcess(final ProcessFile processFile) {
+		final var ffprobeJAXB = new ProbeMedia(executableFinder, maxExecTimeScheduler)
+				.doAnalysing(processFile.getInput());
+		log.info("ffprobe result: {}", ffprobeJAXB);
+		return ffprobeJAXB;
+	}
+
 }
