@@ -58,7 +58,7 @@ import picocli.CommandLine.Option;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Component
-public class CLIRunner implements CommandLineRunner, ExitCodeGenerator, ProgressCLISupplierService {
+public class CLIRunner implements CommandLineRunner, ExitCodeGenerator, ProgressCLISupplierService {// TODO test
 	private static Logger log = LogManager.getLogger();
 
 	@Autowired

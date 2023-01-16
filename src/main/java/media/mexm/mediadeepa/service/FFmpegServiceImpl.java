@@ -77,7 +77,7 @@ import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Service
-public class FFmpegServiceImpl implements FFmpegService {
+public class FFmpegServiceImpl implements FFmpegService {// TODO test
 	private static Logger log = LogManager.getLogger();
 
 	private static final Set<AudioFilterSupplier> allAudioFilters = Set.of(
