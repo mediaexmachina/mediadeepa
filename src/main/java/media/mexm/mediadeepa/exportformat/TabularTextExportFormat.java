@@ -16,14 +16,11 @@
  */
 package media.mexm.mediadeepa.exportformat;
 
-import static java.lang.System.lineSeparator;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.joining;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,14 +32,16 @@ import org.apache.logging.log4j.Logger;
 
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdCropdetect;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
 public class TabularTextExportFormat implements ExportFormat {// TODO test
+	private static final String PTS_TIME = "Pts time";
+	private static final String STREAM_INDEX = "Stream index";
 	private static final String VALUE = "Value";
-	private static final String PTS_TIME = "PTS time";
 	private static final String PTS = "PTS";
 	private static final String FRAME = "Frame";
 	private static final String SOURCE = "Source";
@@ -287,90 +286,197 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 		save("rawstderrfilters.txt", exportDirectory, t.getLines());
 	}
 
-	class Tabs {// TODO export
-		private final String header;
-		private final List<String> lines;
+	@Override
+	public void exportContainerAnalyserResult(final String source,
+											  final ContainerAnalyserResult caResult,
+											  final File exportDirectory) {
+		final var packets = new Tabs(SOURCE,
+				"Codec type",
+				STREAM_INDEX,
+				"Pts",
+				PTS_TIME,
+				"Dts",
+				"Dts time",
+				"Duration",
+				"Duration time",
+				"Size",
+				"Pos",
+				"Flags");
+		caResult.packets().forEach(
+				r -> packets.row(
+						source,
+						r.codecType(),
+						r.streamIndex(),
+						r.pts(),
+						r.ptsTime(),
+						r.dts(),
+						r.dtsTime(),
+						r.duration(),
+						r.durationTime(),
+						r.size(),
+						r.pos(),
+						r.flags()));
+		save("packets.txt", exportDirectory, packets.getLines());
 
-		Tabs(final String... head) {
-			lines = new ArrayList<>();
-			header = Optional.ofNullable(head).stream()
-					.flatMap(Stream::of)
-					.collect(joining("\t"));
-			if (header.isEmpty()) {
-				throw new IllegalArgumentException("Empty header");
-			}
-		}
+		final var vFrames = new Tabs(SOURCE,
+				"Media type",
+				STREAM_INDEX,
+				"Key frame",
+				"Pict type",
+				"Repeat pict",
+				"Pts",
+				PTS_TIME,
+				"Pkt dts",
+				"Pkt dts time",
+				"Best effort timestamp",
+				"Best effort timestamp time",
+				"Pkt duration",
+				"Pkt duration time",
+				"Pkt pos",
+				"Pkt size");
 
-		void row(final Object... item) {
-			final var row = Optional.ofNullable(item).stream()
-					.flatMap(Stream::of)
-					.map(o -> {
-						if (o == null) {
-							return "";
-						} else if (o instanceof final String str) {
-							return str;
-						} else if (o instanceof final Duration d) {
-							return durationToString(d);
-						} else if (o instanceof Number) {
-							return String.valueOf(o);
-						} else {
-							return o.toString();
-						}
-					})
-					.collect(joining("\t"));
-			if (row.isEmpty() == false) {
-				lines.add(row);
-			}
-		}
+		caResult.videoFrames().forEach(r -> {
+			final var frame = r.frame();
+			vFrames.row(
+					source,
+					frame.mediaType(),
+					frame.streamIndex(),
+					frame.keyFrame() ? "1" : "0",
+					r.pictType(),
+					r.repeatPict() ? "1" : "0",
+					frame.pts(),
+					frame.ptsTime(),
+					frame.pktDts(),
+					frame.pktDtsTime(),
+					frame.bestEffortTimestamp(),
+					frame.bestEffortTimestampTime(),
+					frame.pktDuration(),
+					frame.pktDurationTime(),
+					frame.pktPos(),
+					frame.pktSize());
+		});
+		save("video-frames.txt", exportDirectory, vFrames.getLines());
 
-		String getLines() {
-			if (lines.isEmpty()) {
-				return "";
-			}
-			return header + lineSeparator()
-				   + lines.stream().collect(joining(lineSeparator()))
-				   + lineSeparator();
-		}
-	}
+		final var aFrames = new Tabs(SOURCE,
+				"Media type",
+				STREAM_INDEX,
+				"Nb samples",
+				"Pts",
+				PTS_TIME,
+				"Pkt dts",
+				"Pkt dts time",
+				"Best effort timestamp",
+				"Best effort timestamp time",
+				"Pkt duration",
+				"Pkt duration time",
+				"Pkt pos",
+				"Pkt size");
 
-	public static String durationToString(final Duration d) {// TODO export
-		if (d == null || d == Duration.ZERO) {
-			return "0";
-		}
+		caResult.audioFrames().forEach(r -> {
+			final var frame = r.frame();
+			aFrames.row(
+					source,
+					frame.mediaType(),
+					frame.streamIndex(),
+					r.nbSamples(),
+					frame.pts(),
+					frame.ptsTime(),
+					frame.pktDts(),
+					frame.pktDtsTime(),
+					frame.bestEffortTimestamp(),
+					frame.bestEffortTimestampTime(),
+					frame.pktDuration(),
+					frame.pktDurationTime(),
+					frame.pktPos(),
+					frame.pktSize());
+		});
+		save("audio-frames.txt", exportDirectory, aFrames.getLines());
 
-		final var buf = new StringBuilder();
+		final var vConsts = new Tabs(SOURCE,
+				"Width",
+				"Height",
+				"Sample aspect ratio",
+				"Top field first",
+				"Interlaced frame",
+				"Pix fmt",
+				"Color range",
+				"Color primaries",
+				"Color transfer",
+				"Color space",
+				"Coded picture number",
+				"Display picture number",
+				"Ref pts",
+				"Ref pts time",
+				"Ref pkt dts",
+				"Ref pkt dts time",
+				"Ref best effort timestamp",
+				"Ref best effort timestamp time",
+				"Ref pkt duration",
+				"Ref pkt duration time",
+				"Ref pkt pos");
+		Stream.concat(
+				caResult.olderVideoConsts().stream(),
+				Stream.of(caResult.videoConst()))
+				.forEach(c -> {
+					final var frame = c.updatedWith().frame();
+					vConsts.row(source,
+							c.width(),
+							c.height(),
+							c.sampleAspectRatio(),
+							c.topFieldFirst() ? "1" : "0",
+							c.interlacedFrame() ? "1" : "0",
+							c.pixFmt(),
+							c.colorRange(),
+							c.colorPrimaries(),
+							c.colorTransfer(),
+							c.colorSpace(),
+							c.codedPictureNumber(),
+							c.displayPictureNumber(),
+							frame.pts(),
+							frame.ptsTime(),
+							frame.pktDts(),
+							frame.pktDtsTime(),
+							frame.bestEffortTimestamp(),
+							frame.bestEffortTimestampTime(),
+							frame.pktDuration(),
+							frame.pktDurationTime(),
+							frame.pktPos());
+				});
+		save("video-consts.txt", exportDirectory, vConsts.getLines());
 
-		final var hours = d.toHoursPart();
-		if (hours > 9) {
-			buf.append(hours).append(':');
-		} else {
-			buf.append("0").append(hours).append(':');
-		}
-
-		final var minutes = d.toMinutesPart();
-		if (minutes > 9) {
-			buf.append(minutes).append(':');
-		} else {
-			buf.append("0").append(minutes).append(':');
-		}
-
-		final var secs = d.toSecondsPart();
-		if (secs > 9) {
-			buf.append(secs);
-		} else {
-			buf.append("0").append(secs);
-		}
-
-		final var msec = d.toMillisPart();
-		if (msec > 99) {
-			buf.append('.').append(msec);
-		} else if (msec > 9) {
-			buf.append(".0").append(msec);
-		} else if (msec > 0) {
-			buf.append(".00").append(msec);
-		}
-
-		return buf.toString();
+		final var aConsts = new Tabs(SOURCE,
+				"Channel layout",
+				"Channels",
+				"Sample format",
+				"Ref pts",
+				"Ref pts time",
+				"Ref pkt dts",
+				"Ref pkt dts time",
+				"Ref best effort timestamp",
+				"Ref best effort timestamp time",
+				"Ref pkt duration",
+				"Ref pkt duration time",
+				"Ref pkt pos");
+		Stream.concat(
+				caResult.olderAudioConsts().stream(),
+				Stream.of(caResult.audioConst()))
+				.forEach(c -> {
+					final var frame = c.updatedWith().frame();
+					vConsts.row(source,
+							c.channelLayout(),
+							c.channels(),
+							c.sampleFmt(),
+							frame.pts(),
+							frame.ptsTime(),
+							frame.pktDts(),
+							frame.pktDtsTime(),
+							frame.bestEffortTimestamp(),
+							frame.bestEffortTimestampTime(),
+							frame.pktDuration(),
+							frame.pktDurationTime(),
+							frame.pktPos());
+				});
+		save("audio-consts.txt", exportDirectory, aConsts.getLines());
 	}
 
 	@Override

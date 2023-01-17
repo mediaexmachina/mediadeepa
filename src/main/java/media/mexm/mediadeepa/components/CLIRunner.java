@@ -45,12 +45,10 @@ import org.xml.sax.SAXException;
 
 import lombok.Getter;
 import media.mexm.mediadeepa.KeyPressToExit;
-import media.mexm.mediadeepa.ProgressCLI;
 import media.mexm.mediadeepa.exportformat.ExportFormatManager;
 import media.mexm.mediadeepa.exportformat.TabularTextExportFormat;
 import media.mexm.mediadeepa.service.AppSessionService;
 import media.mexm.mediadeepa.service.FFmpegService;
-import media.mexm.mediadeepa.service.ProgressCLISupplierService;
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -60,7 +58,7 @@ import picocli.CommandLine.Option;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Component
-public class CLIRunner implements CommandLineRunner, ExitCodeGenerator, ProgressCLISupplierService {// TODO test
+public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {// TODO test
 	private static Logger log = LogManager.getLogger();
 
 	@Autowired
@@ -258,8 +256,10 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator, Progress
 		public Integer call() throws Exception {
 			if (version) {
 				printVersion();
+				return 0;
 			} else if (options) {
 				printOptions();
+				return 0;
 			}
 
 			appSessionService.verifyOptions(commandLine, exportTo, extractTo, importFrom, processFile, tempDir);
@@ -277,7 +277,6 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator, Progress
 			} else {
 				throw new IllegalArgumentException("Nothing to do");
 			}
-
 			return 0;
 		}
 
@@ -328,12 +327,12 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator, Progress
 			out().println("");
 			out().println("Detected (and usable) filters:");
 			ffmpegService.getMtdFiltersAvaliable()
-					.forEach((k, v) -> out().format("%-15s%-15s\n", k, v) // NOSONAR S3457
-					);
-
-			// TODO exportFormatManager list
+					.forEach((k, v) -> out().format("%-15s%-15s\n", k, v)); // NOSONAR S3457
+			out().println("");
+			out().println("Export formats available:");
+			exportFormatManager.getRegisted()
+					.forEach((k, v) -> out().format("%-15s%-15s\n", k, v)); // NOSONAR S3457
 		}
-
 	}
 
 	public PrintWriter out() {
@@ -352,11 +351,6 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator, Progress
 	@Override
 	public void run(final String... args) throws Exception {
 		exitCode = commandLine.execute(args);
-	}
-
-	@Override
-	public ProgressCLI createProgressCLI() {
-		return new ProgressCLI(out());
 	}
 
 }

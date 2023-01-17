@@ -18,7 +18,7 @@ package media.mexm.mediadeepa;
 
 import static org.apache.commons.lang3.StringUtils.repeat;
 
-import java.io.PrintWriter;
+import java.io.PrintStream;
 import java.time.Duration;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,11 +29,11 @@ public class ProgressCLI {// TODO test
 	private static final char PROGRESS = '=';
 	private static final char BLANK = ' ';
 
-	private final PrintWriter out;
+	private final PrintStream out;
 	private long startTime;
 	private String lastEntry;
 
-	public ProgressCLI(final PrintWriter out) {
+	public ProgressCLI(final PrintStream out) {
 		this.out = out;
 	}
 

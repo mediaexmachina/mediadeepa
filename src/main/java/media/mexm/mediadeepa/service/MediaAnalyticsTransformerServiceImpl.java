@@ -70,11 +70,18 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 	}
 
 	@Override
-	public void exportContainerAnalytics(final String name,
+	public void exportContainerAnalytics(final String source,
 										 final ContainerAnalyserResult caResult,
 										 final ExportTo exportTo) {
-		// TODO Auto-generated method stub
-		caResult.isEmpty();
+		if (caResult.isEmpty()) {
+			return;
+		}
+		exportTo.getFormat().stream()
+				.map(exportFormatManager::getExportFormat)
+				.forEach(exportFormat -> {
+					log.debug("Export container analysing result to {} with {}", source, exportFormat);
+					exportFormat.exportContainerAnalyserResult(source, caResult, exportTo.getExport());
+				});
 	}
 
 }

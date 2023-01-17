@@ -18,6 +18,7 @@ package media.mexm.mediadeepa;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -83,4 +84,10 @@ public class Setup {
 	public ExportFormatManager getExportFormatManager() {
 		return new ExportFormatManager();
 	}
+
+	@Bean
+	public Supplier<ProgressCLI> createProgressCLI() {
+		return () -> new ProgressCLI(System.out);// NOSONAR S106
+	}
+
 }

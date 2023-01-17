@@ -19,6 +19,7 @@ package media.mexm.mediadeepa.exportformat;
 import java.io.File;
 import java.util.List;
 
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
@@ -41,6 +42,9 @@ public interface ExportFormat {
 	void exportFFprobeJAXB(String source,
 						   FFprobeJAXB ffprobeResult,
 						   File exportDirectory);
-	// TODO add container
+
+	void exportContainerAnalyserResult(String source,
+									   ContainerAnalyserResult caResult,
+									   File exportDirectory);
 
 }

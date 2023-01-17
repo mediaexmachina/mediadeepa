@@ -35,7 +35,7 @@ public interface MediaAnalyticsTransformerService {
 							  Optional<FFprobeJAXB> oFFprobeResult,
 							  ExportTo exportTo);
 
-	void exportContainerAnalytics(String name,
+	void exportContainerAnalytics(String source,
 								  ContainerAnalyserResult caResult,
 								  ExportTo exportTo);
 

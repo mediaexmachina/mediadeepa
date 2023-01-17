@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -118,7 +119,7 @@ public class FFmpegServiceImpl implements FFmpegService {// TODO test
 	@Autowired
 	private ProgressListener progressListener;
 	@Autowired
-	private ProgressCLISupplierService progressCLISupplierService;
+	private Supplier<ProgressCLI> progressSupplier;
 
 	@Override
 	public Map<String, String> getMtdFiltersAvaliable() {
@@ -171,7 +172,7 @@ public class FFmpegServiceImpl implements FFmpegService {// TODO test
 		final var ma = new MediaAnalyser(ffmpegExecName, executableFinder, ffmpegAbout);
 
 		final var programDurationSec = ffprobeJAXB.getFormat().getDuration();
-		setProgress(progressCLISupplierService.createProgressCLI(), programDurationSec, ma);
+		setProgress(progressSupplier.get(), programDurationSec, ma);
 
 		applyMediaAnalyserFilterChain(
 				processFile,
