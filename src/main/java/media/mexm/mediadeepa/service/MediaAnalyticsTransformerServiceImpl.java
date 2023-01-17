@@ -24,8 +24,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import media.mexm.mediadeepa.ExportFormatManager;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExportTo;
+import media.mexm.mediadeepa.exportformat.ExportFormatManager;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;

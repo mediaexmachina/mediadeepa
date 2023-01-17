@@ -14,7 +14,7 @@
  * Copyright (C) hdsdi3g for hd3g.tv 2023
  *
  */
-package media.mexm.mediadeepa;
+package media.mexm.mediadeepa.exportformat;
 
 import static java.util.stream.Collectors.toUnmodifiableMap;
 

@@ -44,9 +44,9 @@ import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
 import lombok.Getter;
-import media.mexm.mediadeepa.ExportFormatManager;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.ProgressCLI;
+import media.mexm.mediadeepa.exportformat.ExportFormatManager;
 import media.mexm.mediadeepa.exportformat.TabularTextExportFormat;
 import media.mexm.mediadeepa.service.AppSessionService;
 import media.mexm.mediadeepa.service.FFmpegService;

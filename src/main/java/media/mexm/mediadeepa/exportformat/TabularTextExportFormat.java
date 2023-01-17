@@ -33,14 +33,20 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import media.mexm.mediadeepa.ExportFormat;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdCropdetect;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
-public class TabularTextExportFormat implements ExportFormat {
+public class TabularTextExportFormat implements ExportFormat {// TODO test
+	private static final String VALUE = "Value";
+	private static final String PTS_TIME = "PTS time";
+	private static final String PTS = "PTS";
+	private static final String FRAME = "Frame";
 	private static final String SOURCE = "Source";
+
 	private static final Logger log = LogManager.getLogger();
 
 	@Override
@@ -70,32 +76,152 @@ public class TabularTextExportFormat implements ExportFormat {
 							ebu.getLoudnessRangeHigh(),
 							ebu.getSamplePeak(),
 							ebu.getTruePeak());
-					save("ebur128-summary.txt", exportDirectory, t.getLines());
+					save("audio-ebur128-summary.txt", exportDirectory, t.getLines());
 				});
 
-		// XXX
-		maResult.lavfiMetadatas().getAPhaseMeterReport();
-		maResult.lavfiMetadatas().getAStatsReport();
-		maResult.lavfiMetadatas().getBlockDetectReport();
-		maResult.lavfiMetadatas().getBlurDetectReport();
-		maResult.lavfiMetadatas().getCropDetectReport();
-		maResult.lavfiMetadatas().getIdetReport();
-		maResult.lavfiMetadatas().getSitiReport();
-		maResult.lavfiMetadatas().computeSitiStats();
+		final var lavfiMetadatas = maResult.lavfiMetadatas();
 
-		if (maResult.lavfiMetadatas().getEventCount() > 0) {
-			final var events = new Tabs(SOURCE, "Name", "Scope/Channel", "Start", "End");
-			Stream.of(
-					maResult.lavfiMetadatas().getMonoEvents(),
-					maResult.lavfiMetadatas().getSilenceEvents(),
-					maResult.lavfiMetadatas().getBlackEvents(),
-					maResult.lavfiMetadatas().getFreezeEvents())
-					.flatMap(List::stream)
-					.sorted()
-					.forEach(ev -> events.row(source, ev.name(), ev.scope(), ev.start(), ev.end()));
+		final var aPhaseMeter = new Tabs(SOURCE, FRAME, PTS, PTS_TIME, VALUE);
+		lavfiMetadatas.getAPhaseMeterReport()
+				.forEach(a -> aPhaseMeter.row(source, a.frame(), a.pts(), a.ptsTime(), a.value()));
+		save("audio-phase-meter.txt", exportDirectory, aPhaseMeter.getLines());
 
-			save("events.txt", exportDirectory, events.getLines());
+		final var aStats = new Tabs(SOURCE, FRAME, PTS, PTS_TIME,
+				"Channel",
+				"DC Offset",
+				"Entropy",
+				"Flat factor",
+				"Noise floor",
+				"Noise floor count",
+				"Peak level",
+				"Peak count",
+				"Other");
+		lavfiMetadatas.getAStatsReport()
+				.forEach(a -> {
+					final var channels = a.value().channels();
+					for (var pos = 0; pos < channels.size(); pos++) {
+						final var channel = channels.get(pos);
+						aPhaseMeter.row(source, a.frame(), a.pts(), a.ptsTime(),
+								pos + 1,
+								channel.dcOffset(),
+								channel.entropy(),
+								channel.flatFactor(),
+								channel.noiseFloor(),
+								channel.noiseFloorCount(),
+								channel.peakLevel(),
+								channel.peakCount(),
+								channel.other().toString());
+					}
+				});
+		save("audio-stats.txt", exportDirectory, aStats.getLines());
+
+		final var siti = new Tabs(SOURCE, FRAME, PTS, PTS_TIME, "Spatial Info", "Temporal Info");
+		lavfiMetadatas.getSitiReport()
+				.forEach(a -> siti.row(source, a.frame(), a.pts(), a.ptsTime(), a.value().si(), a.value().ti()));
+		save("video-siti-ITU-T_P-910.txt", exportDirectory, siti.getLines());
+
+		if (lavfiMetadatas.getSitiReport().isEmpty() == false) {
+			final var sitiStats = new Tabs(SOURCE, "Type", "Average", "Count", "Max", "Min");
+			final var stats = lavfiMetadatas.computeSitiStats();
+			siti.row(source, "Spatial Info",
+					stats.si().getAverage(),
+					stats.si().getCount(),
+					stats.si().getMax(),
+					stats.si().getMin());
+			siti.row(source, "Temporal Info",
+					stats.ti().getAverage(),
+					stats.ti().getCount(),
+					stats.ti().getMax(),
+					stats.ti().getMin());
+			save("video-siti-stats-ITU-T_P-910.txt", exportDirectory, sitiStats.getLines());
 		}
+
+		final var block = new Tabs(SOURCE, FRAME, PTS, PTS_TIME, VALUE);
+		lavfiMetadatas.getBlockDetectReport()
+				.forEach(a -> block.row(source, a.frame(), a.pts(), a.ptsTime(), a.value()));
+		save("video-block-detect.txt", exportDirectory, block.getLines());
+
+		final var blur = new Tabs(SOURCE, FRAME, PTS, PTS_TIME, VALUE);
+		lavfiMetadatas.getBlurDetectReport()
+				.forEach(a -> blur.row(source, a.frame(), a.pts(), a.ptsTime(), a.value()));
+		save("video-blur-detect.txt", exportDirectory, blur.getLines());
+
+		final var crop = new Tabs(SOURCE, FRAME, PTS, PTS_TIME,
+				"x1", "x2", "y1", "y2", "w", "h", "x", "y");
+		lavfiMetadatas.getCropDetectReport().stream()
+				.reduce(new ArrayList<LavfiMtdValue<LavfiMtdCropdetect>>(),
+						(list, frame) -> {
+							if (list.isEmpty() == false
+								&& list.get(list.size() - 1).value().equals(frame.value())) {
+								return list;
+							}
+							list.add(frame);
+							return list;
+						},
+						(l, r) -> {
+							l.addAll(r);
+							return l;
+						})
+				.forEach(a -> {
+					final var value = a.value();
+					crop.row(source, a.frame(), a.pts(), a.ptsTime(),
+							value.x1(), value.x2(), value.y1(), value.y2(),
+							value.w(), value.h(), value.x(), value.y());
+				});
+		save("video-crop-detect.txt", exportDirectory, crop.getLines());
+
+		final var idet = new Tabs(SOURCE, FRAME, PTS, PTS_TIME,
+				"Single top field first",
+				"Single bottom field first",
+				"Single current frame",
+				"Single progressive",
+				"Single undetermined",
+				"Multiple top field first",
+				"Multiple bottom field first",
+				"Multiple current frame",
+				"Multiple progressive",
+				"Multiple undetermined",
+				"Repeated current frame",
+				"Repeated top",
+				"Repeated bottom",
+				"Repeated neither");
+		lavfiMetadatas.getIdetReport()
+				.forEach(a -> {
+					final var value = a.value();
+					final var single = value.single();
+					final var multiple = value.multiple();
+					final var repeated = value.repeated();
+
+					idet.row(source, a.frame(), a.pts(), a.ptsTime(),
+							single.tff(),
+							single.bff(),
+							single.currentFrame(),
+							single.progressive(),
+							single.undetermined(),
+
+							multiple.tff(),
+							multiple.bff(),
+							multiple.currentFrame(),
+							multiple.progressive(),
+							multiple.undetermined(),
+
+							repeated.currentFrame(),
+							repeated.top(),
+							repeated.bottom(),
+							repeated.neither());
+				});
+		save("video-interlace-detect.txt", exportDirectory, idet.getLines());
+
+		final var events = new Tabs(SOURCE, "Name", "Scope/Channel", "Start", "End");
+		Stream.of(
+				lavfiMetadatas.getMonoEvents(),
+				lavfiMetadatas.getSilenceEvents(),
+				lavfiMetadatas.getBlackEvents(),
+				lavfiMetadatas.getFreezeEvents())
+				.flatMap(List::stream)
+				.sorted()
+				.forEach(ev -> events.row(source, ev.name(), ev.scope(), ev.start(), ev.end()));
+		save("events.txt", exportDirectory, events.getLines());
 
 		final var aboutMeasure = new Tabs(SOURCE, "Type", "Name", "Setup", "Java class");
 		maResult.session().getAudioFilters()
@@ -121,7 +247,6 @@ public class TabularTextExportFormat implements ExportFormat {
 				});
 
 		save("filters.txt", exportDirectory, aboutMeasure.getLines());
-
 	}
 
 	@Override
@@ -156,13 +281,13 @@ public class TabularTextExportFormat implements ExportFormat {
 	public void exportRawStdErrFilterEvent(final String source,
 										   final List<RawStdErrFilterEvent> rawStdErrEvents,
 										   final File exportDirectory) {
-		final var t = new Tabs("Filter name", "Chain pos", "Line");
+		final var t = new Tabs(SOURCE, "Filter name", "Chain pos", "Line");
 		rawStdErrEvents.forEach(
-				r -> t.row(r.getFilterName(), r.getFilterChainPos(), r.getLineValue()));
+				r -> t.row(source, r.getFilterName(), r.getFilterChainPos(), r.getLineValue()));
 		save("rawstderrfilters.txt", exportDirectory, t.getLines());
 	}
 
-	class Tabs {
+	class Tabs {// TODO export
 		private final String header;
 		private final List<String> lines;
 
@@ -208,7 +333,7 @@ public class TabularTextExportFormat implements ExportFormat {
 		}
 	}
 
-	public static String durationToString(final Duration d) {
+	public static String durationToString(final Duration d) {// TODO export
 		if (d == null || d == Duration.ZERO) {
 			return "0";
 		}
