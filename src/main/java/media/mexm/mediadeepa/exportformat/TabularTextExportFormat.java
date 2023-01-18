@@ -38,6 +38,16 @@ import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
+// TODO remove source
+// TODO "-Infinity" > -144
+// TODO audio-ebur128-summary > en ligne
+// TODO end events null/0 > valeur de EOF
+// TODO event add duration (displayed)
+// FIXME astats > error
+// FIXME no video-siti-stats-ITU-T_P-910.txt
+// TODO filter out cropdetect from rawstderr
+// TODO no contraction for cropdetect
+
 public class TabularTextExportFormat implements ExportFormat {// TODO test
 	private static final String PTS_TIME = "Pts time";
 	private static final String STREAM_INDEX = "Stream index";

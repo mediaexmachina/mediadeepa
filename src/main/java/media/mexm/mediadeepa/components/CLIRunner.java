@@ -266,10 +266,11 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {// TODO 
 			keyPressToExit.start();
 
 			if (processFile != null && extractTo != null) {
-				log.info("Prepare extraction session");
+				log.info("Prepare extraction session from media file: {}", processFile.getInput());
 				appSessionService.createExtractionSession(processFile, extractTo, tempDir);
 			} else if (processFile != null && exportTo != null) {
-				log.info("Prepare processing session from media file");
+				log.info("Prepare processing session from media file: {} to {}",
+						processFile.getInput(), exportTo.getExport());
 				appSessionService.createProcessingSession(processFile, exportTo, tempDir);
 			} else if (importFrom != null && exportTo != null) {
 				log.info("Prepare processing session from offline ffmpeg/ffprobe exports");

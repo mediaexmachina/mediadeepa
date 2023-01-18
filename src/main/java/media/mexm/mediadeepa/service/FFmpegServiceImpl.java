@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 
 import media.mexm.mediadeepa.ProgressCLI;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ProcessFile;
+import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ProcessFile.TypeExclusive;
 import tv.hd3g.fflauncher.about.FFAbout;
 import tv.hd3g.fflauncher.about.FFAboutFilter;
 import tv.hd3g.fflauncher.enums.Channel;
@@ -163,8 +164,6 @@ public class FFmpegServiceImpl implements FFmpegService {// TODO test
 		return result;
 	}
 
-	// FIXME missing silence detect
-
 	@Override
 	public MediaAnalyserSession createMediaAnalyserSession(final ProcessFile processFile,
 														   final File lavfiSecondaryVideoFile,
@@ -201,11 +200,20 @@ public class FFmpegServiceImpl implements FFmpegService {// TODO test
 		final var fIgnore = Optional.ofNullable(processFile.getFiltersIgnore()).orElse(Set.of());
 		final var fOnly = Optional.ofNullable(processFile.getFiltersOnly()).orElse(Set.of());
 
-		if (sourceHasAudio && processFile.getTypeExclusive().isAudioNo() == false) {
+		final var audioNo = Optional.ofNullable(processFile.getTypeExclusive())
+				.map(TypeExclusive::isAudioNo)
+				.orElse(false)
+				.booleanValue();
+		final var videoNo = Optional.ofNullable(processFile.getTypeExclusive())
+				.map(TypeExclusive::isVideoNo)
+				.orElse(false)
+				.booleanValue();
+
+		if (sourceHasAudio && audioNo == false) {
 			final var countFilter = new ArrayList<Boolean>();
 
 			countFilter.add(addFilter(ma, fIgnore, fOnly, new AudioFilterAPhasemeter()));
-			countFilter.add(addFilter(ma, fIgnore, fOnly, new AudioFilterAstats()));
+			countFilter.add(addFilter(ma, fIgnore, fOnly, new AudioFilterAstats().setSelectedMetadatas()));
 			countFilter.add(addFilter(ma, fIgnore, fOnly, new AudioFilterSilencedetect()));
 
 			if (countFilter(countFilter)) {
@@ -221,7 +229,7 @@ public class FFmpegServiceImpl implements FFmpegService {// TODO test
 			useMtdAudio = countFilter(countFilter);
 		}
 
-		if (sourceHasVideo && processFile.getTypeExclusive().isVideoNo() == false) {
+		if (sourceHasVideo && videoNo == false) {
 			final var countFilter = new ArrayList<Boolean>();
 
 			countFilter.add(addFilter(ma, fIgnore, fOnly, new VideoFilterBlackdetect()));
@@ -235,7 +243,12 @@ public class FFmpegServiceImpl implements FFmpegService {// TODO test
 			if (countFilter(countFilter)) {
 				final var vMetadata = new VideoFilterMetadata(AbstractFilterMetadata.Mode.PRINT);
 				if (useMtdAudio) {
-					vMetadata.setFile(lavfiSecondaryVideoFile.getPath());
+					vMetadata.setFile("'" +
+									  lavfiSecondaryVideoFile.getPath()
+											  .replace("\\", "\\\\")
+											  .replace("'", "\\'")
+											  .replace(":", "\\:")
+									  + "'");
 				} else {
 					vMetadata.setFile("-");
 				}

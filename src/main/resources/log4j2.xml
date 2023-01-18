@@ -23,6 +23,7 @@
 	</Appenders>
 
 	<Loggers>
+        <Logger name="picocli.spring.PicocliSpringFactory" level="error" />
 		<Logger name="media.mexm" level="info" />
         <Logger name="tv.hd3g.fflauncher.recipes" level="debug" />
         <Logger name="tv.hd3g.fflauncher.resultparser.RawStdErrEventParser" level="info" />

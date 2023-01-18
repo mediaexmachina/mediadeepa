@@ -77,15 +77,27 @@ public class AppSessionServiceImpl implements AppSessionService {// TODO test
 							  final ImportFrom importFrom,
 							  final ProcessFile processFile,
 							  final File tempDir) throws ParameterException {
-		if ((processFile != null && extractTo != null)
-			^ (processFile != null && exportTo != null)
-			^ (importFrom != null && exportTo != null)) {
+
+		final var opt0 = processFile != null && extractTo != null;
+		final var opt1 = processFile != null && exportTo != null;
+		final var opt2 = importFrom != null && exportTo != null;
+		final var opt3 = importFrom != null && extractTo != null;
+
+		if (opt0 && opt1) {
 			throw new ParameterException(commandLine,
-					"You can't cumulate options like --input/--import, --extract/--export");
-		} else if (processFile == null
-				   && extractTo == null
-				   && exportTo == null
-				   && importFrom == null) {
+					"You can't cumulate options like --extract and --export");
+		} else if (opt1 && opt2) {
+			throw new ParameterException(commandLine,
+					"You can't cumulate options like --input and --import");
+		} else if (opt3) {
+			throw new ParameterException(commandLine,
+					"You can't cumulate options like --import and --extract");
+		}
+
+		if (processFile == null
+			&& extractTo == null
+			&& exportTo == null
+			&& importFrom == null) {
 			throw new ParameterException(commandLine,
 					"You must setup options like --input --import --extract --export");
 		}
