@@ -21,7 +21,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -29,24 +29,25 @@ import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.ffmpeg.ffprobe.FormatType;
 
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdCropdetect;
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
-// TODO remove source
-// TODO "-Infinity" > -144
-// TODO audio-ebur128-summary > en ligne
-// TODO end events null/0 > valeur de EOF
-// TODO event add duration (displayed)
 // FIXME astats > error
-// FIXME no video-siti-stats-ITU-T_P-910.txt
-// TODO filter out cropdetect from rawstderr
-// TODO no contraction for cropdetect
+
+// XXX audio-ebur128-summary > en ligne > corrigé ?
+// XXX end events null/0 > valeur de EOF > corrigé ?
+// XXX filter out cropdetect from rawstderr > corrigé ?
+// XXX no contraction for cropdetect > corrigé ?
+// XXX no video-siti-stats-ITU-T_P-910.txt > corrigé ?
+// XXX remove source > corrigé ?
+// XXX "-Infinity" > -144 > corrigé ?
+// XXX event add duration (displayed) > corrigé ?
 
 public class TabularTextExportFormat implements ExportFormat {// TODO test
 	private static final String PTS_TIME = "Pts time";
@@ -54,7 +55,6 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 	private static final String VALUE = "Value";
 	private static final String PTS = "PTS";
 	private static final String FRAME = "Frame";
-	private static final String SOURCE = "Source";
 
 	private static final Logger log = LogManager.getLogger();
 
@@ -62,40 +62,28 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 	public void exportMediaAnalyserResult(final String source,
 										  final MediaAnalyserResult maResult,
 										  final File exportDirectory) {
-
 		Optional.ofNullable(maResult.ebur128Summary())
 				.ifPresent(ebu -> {
-					final var t = new Tabs(
-							SOURCE,
-							"Integrated",
-							"Integrated Threshold",
-							"Loudness Range",
-							"Loudness Range Threshold",
-							"Loudness Range Low",
-							"Loudness Range High",
-							"Sample Peak",
-							"True Peak");
-					t.row(
-							source,
-							ebu.getIntegrated(),
-							ebu.getIntegratedThreshold(),
-							ebu.getLoudnessRange(),
-							ebu.getLoudnessRangeThreshold(),
-							ebu.getLoudnessRangeLow(),
-							ebu.getLoudnessRangeHigh(),
-							ebu.getSamplePeak(),
-							ebu.getTruePeak());
+					final var t = new Tabs("Type", VALUE);
+					t.row("Integrated", ebu.getIntegrated());
+					t.row("Integrated Threshold", ebu.getIntegratedThreshold());
+					t.row("Loudness Range", ebu.getLoudnessRange());
+					t.row("Loudness Range Threshold", ebu.getLoudnessRangeThreshold());
+					t.row("Loudness Range Low", ebu.getLoudnessRangeLow());
+					t.row("Loudness Range High", ebu.getLoudnessRangeHigh());
+					t.row("Sample Peak", ebu.getSamplePeak());
+					t.row("True Peak", ebu.getTruePeak());
 					save("audio-ebur128-summary.txt", exportDirectory, t.getLines());
 				});
 
 		final var lavfiMetadatas = maResult.lavfiMetadatas();
 
-		final var aPhaseMeter = new Tabs(SOURCE, FRAME, PTS, PTS_TIME, VALUE);
+		final var aPhaseMeter = new Tabs(FRAME, PTS, PTS_TIME, VALUE);
 		lavfiMetadatas.getAPhaseMeterReport()
-				.forEach(a -> aPhaseMeter.row(source, a.frame(), a.pts(), a.ptsTime(), a.value()));
+				.forEach(a -> aPhaseMeter.row(a.frame(), a.pts(), a.ptsTime(), a.value()));
 		save("audio-phase-meter.txt", exportDirectory, aPhaseMeter.getLines());
 
-		final var aStats = new Tabs(SOURCE, FRAME, PTS, PTS_TIME,
+		final var aStats = new Tabs(FRAME, PTS, PTS_TIME,
 				"Channel",
 				"DC Offset",
 				"Entropy",
@@ -110,7 +98,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 					final var channels = a.value().channels();
 					for (var pos = 0; pos < channels.size(); pos++) {
 						final var channel = channels.get(pos);
-						aPhaseMeter.row(source, a.frame(), a.pts(), a.ptsTime(),
+						aPhaseMeter.row(a.frame(), a.pts(), a.ptsTime(),
 								pos + 1,
 								channel.dcOffset(),
 								channel.entropy(),
@@ -124,20 +112,20 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 				});
 		save("audio-stats.txt", exportDirectory, aStats.getLines());
 
-		final var siti = new Tabs(SOURCE, FRAME, PTS, PTS_TIME, "Spatial Info", "Temporal Info");
+		final var siti = new Tabs(FRAME, PTS, PTS_TIME, "Spatial Info", "Temporal Info");
 		lavfiMetadatas.getSitiReport()
-				.forEach(a -> siti.row(source, a.frame(), a.pts(), a.ptsTime(), a.value().si(), a.value().ti()));
+				.forEach(a -> siti.row(a.frame(), a.pts(), a.ptsTime(), a.value().si(), a.value().ti()));
 		save("video-siti-ITU-T_P-910.txt", exportDirectory, siti.getLines());
 
 		if (lavfiMetadatas.getSitiReport().isEmpty() == false) {
-			final var sitiStats = new Tabs(SOURCE, "Type", "Average", "Count", "Max", "Min");
+			final var sitiStats = new Tabs("Type", "Average", "Count", "Max", "Min");
 			final var stats = lavfiMetadatas.computeSitiStats();
-			siti.row(source, "Spatial Info",
+			sitiStats.row("Spatial Info",
 					stats.si().getAverage(),
 					stats.si().getCount(),
 					stats.si().getMax(),
 					stats.si().getMin());
-			siti.row(source, "Temporal Info",
+			sitiStats.row("Temporal Info",
 					stats.ti().getAverage(),
 					stats.ti().getCount(),
 					stats.ti().getMax(),
@@ -145,41 +133,27 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 			save("video-siti-stats-ITU-T_P-910.txt", exportDirectory, sitiStats.getLines());
 		}
 
-		final var block = new Tabs(SOURCE, FRAME, PTS, PTS_TIME, VALUE);
+		final var block = new Tabs(FRAME, PTS, PTS_TIME, VALUE);
 		lavfiMetadatas.getBlockDetectReport()
-				.forEach(a -> block.row(source, a.frame(), a.pts(), a.ptsTime(), a.value()));
+				.forEach(a -> block.row(a.frame(), a.pts(), a.ptsTime(), a.value()));
 		save("video-block-detect.txt", exportDirectory, block.getLines());
 
-		final var blur = new Tabs(SOURCE, FRAME, PTS, PTS_TIME, VALUE);
+		final var blur = new Tabs(FRAME, PTS, PTS_TIME, VALUE);
 		lavfiMetadatas.getBlurDetectReport()
-				.forEach(a -> blur.row(source, a.frame(), a.pts(), a.ptsTime(), a.value()));
+				.forEach(a -> blur.row(a.frame(), a.pts(), a.ptsTime(), a.value()));
 		save("video-blur-detect.txt", exportDirectory, blur.getLines());
 
-		final var crop = new Tabs(SOURCE, FRAME, PTS, PTS_TIME,
+		final var crop = new Tabs(FRAME, PTS, PTS_TIME,
 				"x1", "x2", "y1", "y2", "w", "h", "x", "y");
-		lavfiMetadatas.getCropDetectReport().stream()
-				.reduce(new ArrayList<LavfiMtdValue<LavfiMtdCropdetect>>(),
-						(list, frame) -> {
-							if (list.isEmpty() == false
-								&& list.get(list.size() - 1).value().equals(frame.value())) {
-								return list;
-							}
-							list.add(frame);
-							return list;
-						},
-						(l, r) -> {
-							l.addAll(r);
-							return l;
-						})
-				.forEach(a -> {
-					final var value = a.value();
-					crop.row(source, a.frame(), a.pts(), a.ptsTime(),
-							value.x1(), value.x2(), value.y1(), value.y2(),
-							value.w(), value.h(), value.x(), value.y());
-				});
+		lavfiMetadatas.getCropDetectReport().forEach(a -> {
+			final var value = a.value();
+			crop.row(a.frame(), a.pts(), a.ptsTime(),
+					value.x1(), value.x2(), value.y1(), value.y2(),
+					value.w(), value.h(), value.x(), value.y());
+		});
 		save("video-crop-detect.txt", exportDirectory, crop.getLines());
 
-		final var idet = new Tabs(SOURCE, FRAME, PTS, PTS_TIME,
+		final var idet = new Tabs(FRAME, PTS, PTS_TIME,
 				"Single top field first",
 				"Single bottom field first",
 				"Single current frame",
@@ -201,7 +175,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 					final var multiple = value.multiple();
 					final var repeated = value.repeated();
 
-					idet.row(source, a.frame(), a.pts(), a.ptsTime(),
+					idet.row(a.frame(), a.pts(), a.ptsTime(),
 							single.tff(),
 							single.bff(),
 							single.currentFrame(),
@@ -221,7 +195,16 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 				});
 		save("video-interlace-detect.txt", exportDirectory, idet.getLines());
 
-		final var events = new Tabs(SOURCE, "Name", "Scope/Channel", "Start", "End");
+		final var fileDuration = maResult.session().getFFprobeResult()
+				.map(FFprobeJAXB::getFormat)
+				.map(FormatType::getDuration)
+				.map(Optional::ofNullable)
+				.stream()
+				.flatMap(Optional::stream)
+				.map(LavfiMtdEvent::secFloatToDuration)
+				.findFirst()
+				.orElse(Duration.ZERO);
+		final var events = new Tabs("Name", "Scope/Channel", "Start", "End", "Duration");
 		Stream.of(
 				lavfiMetadatas.getMonoEvents(),
 				lavfiMetadatas.getSilenceEvents(),
@@ -229,15 +212,19 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 				lavfiMetadatas.getFreezeEvents())
 				.flatMap(List::stream)
 				.sorted()
-				.forEach(ev -> events.row(source, ev.name(), ev.scope(), ev.start(), ev.end()));
+				.forEach(ev -> events.row(
+						ev.name(),
+						ev.scope(),
+						ev.start(),
+						ev.getEndOr(fileDuration),
+						ev.getEndOr(fileDuration).minus(ev.start())));
 		save("events.txt", exportDirectory, events.getLines());
 
-		final var aboutMeasure = new Tabs(SOURCE, "Type", "Name", "Setup", "Java class");
+		final var aboutMeasure = new Tabs("Type", "Name", "Setup", "Java class");
 		maResult.session().getAudioFilters()
 				.forEach(f -> {
 					final var filter = f.toFilter();
 					aboutMeasure.row(
-							source,
 							"audio",
 							filter.getFilterName(),
 							filter.toString(),
@@ -248,7 +235,6 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 				.forEach(f -> {
 					final var filter = f.toFilter();
 					aboutMeasure.row(
-							source,
 							"video",
 							filter.getFilterName(),
 							filter.toString(),
@@ -263,7 +249,6 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 											   final List<Ebur128StrErrFilterEvent> ebur128events,
 											   final File exportDirectory) {
 		final var t = new Tabs(
-				SOURCE,
 				"Integrated",
 				"Momentary",
 				"Short-term",
@@ -272,7 +257,6 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 				"True-peak per frame L", "True-peak per frame R",
 				"True-peak L", "True-peak R");
 		ebur128events.forEach(ebu -> t.row(
-				source,
 				ebu.getI(),
 				ebu.getM(),
 				ebu.getS(),
@@ -290,9 +274,10 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 	public void exportRawStdErrFilterEvent(final String source,
 										   final List<RawStdErrFilterEvent> rawStdErrEvents,
 										   final File exportDirectory) {
-		final var t = new Tabs(SOURCE, "Filter name", "Chain pos", "Line");
-		rawStdErrEvents.forEach(
-				r -> t.row(source, r.getFilterName(), r.getFilterChainPos(), r.getLineValue()));
+		final var t = new Tabs("Filter name", "Chain pos", "Line");
+		rawStdErrEvents.stream()
+				.filter(r -> r.getLineValue().startsWith("cropdetect") == false)
+				.forEach(r -> t.row(r.getFilterName(), r.getFilterChainPos(), r.getLineValue()));
 		save("rawstderrfilters.txt", exportDirectory, t.getLines());
 	}
 
@@ -300,7 +285,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 	public void exportContainerAnalyserResult(final String source,
 											  final ContainerAnalyserResult caResult,
 											  final File exportDirectory) {
-		final var packets = new Tabs(SOURCE,
+		final var packets = new Tabs(
 				"Codec type",
 				STREAM_INDEX,
 				"Pts",
@@ -314,7 +299,6 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 				"Flags");
 		caResult.packets().forEach(
 				r -> packets.row(
-						source,
 						r.codecType(),
 						r.streamIndex(),
 						r.pts(),
@@ -328,7 +312,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 						r.flags()));
 		save("packets.txt", exportDirectory, packets.getLines());
 
-		final var vFrames = new Tabs(SOURCE,
+		final var vFrames = new Tabs(
 				"Media type",
 				STREAM_INDEX,
 				"Key frame",
@@ -348,7 +332,6 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 		caResult.videoFrames().forEach(r -> {
 			final var frame = r.frame();
 			vFrames.row(
-					source,
 					frame.mediaType(),
 					frame.streamIndex(),
 					frame.keyFrame() ? "1" : "0",
@@ -367,7 +350,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 		});
 		save("video-frames.txt", exportDirectory, vFrames.getLines());
 
-		final var aFrames = new Tabs(SOURCE,
+		final var aFrames = new Tabs(
 				"Media type",
 				STREAM_INDEX,
 				"Nb samples",
@@ -385,7 +368,6 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 		caResult.audioFrames().forEach(r -> {
 			final var frame = r.frame();
 			aFrames.row(
-					source,
 					frame.mediaType(),
 					frame.streamIndex(),
 					r.nbSamples(),
@@ -402,7 +384,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 		});
 		save("audio-frames.txt", exportDirectory, aFrames.getLines());
 
-		final var vConsts = new Tabs(SOURCE,
+		final var vConsts = new Tabs(
 				"Width",
 				"Height",
 				"Sample aspect ratio",
@@ -429,7 +411,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 				Stream.of(caResult.videoConst()))
 				.forEach(c -> {
 					final var frame = c.updatedWith().frame();
-					vConsts.row(source,
+					vConsts.row(
 							c.width(),
 							c.height(),
 							c.sampleAspectRatio(),
@@ -454,7 +436,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 				});
 		save("video-consts.txt", exportDirectory, vConsts.getLines());
 
-		final var aConsts = new Tabs(SOURCE,
+		final var aConsts = new Tabs(
 				"Channel layout",
 				"Channels",
 				"Sample format",
@@ -472,7 +454,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 				Stream.of(caResult.audioConst()))
 				.forEach(c -> {
 					final var frame = c.updatedWith().frame();
-					vConsts.row(source,
+					vConsts.row(
 							c.channelLayout(),
 							c.channels(),
 							c.sampleFmt(),

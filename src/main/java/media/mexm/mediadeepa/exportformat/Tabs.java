@@ -49,6 +49,9 @@ public class Tabs {// TODO test
 						return str;
 					} else if (o instanceof final Duration d) {
 						return durationToString(d);
+					} else if (o instanceof final Float oF
+							   && oF == Float.NEGATIVE_INFINITY) {
+						return "-144";
 					} else if (o instanceof Number) {
 						return String.valueOf(o);
 					} else {
