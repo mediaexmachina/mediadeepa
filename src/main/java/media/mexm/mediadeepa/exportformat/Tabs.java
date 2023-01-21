@@ -17,8 +17,12 @@
 package media.mexm.mediadeepa.exportformat;
 
 import static java.lang.System.lineSeparator;
+import static java.util.Locale.ENGLISH;
 import static java.util.stream.Collectors.joining;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,9 +53,14 @@ public class Tabs {// TODO test
 						return str;
 					} else if (o instanceof final Duration d) {
 						return durationToString(d);
-					} else if (o instanceof final Float oF
-							   && oF == Float.NEGATIVE_INFINITY) {
-						return "-144";
+					} else if (o instanceof final Float oF) {
+						if (oF == Float.NEGATIVE_INFINITY) {
+							return "-144";
+						}
+						final var dfMs = new DecimalFormat("#.#####");
+						dfMs.setRoundingMode(RoundingMode.CEILING);
+						dfMs.setDecimalFormatSymbols(new DecimalFormatSymbols(ENGLISH));
+						return dfMs.format(oF);
 					} else if (o instanceof Number) {
 						return String.valueOf(o);
 					} else {

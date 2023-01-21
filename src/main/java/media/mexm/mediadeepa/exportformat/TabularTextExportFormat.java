@@ -38,16 +38,9 @@ import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
-// FIXME astats > error
-
-// XXX audio-ebur128-summary > en ligne > corrigé ?
-// XXX end events null/0 > valeur de EOF > corrigé ?
-// XXX filter out cropdetect from rawstderr > corrigé ?
-// XXX no contraction for cropdetect > corrigé ?
-// XXX no video-siti-stats-ITU-T_P-910.txt > corrigé ?
-// XXX remove source > corrigé ?
-// XXX "-Infinity" > -144 > corrigé ?
-// XXX event add duration (displayed) > corrigé ?
+// TODO remove duplicate log:
+// INFO ffprobe result: Matroska / WebM, 00:01:00, 2 MB, 415 kbps, video: vp9 480×480 Profile 0 @ 30 fps yuv420p/rng:TV/spce:BT709/tsfer:BT709/prim:BT709, audio: opus mono @ 48000 Hz
+// INFO Source file: Matroska / WebM, 00:01:00, 2 MB, 415 kbps, video: vp9 480×480 Profile 0 @ 30 fps yuv420p/rng:TV/spce:BT709/tsfer:BT709/prim:BT709, audio: opus mono @ 48000 Hz
 
 public class TabularTextExportFormat implements ExportFormat {// TODO test
 	private static final String PTS_TIME = "Pts time";
@@ -98,7 +91,11 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 					final var channels = a.value().channels();
 					for (var pos = 0; pos < channels.size(); pos++) {
 						final var channel = channels.get(pos);
-						aPhaseMeter.row(a.frame(), a.pts(), a.ptsTime(),
+						var other = channel.other().toString();
+						if (other.equals("{}")) {
+							other = "";
+						}
+						aStats.row(a.frame(), a.pts(), a.ptsTime(),
 								pos + 1,
 								channel.dcOffset(),
 								channel.entropy(),
@@ -107,7 +104,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 								channel.noiseFloorCount(),
 								channel.peakLevel(),
 								channel.peakCount(),
-								channel.other().toString());
+								other);
 					}
 				});
 		save("audio-stats.txt", exportDirectory, aStats.getLines());
@@ -118,16 +115,14 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 		save("video-siti-ITU-T_P-910.txt", exportDirectory, siti.getLines());
 
 		if (lavfiMetadatas.getSitiReport().isEmpty() == false) {
-			final var sitiStats = new Tabs("Type", "Average", "Count", "Max", "Min");
+			final var sitiStats = new Tabs("Type", "Average", "Max", "Min");
 			final var stats = lavfiMetadatas.computeSitiStats();
 			sitiStats.row("Spatial Info",
 					stats.si().getAverage(),
-					stats.si().getCount(),
 					stats.si().getMax(),
 					stats.si().getMin());
 			sitiStats.row("Temporal Info",
 					stats.ti().getAverage(),
-					stats.ti().getCount(),
 					stats.ti().getMax(),
 					stats.ti().getMin());
 			save("video-siti-stats-ITU-T_P-910.txt", exportDirectory, sitiStats.getLines());
@@ -267,7 +262,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 				ebu.getFtpk().right(),
 				ebu.getTpk().left(),
 				ebu.getTpk().right()));
-		save("ebur128.txt", exportDirectory, t.getLines());
+		save("audio-ebur128.txt", exportDirectory, t.getLines());
 	}
 
 	@Override
@@ -276,10 +271,12 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 										   final File exportDirectory) {
 		final var t = new Tabs("Filter name", "Chain pos", "Line");
 		rawStdErrEvents.stream()
-				.filter(r -> r.getLineValue().startsWith("cropdetect") == false)
+				.filter(r -> r.getFilterName().equals("cropdetect") == false)
 				.forEach(r -> t.row(r.getFilterName(), r.getFilterChainPos(), r.getLineValue()));
 		save("rawstderrfilters.txt", exportDirectory, t.getLines());
 	}
+
+	// TODO test exportContainerAnalyserResult
 
 	@Override
 	public void exportContainerAnalyserResult(final String source,
@@ -488,9 +485,10 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 
 	private void save(final String fileName, final File exportDirectory, final String lines) {
 		if (lines.isEmpty()) {
-			log.info("Nothing to save in {}", fileName);
+			log.debug("Nothing to save to {}", fileName);
 			return;
 		}
+		log.info("Save to {}", fileName);
 		try {
 			FileUtils.write(
 					new File(exportDirectory, fileName),
