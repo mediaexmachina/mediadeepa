@@ -263,7 +263,7 @@ public class AppSessionServiceImpl implements AppSessionService {// TODO test
 		}
 
 		if (processFile.isContainerAnalysing()) {
-			log.debug("Prepare container analysing...");
+			log.info("Start container analysing...");
 
 			final var caSession = ffmpegService.createContainerAnalyserSession(processFile);
 			caSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()), scheduledExecutorService);
@@ -315,7 +315,7 @@ public class AppSessionServiceImpl implements AppSessionService {// TODO test
 					exportTo);
 		}
 		if (processFile.isContainerAnalysing()) {
-			log.debug("Prepare container analysing...");
+			log.info("Start container analysing...");
 
 			final var caSession = ffmpegService.createContainerAnalyserSession(processFile);
 			caSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()), scheduledExecutorService);

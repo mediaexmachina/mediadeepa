@@ -328,10 +328,8 @@ public class FFmpegServiceImpl implements FFmpegService {// TODO test
 
 	@Override
 	public FFprobeJAXB getFFprobeJAXBFromFileToProcess(final ProcessFile processFile) {
-		final var ffprobeJAXB = new ProbeMedia(executableFinder, maxExecTimeScheduler)
+		return new ProbeMedia(executableFinder, maxExecTimeScheduler)
 				.doAnalysing(processFile.getInput());
-		log.info("ffprobe result: {}", ffprobeJAXB);
-		return ffprobeJAXB;
 	}
 
 }

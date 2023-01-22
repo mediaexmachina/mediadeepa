@@ -38,10 +38,6 @@ import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
-// TODO remove duplicate log:
-// INFO ffprobe result: Matroska / WebM, 00:01:00, 2 MB, 415 kbps, video: vp9 480×480 Profile 0 @ 30 fps yuv420p/rng:TV/spce:BT709/tsfer:BT709/prim:BT709, audio: opus mono @ 48000 Hz
-// INFO Source file: Matroska / WebM, 00:01:00, 2 MB, 415 kbps, video: vp9 480×480 Profile 0 @ 30 fps yuv420p/rng:TV/spce:BT709/tsfer:BT709/prim:BT709, audio: opus mono @ 48000 Hz
-
 public class TabularTextExportFormat implements ExportFormat {// TODO test
 	private static final String PTS_TIME = "Pts time";
 	private static final String STREAM_INDEX = "Stream index";
@@ -276,8 +272,6 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 		save("rawstderrfilters.txt", exportDirectory, t.getLines());
 	}
 
-	// TODO test exportContainerAnalyserResult
-
 	@Override
 	public void exportContainerAnalyserResult(final String source,
 											  final ContainerAnalyserResult caResult,
@@ -307,7 +301,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 						r.size(),
 						r.pos(),
 						r.flags()));
-		save("packets.txt", exportDirectory, packets.getLines());
+		save("container-packets.txt", exportDirectory, packets.getLines());
 
 		final var vFrames = new Tabs(
 				"Media type",
@@ -345,7 +339,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 					frame.pktPos(),
 					frame.pktSize());
 		});
-		save("video-frames.txt", exportDirectory, vFrames.getLines());
+		save("container-video-frames.txt", exportDirectory, vFrames.getLines());
 
 		final var aFrames = new Tabs(
 				"Media type",
@@ -379,7 +373,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 					frame.pktPos(),
 					frame.pktSize());
 		});
-		save("audio-frames.txt", exportDirectory, aFrames.getLines());
+		save("container-audio-frames.txt", exportDirectory, aFrames.getLines());
 
 		final var vConsts = new Tabs(
 				"Width",
@@ -431,7 +425,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 							frame.pktDurationTime(),
 							frame.pktPos());
 				});
-		save("video-consts.txt", exportDirectory, vConsts.getLines());
+		save("container-video-consts.txt", exportDirectory, vConsts.getLines());
 
 		final var aConsts = new Tabs(
 				"Channel layout",
@@ -451,7 +445,7 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 				Stream.of(caResult.audioConst()))
 				.forEach(c -> {
 					final var frame = c.updatedWith().frame();
-					vConsts.row(
+					aConsts.row(
 							c.channelLayout(),
 							c.channels(),
 							c.sampleFmt(),
@@ -465,7 +459,27 @@ public class TabularTextExportFormat implements ExportFormat {// TODO test
 							frame.pktDurationTime(),
 							frame.pktPos());
 				});
-		save("audio-consts.txt", exportDirectory, aConsts.getLines());
+		save("container-audio-consts.txt", exportDirectory, aConsts.getLines());
+
+		final var gopStats = new Tabs(
+				"GOP frame count",
+				"P frames count",
+				"B frames count",
+				"GOP data size",
+				"I frame data size",
+				"P frames data size",
+				"B frames data size");
+		caResult.extractGOPStats().forEach(f -> {
+			gopStats.row(
+					f.gopFrameCount(),
+					f.pFramesCount(),
+					f.bFramesCount(),
+					f.gopDataSize(),
+					f.iFrameDataSize(),
+					f.pFramesDataSize(),
+					f.bFramesDataSize());
+		});
+		save("container-video-gop.txt", exportDirectory, gopStats.getLines());
 	}
 
 	@Override
