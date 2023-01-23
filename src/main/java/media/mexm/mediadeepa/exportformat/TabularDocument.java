@@ -16,35 +16,51 @@
  */
 package media.mexm.mediadeepa.exportformat;
 
-import static java.lang.System.lineSeparator;
 import static java.util.Locale.ENGLISH;
-import static java.util.stream.Collectors.joining;
 
+import java.io.File;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class Tabs {// TODO test
-	private final String header;
-	private final List<String> lines;
+/**
+ * Manage structured header/cols/row document
+ */
+public class TabularDocument<T> {
+	private final List<List<String>> lines;
+	private List<String> header;
+	private final DocumentJoiner<T> documentJoiner;
 
-	public Tabs(final String... head) {
+	public TabularDocument(final DocumentJoiner<T> documentJoiner) {
+		this.documentJoiner = Objects.requireNonNull(documentJoiner, "\"documentJoiner\" can't to be null");
 		lines = new ArrayList<>();
-		header = Optional.ofNullable(head).stream()
-				.flatMap(Stream::of)
-				.collect(joining("\t"));
+	}
+
+	public TabularDocument<T> head(final String... head) {
+		header = toList(head);
 		if (header.isEmpty()) {
 			throw new IllegalArgumentException("Empty header");
 		}
+		return this;
 	}
 
-	public void row(final Object... item) {
-		final var row = Optional.ofNullable(item).stream()
+	public void row(final List<String> item) {
+		if (item == null || item.isEmpty()) {
+			return;
+		}
+		lines.add(item);
+	}
+
+	// FIXME audiostat display NaN
+
+	public TabularDocument<T> row(final Object... item) {
+		row(Optional.ofNullable(item).stream()
 				.flatMap(Stream::of)
 				.map(o -> {
 					if (o == null) {
@@ -54,7 +70,8 @@ public class Tabs {// TODO test
 					} else if (o instanceof final Duration d) {
 						return durationToString(d);
 					} else if (o instanceof final Float oF) {
-						if (oF == Float.NEGATIVE_INFINITY) {
+						if (oF == Float.NEGATIVE_INFINITY
+							|| oF == Float.NaN) {
 							return "-144";
 						}
 						final var dfMs = new DecimalFormat("#.#####");
@@ -67,19 +84,28 @@ public class Tabs {// TODO test
 						return o.toString();
 					}
 				})
-				.collect(joining("\t"));
-		if (row.isEmpty() == false) {
-			lines.add(row);
-		}
+				.toList());
+		return this;
 	}
 
-	String getLines() {
+	public T getDocument() {
 		if (lines.isEmpty()) {
-			return "";
+			return documentJoiner.emptyDocument();
 		}
-		return header + lineSeparator()
-			   + lines.stream().collect(joining(lineSeparator()))
-			   + lineSeparator();
+		return documentJoiner.assembleDocument(header, lines);
+	}
+
+	public static List<String> toList(final String... values) {
+		return Optional.ofNullable(values).stream()
+				.flatMap(Stream::of)
+				.filter(Objects::nonNull)
+				.toList();
+	}
+
+	public void save(final String fileName, final File exportDirectory) {
+		if (lines.isEmpty() == false) {
+			documentJoiner.save(fileName, exportDirectory, getDocument());
+		}
 	}
 
 	public static String durationToString(final Duration d) {

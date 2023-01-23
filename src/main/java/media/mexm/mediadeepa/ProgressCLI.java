@@ -23,7 +23,7 @@ import java.time.Duration;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class ProgressCLI {// TODO test
+public class ProgressCLI {
 
 	private static final int WIDTH = 20;
 	private static final char PROGRESS = '=';

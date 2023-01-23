@@ -58,7 +58,7 @@ import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
 @Service
-public class AppSessionServiceImpl implements AppSessionService {// TODO test
+public class AppSessionServiceImpl implements AppSessionService {
 	private static Logger log = LogManager.getLogger();
 
 	@Autowired

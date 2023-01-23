@@ -23,7 +23,7 @@ import java.util.Scanner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class KeyPressToExit implements Runnable {// TODO test
+public class KeyPressToExit implements Runnable {
 	private static final Logger log = LogManager.getLogger();
 
 	private final InputStream source;

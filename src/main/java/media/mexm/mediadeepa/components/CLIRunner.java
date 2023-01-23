@@ -45,8 +45,10 @@ import org.xml.sax.SAXException;
 
 import lombok.Getter;
 import media.mexm.mediadeepa.KeyPressToExit;
+import media.mexm.mediadeepa.exportformat.DocumentJoinerToString;
 import media.mexm.mediadeepa.exportformat.ExportFormatManager;
-import media.mexm.mediadeepa.exportformat.TabularTextExportFormat;
+import media.mexm.mediadeepa.exportformat.TabularDocument;
+import media.mexm.mediadeepa.exportformat.TabularDocumentExportFormat;
 import media.mexm.mediadeepa.service.AppSessionService;
 import media.mexm.mediadeepa.service.FFmpegService;
 import picocli.CommandLine;
@@ -58,7 +60,7 @@ import picocli.CommandLine.Option;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Component
-public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {// TODO test
+public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	private static Logger log = LogManager.getLogger();
 
 	@Autowired
@@ -79,13 +81,16 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {// TODO 
 	private KeyPressToExit keyPressToExit;
 	@Autowired
 	private ExportFormatManager exportFormatManager;
+	@Autowired
+	private DocumentJoinerToString documentJoinerToString;
 
 	private CommandLine commandLine;
 	private int exitCode;
 
 	@PostConstruct
 	void init() {
-		exportFormatManager.register("txt", new TabularTextExportFormat());
+		exportFormatManager.register("txt",
+				new TabularDocumentExportFormat<>(() -> new TabularDocument<>(documentJoinerToString)));
 		commandLine = new CommandLine(new AppCommand(), factory);
 	}
 
