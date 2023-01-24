@@ -19,7 +19,7 @@
 
     <properties>
         <picocli.version>4.7.0</picocli.version>
-        <medialib.version>11.0.0-SNAPSHOT</medialib.version>
+        <medialib.version>11.0.0</medialib.version>
     </properties>
 
     <dependencies>
