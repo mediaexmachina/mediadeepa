@@ -57,8 +57,6 @@ public class TabularDocument<T> {
 		lines.add(item);
 	}
 
-	// FIXME audiostat display NaN
-
 	public TabularDocument<T> row(final Object... item) {
 		row(Optional.ofNullable(item).stream()
 				.flatMap(Stream::of)
@@ -71,7 +69,8 @@ public class TabularDocument<T> {
 						return durationToString(d);
 					} else if (o instanceof final Float oF) {
 						if (oF == Float.NEGATIVE_INFINITY
-							|| oF == Float.NaN) {
+							|| oF.isInfinite()
+							|| oF.isNaN()) {
 							return "-144";
 						}
 						final var dfMs = new DecimalFormat("#.#####");
