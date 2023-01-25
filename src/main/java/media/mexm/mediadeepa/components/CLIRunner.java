@@ -48,7 +48,7 @@ import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.exportformat.DocumentJoinerToString;
 import media.mexm.mediadeepa.exportformat.ExportFormatManager;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
-import media.mexm.mediadeepa.exportformat.TabularDocumentExportFormat;
+import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.service.AppSessionService;
 import media.mexm.mediadeepa.service.FFmpegService;
 import picocli.CommandLine;
@@ -90,7 +90,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	@PostConstruct
 	void init() {
 		exportFormatManager.register("txt",
-				new TabularDocumentExportFormat<>(() -> new TabularDocument<>(documentJoinerToString)));
+				new TabularExportFormat<>(() -> new TabularDocument<>(documentJoinerToString)));
 		commandLine = new CommandLine(new AppCommand(), factory);
 	}
 

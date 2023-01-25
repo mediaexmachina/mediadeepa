@@ -37,7 +37,7 @@ import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
-public class TabularDocumentExportFormat<T> implements ExportFormat {
+public class TabularExportFormat<T> implements ExportFormat {
 	private static final String PTS_TIME = "Pts time";
 	private static final String STREAM_INDEX = "Stream index";
 	private static final String VALUE = "Value";
@@ -46,7 +46,7 @@ public class TabularDocumentExportFormat<T> implements ExportFormat {
 
 	private final TabularDocumentProvider<T> tDocProvider;
 
-	public TabularDocumentExportFormat(final TabularDocumentProvider<T> tabularDocumentProvider) {
+	public TabularExportFormat(final TabularDocumentProvider<T> tabularDocumentProvider) {
 		tDocProvider = Objects.requireNonNull(tabularDocumentProvider,
 				"\"tDocProvider\" can't to be null");
 	}

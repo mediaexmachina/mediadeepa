@@ -68,10 +68,12 @@ public class TabularDocument<T> {
 					} else if (o instanceof final Duration d) {
 						return durationToString(d);
 					} else if (o instanceof final Float oF) {
-						if (oF == Float.NEGATIVE_INFINITY
-							|| oF.isInfinite()
-							|| oF.isNaN()) {
+						if (oF.isNaN()) {
+							return "";
+						} else if (oF == Float.NEGATIVE_INFINITY) {
 							return "-144";
+						} else if (oF == Float.POSITIVE_INFINITY) {
+							return "144";
 						}
 						final var dfMs = new DecimalFormat("#.#####");
 						dfMs.setRoundingMode(RoundingMode.CEILING);
