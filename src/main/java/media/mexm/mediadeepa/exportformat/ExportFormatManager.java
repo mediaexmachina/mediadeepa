@@ -1,0 +1,62 @@
+/*
+ * This file is part of mediadeepa.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * Copyright (C) hdsdi3g for hd3g.tv 2023
+ *
+ */
+package media.mexm.mediadeepa.exportformat;
+
+import static java.util.stream.Collectors.toUnmodifiableMap;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+public class ExportFormatManager {
+	private static final Logger log = LogManager.getLogger();
+
+	private final Map<String, ExportFormat> formats;
+
+	public ExportFormatManager() {
+		formats = new LinkedHashMap<>();
+	}
+
+	public synchronized void register(final String name, final ExportFormat exportFormat) {
+		if (isFormatExists(name)) {
+			throw new IllegalArgumentException(name + " was previously registed");
+		}
+		log.debug("Add {} to internal list", name);
+		formats.put(name, exportFormat);
+	}
+
+	public synchronized boolean isFormatExists(final String name) {
+		return formats.containsKey(name);
+	}
+
+	public ExportFormat getExportFormat(final String name) {
+		if (formats.containsKey(name) == false) {
+			throw new IllegalArgumentException("Can't found " + name + " format");
+		}
+		return formats.get(name);
+	}
+
+	public Map<String, String> getRegisted() {
+		return formats.entrySet().stream()
+				.collect(toUnmodifiableMap(Entry::getKey,
+						k -> k.getValue().getClass().getSimpleName()));
+	}
+
+}
