@@ -1,4 +1,21 @@
 #!/bin/bash
+# This file is part of mediadeepa as internal and test source.
+# It will generate some boring but specific audios and videos files.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either command 3 of the License, or
+# any later command.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# Copyright (C) Media ex Machina 2023
+#
+# Usage : just $0
+# You need a recent (>v5) ffmpeg setup
 
 set -eu
 
