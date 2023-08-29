@@ -8,7 +8,7 @@
 
     <name>MediaDeepA</name>
     <url>https://github.com/mediaexmachina/mediadeepa</url>
-    <description>Audio/video medias and streams deep analyser in Java with FFmpeg as backend</description>
+    <description>Audio/video medias and streams deep analyzer in Java with FFmpeg as backend</description>
 
     <parent>
         <groupId>tv.hd3g.commons</groupId>
