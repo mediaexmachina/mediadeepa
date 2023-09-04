@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.toUnmodifiableMap;
 import static media.mexm.mediadeepa.e2e.E2ESpecificMediaFile.getFromMediaFile;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -36,9 +37,17 @@ import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
+import media.mexm.mediadeepa.App;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
 class E2ETest extends E2EUtils implements E2ERunners {
@@ -630,4 +639,57 @@ class E2ETest extends E2EUtils implements E2ERunners {
 		assertTrue(countLinesExportDir("long-mkv_ffprobe.xml") > 0);
 	}
 
+	@Nested
+	@ExtendWith(OutputCaptureExtension.class)
+	class CmdUtilsTest {
+
+		@ParameterizedTest
+		@ValueSource(strings = { "-h", "--help" })
+		void testShowHelp(final String param, final CapturedOutput output) {
+			runApp(param);
+			assertThat(output.getOut()).startsWith("Usage: mediadeepa");
+			assertThat(output.getErr()).isEmpty();
+		}
+
+		@Test
+		void testShowDefaultHelp(final CapturedOutput output) {
+			assertEquals(
+					2,
+					SpringApplication.exit(SpringApplication.run(App.class)),
+					"App exit code must return 2");
+			assertThat(output.getOut()).isEmpty();
+			assertThat(output.getErr()).contains("Usage: mediadeepa");
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = { "-v", "--version" })
+		void testShowVersion(final String param, final CapturedOutput output) {
+			runApp(param);
+			assertThat(output.getOut()).startsWith("Media Deep Analysis");
+			assertThat(output.getOut()).contains("Media ex Machina", "Copyright", "GNU");
+			assertThat(output.getErr()).isEmpty();
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = { "-o", "--options" })
+		void testShowOptions(final String param, final CapturedOutput output) {
+			runApp(param);
+			assertThat(output.getOut()).contains(
+					"ffmpeg",
+					"ffprobe",
+					"ebur128",
+					"cropdetect",
+					"metadata");
+			assertThat(output.getErr()).isEmpty();
+		}
+
+		@Test
+		void testShowAutocomplete(final CapturedOutput output) {
+			runApp("--autocomplete");
+			assertThat(output.getOut()).startsWith("#!/usr/bin/env bash");
+			assertThat(output.getOut()).contains("mediadeepa", "picocli");
+			assertThat(output.getErr()).isEmpty();
+		}
+
+	}
 }

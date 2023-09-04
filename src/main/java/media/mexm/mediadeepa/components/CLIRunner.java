@@ -41,6 +41,7 @@ import media.mexm.mediadeepa.exportformat.ExportFormatManager;
 import media.mexm.mediadeepa.exportformat.TabularTXTExportFormat;
 import media.mexm.mediadeepa.service.AppSessionService;
 import media.mexm.mediadeepa.service.FFmpegService;
+import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -53,6 +54,7 @@ import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 @Component
 @Slf4j
 public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
+	public static final String APP_NAME = "mediadeepa";
 
 	@Autowired
 	private IFactory factory;
@@ -85,7 +87,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		commandLine = new CommandLine(new AppCommand(), factory);
 	}
 
-	@Command(name = "mediadeepa",
+	@Command(name = APP_NAME,
 			 description = "Extract/process technical informations from audio/videos files/streams",
 			 version = { "Media Deep Analysis %1$s",
 						 "Copyright (C) 2022-%2$s Media ex Machina, under the GNU General Public License" },
@@ -101,6 +103,9 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 
 		@Option(names = { "-o", "--options" }, description = "Show the avaliable options on this system")
 		boolean options;
+
+		@Option(names = { "--autocomplete" }, description = "Show the autocomplete bash script for this application")
+		boolean autocomplete;
 
 		@ArgGroup(exclusive = false)
 		ProcessFile processFile;
@@ -262,6 +267,9 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 			} else if (options) {
 				printOptions();
 				return 0;
+			} else if (autocomplete) {
+				printAutoComplete();
+				return 0;
 			}
 
 			if (tempDir == null) {
@@ -330,6 +338,13 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 			exportFormatManager.getRegisted()
 					.forEach((k, v) -> out().format("%-15s%-15s\n", k, v)); // NOSONAR S3457
 		}
+
+		private void printAutoComplete() {
+			out().println(AutoComplete.bash(APP_NAME, commandLine).replace(
+					"# " + APP_NAME + " Bash Completion",
+					"# " + APP_NAME + " " + environmentVersion.appVersion() + " Bash Completion"));
+		}
+
 	}
 
 	public PrintWriter out() {

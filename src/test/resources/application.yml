@@ -1,7 +1,9 @@
 # Don't forget to update src/main/resources/META-INF/additional-spring-configuration-metadata.json
 # after to adds non-official entries
 
-#spring:
-#    main:
-#        banner-mode: "off"
-#        log-startup-info: false
+spring:
+    main:
+        banner-mode: "off"
+        log-startup-info: false
+        allow-bean-definition-overriding: true
+        web-application-type: NONE
