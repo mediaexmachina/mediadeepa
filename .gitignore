@@ -1,4 +1,10 @@
-.demo-media-files/
+*.avi
+*.mov
+*.mpg
+*.mxf
+*.ts
+*.mkv
+*.wav
 
 # Windows / macOS
 desktop.ini
