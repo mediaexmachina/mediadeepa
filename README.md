@@ -48,6 +48,9 @@ Analysis scope is currently based on FFmpeg filters and tools:
 
 Export analysis format produce:
    - Plain text files (txt files, tabular separated)
+   - CSV files
+     - Classical: comma separated, "`.`" decimal separator.
+     - French flavor: semicolon separated, "`,`" decimal separator.
 
 ## ⚡ Getting started
 
@@ -183,10 +186,8 @@ aspell check --lang=en_US --dont-backup --mode=markdown README.md
 
 Some changes have been planned, like:
  - Analyzing all audio streams, better MXF/single audio track management
- - Set manual parameters, like silence detection level floor
  - Manage variable frame rate statistics
  - Export data values to other formats:
-   - CSV (generic, and french)
    - XLSX
    - Open Document spread sheet
    - XML

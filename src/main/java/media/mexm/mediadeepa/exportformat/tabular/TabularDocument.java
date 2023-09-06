@@ -14,20 +14,23 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.exportformat.tabular;
 
-import static java.util.Locale.ENGLISH;
+import static java.lang.Float.NEGATIVE_INFINITY;
+import static java.lang.Float.POSITIVE_INFINITY;
+import static media.mexm.mediadeepa.components.CLIRunner.makeOutputFileName;
 
 import java.io.File;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import org.apache.commons.io.FileUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,15 +42,17 @@ public class TabularDocument {
 	private final List<List<String>> lines;
 	private List<String> header;
 	private final TabularDocumentExporter exporter;
+	private final String baseFileName;
 
-	public TabularDocument(final TabularDocumentExporter exporter) {
+	public TabularDocument(final TabularDocumentExporter exporter, final String baseFileName) {
 		this.exporter = Objects.requireNonNull(exporter);
+		this.baseFileName = Objects.requireNonNull(baseFileName, "\"baseFileName\" can't to be null");
 		lines = new ArrayList<>();
 		header = List.of();
 	}
 
-	public TabularDocument head(final String... head) {
-		header = toList(head);
+	public TabularDocument head(final List<String> header) {
+		this.header = Objects.requireNonNull(header, "\"header\" can't to be null");
 		if (header.isEmpty()) {
 			throw new IllegalArgumentException("Empty header");
 		}
@@ -77,15 +82,12 @@ public class TabularDocument {
 					} else if (o instanceof final Float oF) {
 						if (oF.isNaN()) {
 							return "";
-						} else if (oF == Float.NEGATIVE_INFINITY) {
+						} else if (oF == NEGATIVE_INFINITY) {
 							return "-144";
-						} else if (oF == Float.POSITIVE_INFINITY) {
+						} else if (oF == POSITIVE_INFINITY) {
 							return "144";
 						}
-						final var dfMs = new DecimalFormat("#.#####");
-						dfMs.setRoundingMode(RoundingMode.CEILING);
-						dfMs.setDecimalFormatSymbols(new DecimalFormatSymbols(ENGLISH));
-						return dfMs.format(oF);
+						return exporter.formatToString(oF, false);
 					} else if (o instanceof Number) {
 						return String.valueOf(o);
 					} else {
@@ -103,11 +105,24 @@ public class TabularDocument {
 				.toList();
 	}
 
-	public void exportToFile(final String fileName, final File exportDirectory) {
-		if (lines.isEmpty() == false) {
-			log.info("Save to {}", fileName);
-			exporter.save(exporter.getDocument(header, lines), fileName, exportDirectory);
+	public static record ExportTo(File exportDirectory, String prefixFileName) {
+	}
+
+	public File exportToFile(final ExportTo exportTo) {
+		final var outfile = new File(exportTo.exportDirectory,
+				makeOutputFileName(exportTo.prefixFileName, baseFileName) + "." + exporter.getDocumentFileExtension());
+		if (lines.isEmpty()) {
+			log.trace("Nothing to export for {}", outfile.getName());
+			return null;
 		}
+
+		log.info("Save to {}", outfile);
+		try {
+			FileUtils.writeByteArrayToFile(outfile, exporter.getDocument(header, lines));
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't write file", e);
+		}
+		return outfile;
 	}
 
 	public static String durationToString(final Duration d) {

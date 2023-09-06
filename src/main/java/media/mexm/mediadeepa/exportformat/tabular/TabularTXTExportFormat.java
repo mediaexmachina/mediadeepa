@@ -14,15 +14,43 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.exportformat.tabular;
 
 import static java.lang.System.lineSeparator;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.joining;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 public class TabularTXTExportFormat extends TabularExportFormat {
+
+	protected final DecimalFormat highFormat;
+	protected final DecimalFormat lowFormat;
+
+	public TabularTXTExportFormat() {
+		highFormat = TabularDocumentExporter.getENHighDecimalFormat();
+		lowFormat = TabularDocumentExporter.getENLowDecimalFormat();
+	}
+
+	@Override
+	public String getFormatLongName() {
+		return "Values separated by tabs in text files";
+	}
+
+	@Override
+	public String getDocumentFileExtension() {
+		return "txt";
+	}
+
+	@Override
+	public String formatToString(final float value, final boolean lowPrecison) {
+		if (lowPrecison) {
+			return lowFormat.format(value);
+		} else {
+			return highFormat.format(value);
+		}
+	}
 
 	@Override
 	public byte[] getDocument(final List<String> header, final List<List<String>> lines) {
@@ -30,7 +58,7 @@ public class TabularTXTExportFormat extends TabularExportFormat {
 		final var doc = lines.stream()
 				.map(r -> r.stream().collect(joining("\t")))
 				.collect(joining(lineSeparator()));
-		final var document = head + lineSeparator() + doc;
+		final var document = head + lineSeparator() + doc + lineSeparator();
 		return document.getBytes(UTF_8);
 	}
 

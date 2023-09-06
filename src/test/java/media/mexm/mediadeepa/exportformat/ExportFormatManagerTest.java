@@ -20,8 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 import java.util.Map;
@@ -83,9 +86,12 @@ class ExportFormatManagerTest {
 		assertThrows(UnsupportedOperationException.class,
 				() -> r.put(name, name));
 
+		final var longName = faker.numerify("longName###");
+		when(exportFormat.getFormatLongName()).thenReturn(longName);
+
 		m.register(name, exportFormat);
-		final var className = exportFormat.getClass().getSimpleName();
-		assertEquals(Map.of(name, className), m.getRegisted());
+		assertEquals(Map.of(name, longName), m.getRegisted());
+		verify(exportFormat, times(1)).getFormatLongName();
 	}
 
 }

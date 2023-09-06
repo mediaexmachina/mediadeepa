@@ -14,14 +14,13 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.exportformat.tables;
 
-import java.io.File;
-
-public interface ExportFormat {
-
-	void exportResult(DataResult result, File exportDirectory, String baseFileName);
-
-	String getFormatLongName();
+sealed interface TableCell permits
+						   TableCellString,
+						   TableCellFloat,
+						   TableCellNull,
+						   TableCellLong,
+						   TableCellInteger {
 
 }

@@ -16,11 +16,10 @@
  */
 package media.mexm.mediadeepa.exportformat;
 
-import static java.util.stream.Collectors.toUnmodifiableMap;
+import static java.util.Collections.unmodifiableMap;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,9 +52,9 @@ public class ExportFormatManager {
 	}
 
 	public Map<String, String> getRegisted() {
-		return formats.entrySet().stream()
-				.collect(toUnmodifiableMap(Entry::getKey,
-						k -> k.getValue().getClass().getSimpleName()));
+		final var result = new LinkedHashMap<String, String>();
+		formats.forEach((k, v) -> result.put(k, v.getFormatLongName()));
+		return unmodifiableMap(result);
 	}
 
 }

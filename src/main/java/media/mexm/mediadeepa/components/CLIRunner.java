@@ -39,7 +39,13 @@ import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.FilterOptions;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.exportformat.ExportFormatManager;
-import media.mexm.mediadeepa.exportformat.TabularTXTExportFormat;
+import media.mexm.mediadeepa.exportformat.tables.TableJsonExportFormat;
+import media.mexm.mediadeepa.exportformat.tables.TableSQLiteExportFormat;
+import media.mexm.mediadeepa.exportformat.tables.TableXLSXExportFormat;
+import media.mexm.mediadeepa.exportformat.tables.TableXMLExportFormat;
+import media.mexm.mediadeepa.exportformat.tabular.CSVExportFormat;
+import media.mexm.mediadeepa.exportformat.tabular.CSVFrExportFormat;
+import media.mexm.mediadeepa.exportformat.tabular.TabularTXTExportFormat;
 import media.mexm.mediadeepa.service.AppSessionService;
 import media.mexm.mediadeepa.service.FFmpegService;
 import picocli.AutoComplete;
@@ -85,6 +91,12 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	@PostConstruct
 	void init() {
 		exportFormatManager.register("txt", new TabularTXTExportFormat());
+		exportFormatManager.register("csv", new CSVExportFormat());
+		exportFormatManager.register("csvfr", new CSVFrExportFormat());
+		exportFormatManager.register("xlsx", new TableXLSXExportFormat());
+		exportFormatManager.register("sqlite", new TableSQLiteExportFormat());
+		exportFormatManager.register("xml", new TableXMLExportFormat(environmentVersion.appVersion()));
+		exportFormatManager.register("json", new TableJsonExportFormat(environmentVersion.appVersion()));
 		commandLine = new CommandLine(new AppCommand(), factory);
 	}
 
@@ -369,17 +381,17 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		exitCode = commandLine.execute(args);
 	}
 
-	public static String makeOutputFileName(final String baseFileName, final String suffix) {
-		if (baseFileName != null && baseFileName.isEmpty() == false) {
-			if (baseFileName.endsWith("_")
-				|| baseFileName.endsWith(" ")
-				|| baseFileName.endsWith("-")
-				|| baseFileName.endsWith("|")) {
-				return baseFileName + suffix;
+	public static String makeOutputFileName(final String optionalPrefix, final String baseFileName) {
+		if (optionalPrefix != null && optionalPrefix.isEmpty() == false) {
+			if (optionalPrefix.endsWith("_")
+				|| optionalPrefix.endsWith(" ")
+				|| optionalPrefix.endsWith("-")
+				|| optionalPrefix.endsWith("|")) {
+				return optionalPrefix + baseFileName;
 			}
-			return baseFileName + "_" + suffix;
+			return optionalPrefix + "_" + baseFileName;
 		}
-		return suffix;
+		return baseFileName;
 	}
 
 }

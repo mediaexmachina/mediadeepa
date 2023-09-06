@@ -181,7 +181,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 				ffprobeJAXB.getFirstVideoStream().isPresent(),
 				ffprobeJAXB.getAudiosStreams().findAny().isPresent(),
 				ma,
-				options);
+				Optional.ofNullable(options).orElseGet(FilterOptions::new));
 
 		final var session = ma.createSession(processFile.getInput());
 		session.setPgmFFDuration(processFile.getDuration());
@@ -199,7 +199,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 											  final boolean sourceHasVideo,
 											  final boolean sourceHasAudio,
 											  final MediaAnalyser ma,
-											  final FilterOptions options) {
+											  final FilterOptions nullableOptions) {
 		var useMtdAudio = false;
 		final var fIgnore = Optional.ofNullable(processFile.getFiltersIgnore()).orElse(Set.of());
 		final var fOnly = Optional.ofNullable(processFile.getFiltersOnly()).orElse(Set.of());
@@ -213,6 +213,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 				.orElse(false)
 				.booleanValue();
 
+		final var options = Optional.ofNullable(nullableOptions).orElseGet(FilterOptions::new);
 		if (sourceHasAudio && audioNo == false) {
 			final var countFilter = new ArrayList<Boolean>();
 

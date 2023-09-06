@@ -14,14 +14,23 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.exportformat.tables;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 
-public interface ExportFormat {
+public interface OutputStreamProvider {
 
-	void exportResult(DataResult result, File exportDirectory, String baseFileName);
-
-	String getFormatLongName();
+	default OutputStream createOutputStream(final File outputFile) {
+		try {
+			return new BufferedOutputStream(new FileOutputStream(outputFile), 0XFFFFFF);
+		} catch (final FileNotFoundException e) {
+			throw new UncheckedIOException("Can't create file", e);
+		}
+	}
 
 }

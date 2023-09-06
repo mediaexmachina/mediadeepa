@@ -14,14 +14,13 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.exportformat.tables;
 
-import java.io.File;
+final class TableCellNull implements TableCell {
 
-public interface ExportFormat {
+	static final TableCellNull INSTANCE = new TableCellNull();
 
-	void exportResult(DataResult result, File exportDirectory, String baseFileName);
-
-	String getFormatLongName();
+	private TableCellNull() {
+	}
 
 }

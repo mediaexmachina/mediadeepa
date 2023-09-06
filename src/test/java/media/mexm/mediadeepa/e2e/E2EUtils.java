@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.boot.SpringApplication;
 
 import media.mexm.mediadeepa.App;
 
@@ -57,6 +59,65 @@ abstract class E2EUtils {
 	static {
 		App.setDefaultProps();
 		System.setProperty("mediadeepa.disableKeyPressExit", "true");
+	}
+
+	static void runApp(final String... params) {
+		assertEquals(
+				0,
+				SpringApplication.exit(SpringApplication.run(App.class, params)),
+				"App exit code must return 0");
+	}
+
+	static void extractRawTXT(final E2ERawOutDataFiles rawData) throws IOException {
+		if (rawData.allOutExists()) {
+			return;
+		}
+		runApp("-i", rawData.mediaFile().getPath(), "-c",
+				"--temp", "target/e2e-temp",
+				"--extract-alavfi", rawData.outAlavfi().getPath(),
+				"--extract-vlavfi", rawData.outVlavfi().getPath(),
+				"--extract-stderr", rawData.outStderr().getPath(),
+				"--extract-probeheaders", rawData.outProbeheaders().getPath(),
+				"--extract-probesummary", rawData.outProbesummary().getPath(),
+				"--extract-container", rawData.outContainer().getPath());
+	}
+
+	static void processTXT(final File mediaFile) throws IOException {
+		runApp("-i", mediaFile.getPath(), "-c",
+				"--temp", "target/e2e-temp",
+				"-f", "txt",
+				"-e", "target/e2e-process",
+				"--export-base-filename", FilenameUtils.getExtension(mediaFile.getName()));
+	}
+
+	static void importRawTXTToProcess(final E2ERawOutDataFiles rawData) throws IOException {
+		final var expectedFile = new File(
+				"target/e2e-export/" + rawData.getExtension() + "_ffprobe.xml");
+		if (expectedFile.exists()) {
+			return;
+		}
+		if (rawData.outVlavfi().exists()) {
+			runApp(
+					"--temp", "target/e2e-temp",
+					"--import-lavfi", rawData.outAlavfi().getPath(),
+					"--import-lavfi", rawData.outVlavfi().getPath(),
+					"--import-stderr", rawData.outStderr().getPath(),
+					"--import-probeheaders", rawData.outProbeheaders().getPath(),
+					"--import-container", rawData.outContainer().getPath(),
+					"-f", "txt",
+					"-e", "target/e2e-export",
+					"--export-base-filename", rawData.getExtension());
+		} else {
+			runApp(
+					"--temp", "target/e2e-temp",
+					"--import-lavfi", rawData.outAlavfi().getPath(),
+					"--import-stderr", rawData.outStderr().getPath(),
+					"--import-probeheaders", rawData.outProbeheaders().getPath(),
+					"--import-container", rawData.outContainer().getPath(),
+					"-f", "txt",
+					"-e", "target/e2e-export",
+					"--export-base-filename", rawData.getExtension());
+		}
 	}
 
 	static void assertEqualsNbLines(final long expected, final List<String> lines, final String what) {
@@ -96,6 +157,16 @@ abstract class E2EUtils {
 			}
 			return count;
 		}
+	}
+
+	E2ERawOutDataFiles prepareMovForSimpleE2ETests() throws IOException {
+		final var rawData = E2ERawOutDataFiles.create(MEDIA_FILE_NAME_MOV);
+		if (MEDIA_FILE_NAME_MOV.exists() == false) {
+			return null;
+		}
+		extractRawTXT(rawData);
+		assertTrue(rawData.allOutExists());
+		return rawData;
 	}
 
 }

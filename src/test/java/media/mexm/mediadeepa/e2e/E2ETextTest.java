@@ -22,7 +22,6 @@ import static java.util.stream.Collectors.toUnmodifiableMap;
 import static media.mexm.mediadeepa.e2e.E2ESpecificMediaFile.getFromMediaFile;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -37,20 +36,12 @@ import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 
-import media.mexm.mediadeepa.App;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
-class E2ETest extends E2EUtils implements E2ERunners {
+class E2ETextTest extends E2EUtils {
 
 	@TestFactory
 	Stream<DynamicTest> testTXT() {
@@ -99,6 +90,8 @@ class E2ETest extends E2EUtils implements E2ERunners {
 						() -> checkProcessTXT_events(rawData)),
 				dynamicTest(ext + " processTXT ffprobeXML",
 						() -> checkProcessTXT_ffprobeXML(rawData)),
+				dynamicTest(ext + " processTXT mediaSummary",
+						() -> checkProcessTXT_mediaSummary(rawData)),
 				dynamicTest(ext + " processTXT stderr",
 						() -> checkProcessTXT_stderr(rawData)),
 				rawData.hasVideo()
@@ -154,6 +147,8 @@ class E2ETest extends E2EUtils implements E2ERunners {
 
 		final var listExport = Stream.of(e2eExportDir.listFiles())
 				.filter(f -> f.getName().startsWith(ext + "_"))
+				.filter(f -> f.getName().endsWith(".txt"))
+				.filter(f -> f.getName().endsWith("media-summary.txt") == false)
 				.toList();
 
 		return Stream.concat(
@@ -351,7 +346,7 @@ class E2ETest extends E2EUtils implements E2ERunners {
 			assertEquals(V_FRAME_COUNT + 1, lines.size());
 			assertEquals(List.of(
 					"352", "288", "1:1", "0", "0", "yuv420p",
-					"tv", "", "", "", "0", "0", "48600", "0.54001", "48600", "0.54001", "48600", "0.54001", "3600",
+					"tv", "", "", "", "0", "0", "48600", "0.54", "48600", "0.54", "48600", "0.54", "3600",
 					"0.04", "30"),
 					getSplitedLine(lines, 1));
 			break;
@@ -359,7 +354,7 @@ class E2ETest extends E2EUtils implements E2ERunners {
 			assertEquals(V_FRAME_COUNT + 1, lines.size());
 			assertEquals(List.of(
 					"352", "288", "1:1", "0", "0", "yuv420p",
-					"tv", "", "", "", "0", "0", "129600", "1.44001", "129600", "1.44001", "129600", "1.44001",
+					"tv", "", "", "", "0", "0", "129600", "1.44", "129600", "1.44", "129600", "1.44",
 					"3600",
 					"0.04", "564"),
 					getSplitedLine(lines, 1));
@@ -388,6 +383,30 @@ class E2ETest extends E2EUtils implements E2ERunners {
 									+ System.lineSeparator()
 									+ "<ffprobe>"));
 		assertTrue(probe.endsWith("</ffprobe>"));
+	}
+
+	void checkProcessTXT_mediaSummary(final E2ERawOutDataFiles rawData) throws IOException {
+		final var specificMediaFile = getFromMediaFile(rawData.mediaFile());
+		final var f = getProcessedTXTFromRaw(rawData, "media-summary.txt");
+		final var lines = readLines(f);
+		assertTableWith(2, lines);
+
+		switch (specificMediaFile) {
+		case AVI:
+		case MKV:
+		case MOV:
+		case MPG:
+		case TS:
+			assertEquals(4, lines.size());
+			break;
+		case WAV:
+			assertEquals(3, lines.size());
+			break;
+		case MXF:
+			assertEquals(5, lines.size());
+			break;
+		}
+
 	}
 
 	void checkProcessTXT_events(final E2ERawOutDataFiles rawData) throws IOException {
@@ -639,57 +658,4 @@ class E2ETest extends E2EUtils implements E2ERunners {
 		assertTrue(countLinesExportDir("long-mkv_ffprobe.xml") > 0);
 	}
 
-	@Nested
-	@ExtendWith(OutputCaptureExtension.class)
-	class CmdUtilsTest {
-
-		@ParameterizedTest
-		@ValueSource(strings = { "-h", "--help" })
-		void testShowHelp(final String param, final CapturedOutput output) {
-			runApp(param);
-			assertThat(output.getOut()).startsWith("Usage: mediadeepa");
-			assertThat(output.getErr()).isEmpty();
-		}
-
-		@Test
-		void testShowDefaultHelp(final CapturedOutput output) {
-			assertEquals(
-					2,
-					SpringApplication.exit(SpringApplication.run(App.class)),
-					"App exit code must return 2");
-			assertThat(output.getOut()).isEmpty();
-			assertThat(output.getErr()).contains("Usage: mediadeepa");
-		}
-
-		@ParameterizedTest
-		@ValueSource(strings = { "-v", "--version" })
-		void testShowVersion(final String param, final CapturedOutput output) {
-			runApp(param);
-			assertThat(output.getOut()).startsWith("Media Deep Analysis");
-			assertThat(output.getOut()).contains("Media ex Machina", "Copyright", "GNU");
-			assertThat(output.getErr()).isEmpty();
-		}
-
-		@ParameterizedTest
-		@ValueSource(strings = { "-o", "--options" })
-		void testShowOptions(final String param, final CapturedOutput output) {
-			runApp(param);
-			assertThat(output.getOut()).contains(
-					"ffmpeg",
-					"ffprobe",
-					"ebur128",
-					"cropdetect",
-					"metadata");
-			assertThat(output.getErr()).isEmpty();
-		}
-
-		@Test
-		void testShowAutocomplete(final CapturedOutput output) {
-			runApp("--autocomplete");
-			assertThat(output.getOut()).startsWith("#!/usr/bin/env bash");
-			assertThat(output.getOut()).contains("mediadeepa", "picocli");
-			assertThat(output.getErr()).isEmpty();
-		}
-
-	}
 }
