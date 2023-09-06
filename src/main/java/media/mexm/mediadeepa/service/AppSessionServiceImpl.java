@@ -237,7 +237,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 			final var maSession = ffmpegService.createMediaAnalyserSession(
 					processFile,
 					lavfiSecondaryFile,
-					probeResult);
+					probeResult,
+					processFile.getFilterOptions());
 			maSession.setFFprobeResult(probeResult);
 			maSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()), scheduledExecutorService);
 			ffprobeToFiles(extractTo, probeResult);
@@ -318,7 +319,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 			final var maSession = ffmpegService.createMediaAnalyserSession(
 					processFile,
 					lavfiSecondaryFile,
-					ffprobeResult);
+					ffprobeResult,
+					processFile.getFilterOptions());
 			maSession.setFFprobeResult(ffprobeResult);
 			maSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()), scheduledExecutorService);
 

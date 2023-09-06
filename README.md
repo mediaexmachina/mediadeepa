@@ -97,6 +97,33 @@ Use these options with this mode:
 -f, --format FORMAT_TYPE   Format to export datas
 -e, --export DIRECTORY     Export datas to this directory
 ```
+#### Filter options
+
+You can set specific technical values/thresholds/duration for some internal filters.
+
+<details><summary>
+With options like:
+</summary>
+
+```
+--filter-ebur128-target DBFS
+--filter-freezedetect-noisetolerance DB
+--filter-freezedetect-duration SECONDS
+--filter-idet-intl THRESHOLD_FLOAT
+--filter-idet-prog THRESHOLD_FLOAT
+--filter-idet-rep THRESHOLD_FLOAT
+--filter-idet-hl FRAMES
+[...]
+```
+
+Refer to the integrated command line help to get the full list.
+
+Refer to [FFmpeg documentation](https://www.ffmpeg.org/ffmpeg-filters.html) to have more details on the works of each filter, and on the expected values.
+
+No option are mandatory ; all will be empty and let to the default values to FFmpeg.
+
+</details>
+
 
 ### 🌿 Process to extract
 
@@ -114,6 +141,8 @@ Use these options with this mode:
 --extract-probesummary TEXT_FILE  Extract simple FFprobe data summary from container headers
 --extract-container XML_FILE      Extract XML FFprobe datas from container analyser
 ```
+
+See [Filter options](#filter-options) for process.
 
 ### 🌿 Import to export
 

@@ -19,6 +19,7 @@ package media.mexm.mediadeepa.service;
 import java.io.File;
 import java.util.Map;
 
+import media.mexm.mediadeepa.FilterOptions;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ProcessFile;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
 import tv.hd3g.fflauncher.recipes.MediaAnalyser;
@@ -33,7 +34,8 @@ public interface FFmpegService {
 
 	MediaAnalyserSession createMediaAnalyserSession(ProcessFile processFile,
 													File lavfiSecondaryVideoFile,
-													final FFprobeJAXB ffprobeJAXB);
+													FFprobeJAXB ffprobeJAXB,
+													FilterOptions options);
 
 	ContainerAnalyserSession createContainerAnalyserSession(ProcessFile processFile);
 
@@ -43,5 +45,6 @@ public interface FFmpegService {
 									   File lavfiSecondaryVideoFile,
 									   boolean sourceHasVideo,
 									   boolean sourceHasAudio,
-									   MediaAnalyser ma);
+									   MediaAnalyser ma,
+									   FilterOptions options);
 }

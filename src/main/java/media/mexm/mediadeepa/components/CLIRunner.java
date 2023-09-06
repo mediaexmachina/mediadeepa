@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import media.mexm.mediadeepa.FilterOptions;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.exportformat.ExportFormatManager;
 import media.mexm.mediadeepa.exportformat.TabularTXTExportFormat;
@@ -167,6 +168,9 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 			@Option(names = { "-mn", "--media-no" },
 					description = "Disable media analysing (ffmpeg)")
 			boolean noMediaAnalysing;
+
+			@ArgGroup(exclusive = false)
+			FilterOptions filterOptions;
 		}
 
 		@Option(names = { "--temp" },
