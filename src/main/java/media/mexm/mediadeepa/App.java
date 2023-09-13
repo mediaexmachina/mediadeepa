@@ -28,6 +28,9 @@ public class App {
 	}
 
 	public static void setDefaultProps() {
+		System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
+				"com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
+
 		System.setProperty("spring.main.web-application-type", "NONE");
 		System.setProperty("spring.main.banner-mode", "off");
 		System.setProperty("spring.main.log-startup-info", "false");

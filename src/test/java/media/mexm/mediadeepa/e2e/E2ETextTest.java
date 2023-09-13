@@ -658,4 +658,216 @@ class E2ETextTest extends E2EUtils {
 		assertTrue(countLinesExportDir("long-mkv_ffprobe.xml") > 0);
 	}
 
+	@Nested
+	class CSVTest {
+
+		@Test
+		void testCSV_classic() throws IOException {
+			final var rawData = prepareMovForSimpleE2ETests();
+			if (rawData == null) {
+				return;
+			}
+
+			final var outputFileMediaSum = new File("target/e2e-export", "mov_media-summary.csv");
+			if (outputFileMediaSum.exists() == false) {
+				runApp(
+						"--temp", "target/e2e-temp",
+						"--import-lavfi", rawData.outAlavfi().getPath(),
+						"--import-lavfi", rawData.outVlavfi().getPath(),
+						"--import-stderr", rawData.outStderr().getPath(),
+						"--import-probeheaders", rawData.outProbeheaders().getPath(),
+						"--import-container", rawData.outContainer().getPath(),
+						"-f", "csv",
+						"-e", "target/e2e-export",
+						"--export-base-filename", "mov");
+			}
+			var lines = readLines(outputFileMediaSum);
+			assertEquals(List.of(
+					"File content",
+					"video: ffv1 352×288 @ 25 fps [5731 kbps] yuv420p (1400 frms) default stream",
+					"audio: pcm_s16le stereo @ 48000 Hz [1536 kbps] default stream",
+					"\"QuickTime / MOV, 00:00:56, 48 MB\""), lines);
+
+			final var outputFileEbur128 = new File("target/e2e-export", "mov_audio-ebur128-summary.csv");
+			lines = readLines(outputFileEbur128);
+			assertEquals(List.of(
+					"Type,Value",
+					"Integrated,-24.4",
+					"Integrated Threshold,-35.1",
+					"Loudness Range,17.2",
+					"Loudness Range Threshold,-45",
+					"Loudness Range Low,-36.1",
+					"Loudness Range High,-18.8",
+					"Sample Peak,-18"
+			/** "True Peak,-17.8" Not too stable with some ffmpeg builds */
+			),
+					lines.subList(0, lines.size() - 1));
+
+			final var csvCount = Stream.of(new File("target/e2e-export").listFiles())
+					.filter(f -> f.getName().startsWith("mov_")
+								 && f.getName().endsWith(".csv"))
+					.count();
+			assertEquals(18, csvCount);
+		}
+
+		@Test
+		void testCSV_frenchFlavor() throws IOException {
+			final var rawData = prepareMovForSimpleE2ETests();
+			if (rawData == null) {
+				return;
+			}
+
+			final var outputFileMediaSum = new File("target/e2e-export", "movfr_media-summary.csv");
+			if (outputFileMediaSum.exists() == false) {
+				runApp(
+						"--temp", "target/e2e-temp",
+						"--import-lavfi", rawData.outAlavfi().getPath(),
+						"--import-lavfi", rawData.outVlavfi().getPath(),
+						"--import-stderr", rawData.outStderr().getPath(),
+						"--import-probeheaders", rawData.outProbeheaders().getPath(),
+						"--import-container", rawData.outContainer().getPath(),
+						"-f", "csvfr",
+						"-e", "target/e2e-export",
+						"--export-base-filename", "movfr");
+			}
+
+			final var outputFileEbur128 = new File("target/e2e-export", "movfr_audio-ebur128-summary.csv");
+			final var lines = readLines(outputFileEbur128);
+			assertEquals(List.of(
+					"Type;Value",
+					"Integrated;-24,4",
+					"Integrated Threshold;-35,1",
+					"Loudness Range;17,2",
+					"Loudness Range Threshold;-45",
+					"Loudness Range Low;-36,1",
+					"Loudness Range High;-18,8",
+					"Sample Peak;-18"
+			/** "True Peak,;-17,8" Not too stable with some ffmpeg builds */
+			),
+					lines.subList(0, lines.size() - 1));
+
+			final var csvCount = Stream.of(new File("target/e2e-export").listFiles())
+					.filter(f -> f.getName().startsWith("movfr_")
+								 && f.getName().endsWith(".csv"))
+					.count();
+			assertEquals(18, csvCount);
+		}
+	}
+
+	@Nested
+	class TableTest {
+
+		@Test
+		void testXLSX() throws IOException {
+			final var rawData = prepareMovForSimpleE2ETests();
+			if (rawData == null) {
+				return;
+			}
+			final var outputFile = new File("target/e2e-export", "mov_media-datas.xlsx");
+			if (outputFile.exists() == false) {
+				runApp(
+						"--temp", "target/e2e-temp",
+						"--import-lavfi", rawData.outAlavfi().getPath(),
+						"--import-lavfi", rawData.outVlavfi().getPath(),
+						"--import-stderr", rawData.outStderr().getPath(),
+						"--import-probeheaders", rawData.outProbeheaders().getPath(),
+						"--import-container", rawData.outContainer().getPath(),
+						"-f", "xlsx",
+						"-e", "target/e2e-export",
+						"--export-base-filename", "mov");
+			}
+
+			assertTrue(outputFile.exists());
+			assertTrue(outputFile.length() > 0);
+		}
+
+		@Test
+		void testODS() throws IOException {
+			final var rawData = prepareMovForSimpleE2ETests();
+			if (rawData == null) {
+				return;
+			}
+			final var outputFile = new File("target/e2e-export", "mov_media-datas.ods");
+			// if (outputFile.exists() == false) {
+			runApp(
+					"--temp", "target/e2e-temp",
+					"--import-lavfi", rawData.outAlavfi().getPath(),
+					"--import-lavfi", rawData.outVlavfi().getPath(),
+					"--import-stderr", rawData.outStderr().getPath(),
+					"--import-probeheaders", rawData.outProbeheaders().getPath(),
+					"--import-container", rawData.outContainer().getPath(),
+					"-f", "ods",
+					"-e", "target/e2e-export",
+					"--export-base-filename", "mov");
+			// }
+
+			assertTrue(outputFile.exists());
+			assertTrue(outputFile.length() > 0);
+		}
+
+	}
+
+	@Nested
+	@ExtendWith(OutputCaptureExtension.class)
+	class CmdUtilsTest {
+
+		@ParameterizedTest
+		@ValueSource(strings = { "-h", "--help" })
+		void testShowHelp(final String param, final CapturedOutput output) {
+			runApp(param);
+			assertThat(output.getOut()).startsWith("Usage: mediadeepa");
+			assertThat(output.getErr()).isEmpty();
+		}
+
+		@Test
+		void testShowDefaultHelp(final CapturedOutput output) {
+			assertEquals(
+					2,
+					SpringApplication.exit(SpringApplication.run(App.class)),
+					"App exit code must return 2");
+			assertThat(output.getOut()).isEmpty();
+			assertThat(output.getErr()).contains("Usage: mediadeepa");
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = { "-v", "--version" })
+		void testShowVersion(final String param, final CapturedOutput output) {
+			runApp(param);
+			assertThat(output.getOut()).startsWith("Media Deep Analysis");
+			assertThat(output.getOut()).contains("Media ex Machina", "Copyright", "GNU");
+			assertThat(output.getErr()).isEmpty();
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = { "-o", "--options" })
+		void testShowOptions(final String param, final CapturedOutput output) {
+			runApp(param);
+			assertThat(output.getOut()).contains(
+					"ffmpeg",
+					"ffprobe",
+					"ebur128",
+					"cropdetect",
+					"metadata");
+			assertThat(output.getErr()).isEmpty();
+		}
+
+		@Test
+		void testShowAutocomplete(final CapturedOutput output) {
+			runApp("--autocomplete");
+			assertThat(output.getOut()).startsWith("#!/usr/bin/env bash");
+			assertThat(output.getOut()).contains("mediadeepa", "picocli");
+			assertThat(output.getErr()).isEmpty();
+		}
+	}
+
+	E2ERawOutDataFiles prepareMovForSimpleE2ETests() throws IOException {
+		final var rawData = E2ERawOutDataFiles.create(MEDIA_FILE_NAME_MOV);
+		if (MEDIA_FILE_NAME_MOV.exists() == false) {
+			return null;
+		}
+		extractRawTXT(rawData);
+		assertTrue(rawData.allOutExists());
+		return rawData;
+	}
+
 }

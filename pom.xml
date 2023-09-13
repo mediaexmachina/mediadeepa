@@ -21,6 +21,7 @@
     <properties>
         <picocli.version>4.7.0</picocli.version>
         <apache.poi.version>5.2.3</apache.poi.version>
+        <odfdom.version>0.11.0</odfdom.version>
         <prodlib.version>18.0.2</prodlib.version>
         <medialib.version>12.1.2</medialib.version>
     </properties>
@@ -83,6 +84,23 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
+            <groupId>org.odftoolkit</groupId>
+            <artifactId>odfdom-java</artifactId>
+            <version>${odfdom.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                	<groupId>commons-logging</groupId>
+                	<artifactId>commons-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                	<groupId>org.slf4j</groupId>
+                	<artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

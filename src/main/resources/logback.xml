@@ -35,6 +35,7 @@
     <logger name="media.mexm" level="info" />
     <logger name="tv.hd3g.fflauncher.recipes" level="debug" />
     <logger name="tv.hd3g.fflauncher.resultparser.RawStdErrEventParser" level="info" />
+    <logger name="media.mexm.mediadeepa.exportformat.tables" level="debug" />
 
     <root level="warn">
         <appender-ref ref="Console OUT" />

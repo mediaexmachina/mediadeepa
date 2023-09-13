@@ -41,6 +41,7 @@ import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.exportformat.ExportFormatManager;
 import media.mexm.mediadeepa.exportformat.tables.TableJsonExportFormat;
 import media.mexm.mediadeepa.exportformat.tables.TableSQLiteExportFormat;
+import media.mexm.mediadeepa.exportformat.tables.TableODSExportFormat;
 import media.mexm.mediadeepa.exportformat.tables.TableXLSXExportFormat;
 import media.mexm.mediadeepa.exportformat.tables.TableXMLExportFormat;
 import media.mexm.mediadeepa.exportformat.tabular.CSVExportFormat;
@@ -97,6 +98,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		exportFormatManager.register("sqlite", new TableSQLiteExportFormat());
 		exportFormatManager.register("xml", new TableXMLExportFormat(environmentVersion.appVersion()));
 		exportFormatManager.register("json", new TableJsonExportFormat(environmentVersion.appVersion()));
+		exportFormatManager.register("ods", new TableODSExportFormat());
 		commandLine = new CommandLine(new AppCommand(), factory);
 	}
 
