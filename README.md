@@ -51,6 +51,10 @@ Export analysis format produce:
    - CSV files
      - Classical: comma separated, "`.`" decimal separator.
      - French flavor: semicolon separated, "`,`" decimal separator.
+   - Excel / XLSX Spreadsheet (simple raw data export, one tabs by export result)
+   - SQLite
+   - XML
+   - JSON
 
 ## ⚡ Getting started
 
@@ -100,33 +104,6 @@ Use these options with this mode:
 -f, --format FORMAT_TYPE   Format to export datas
 -e, --export DIRECTORY     Export datas to this directory
 ```
-#### Filter options
-
-You can set specific technical values/thresholds/duration for some internal filters.
-
-<details><summary>
-With options like:
-</summary>
-
-```
---filter-ebur128-target DBFS
---filter-freezedetect-noisetolerance DB
---filter-freezedetect-duration SECONDS
---filter-idet-intl THRESHOLD_FLOAT
---filter-idet-prog THRESHOLD_FLOAT
---filter-idet-rep THRESHOLD_FLOAT
---filter-idet-hl FRAMES
-[...]
-```
-
-Refer to the integrated command line help to get the full list.
-
-Refer to [FFmpeg documentation](https://www.ffmpeg.org/ffmpeg-filters.html) to have more details on the works of each filter, and on the expected values.
-
-No option are mandatory ; all will be empty and let to the default values to FFmpeg.
-
-</details>
-
 
 ### 🌿 Process to extract
 
@@ -145,8 +122,6 @@ Use these options with this mode:
 --extract-container XML_FILE      Extract XML FFprobe datas from container analyser
 ```
 
-See [Filter options](#filter-options) for process.
-
 ### 🌿 Import to export
 
 And now, how do you get process analyst with this raw files ?
@@ -163,6 +138,107 @@ Use these options with this mode:
 -f, --format FORMAT_TYPE        Format to export datas
 -e, --export DIRECTORY          Export datas to this directory
 ```
+
+### 🎨 Options
+
+<details><summary>
+You can set some filter, analysis and export options.
+</summary>
+
+#### 🛒 Filter parameters
+
+You can set specific technical values/thresholds/duration for some internal filters.
+
+With options like:
+
+```
+--filter-ebur128-target DBFS
+--filter-freezedetect-noisetolerance DB
+--filter-freezedetect-duration SECONDS
+--filter-idet-intl THRESHOLD_FLOAT
+--filter-idet-prog THRESHOLD_FLOAT
+--filter-idet-rep THRESHOLD_FLOAT
+--filter-idet-hl FRAMES
+[...]
+```
+
+Refer to the integrated command line help to get the full list.
+
+Refer to [FFmpeg documentation](https://www.ffmpeg.org/ffmpeg-filters.html) to have more details on the works of each filter, and on the expected values.
+
+No option are mandatory ; all will be empty and let to the default values to FFmpeg.
+
+#### 🗜 Limit the scope of analysis
+
+By default, all analysis options and filters are activated in relation to your FFmpeg setup. Container analysis is still optional (via `-c`).
+
+Not all options are necessarily useful for everyone and all the time (like [crop detect](https://ffmpeg.org/ffmpeg-filters.html#cropdetect)), the processing of certain filters can be very resource intensive (like [SITI](https://ffmpeg.org/ffmpeg-filters.html#siti-1)), and/or produce a large amount of data.
+
+First, you can list all active filters with the `-o` option:
+
+```
+Detected (and usable) filters:
+amerge         Merge two or more audio streams into a single multi-channel stream.
+ametadata      Manipulate audio frame metadata.
+aphasemeter    Convert input audio to phase meter video output.
+astats         Show time domain statistics about audio frames.
+channelmap     Remap audio channels.
+channelsplit   Split audio into per-channel streams.
+ebur128        EBU R128 scanner.
+join           Join multiple audio streams into multi-channel output.
+silencedetect  Detect silence.
+volumedetect   Detect audio volume.
+blackdetect    Detect video intervals that are (almost) black.
+blockdetect    Blockdetect filter.
+blurdetect     Blurdetect filter.
+cropdetect     Auto-detect crop size.
+freezedetect   Detects frozen video input.
+idet           Interlace detect Filter.
+mestimate      Generate motion vectors.
+metadata       Manipulate video frame metadata.
+siti           Calculate spatial information (SI) and temporal information (TI).
+```
+
+> The description of each filter comes from the return of FFmpeg command.
+
+And you can choose the analysis processing with these options:
+
+```bash
+-c, --container            Do a container analysing (ffprobe streams)
+[...]
+-fo, --filter-only FILTER  Allow only this filter(s) to process (-o to get list)
+-fn, --filter-no FILTER    Not use this filter(s) to process (-o to get list)
+-mn, --media-no            Disable media analysing (ffmpeg)
+-an, --audio-no            Ignore all video filters
+-vn, --video-no            Ignore all audio filters
+```
+
+#### 📦 Export formats
+
+With the integrated help, you can get the export features currently available, to use with `-f`.
+
+```
+[...]
+Export formats available:
+txt            Values separated by tabs in text files
+csv            Classic CSV files
+csvfr          French flavor CSV files
+xlsx           XLSX Spreadsheet
+sqlite         SQLite database
+xml            XML Document
+json           JSON Document
+[...]
+```
+
+You can use several exports formats, comma separated, like `-f txt,xml,json`.
+
+_NB: exports formats like XML or JSON can produce very large files, which may take time to make, if want to use all filters/analysis scopes (up to 4 MB for a file less than 1 minute of media). It's not a problem for Mediadeepa, but it can be for you!_
+
+The `-e` parameter set the target export directory to put the produced files.
+
+The `--export-base-filename` set a _base name_, used like `BASENAME-export-format-internal-name.extension`.
+
+</details>
 
 ## 📕 Documentation
 
@@ -186,14 +262,6 @@ aspell check --lang=en_US --dont-backup --mode=markdown README.md
 
 Some changes have been planned, like:
  - Analyzing all audio streams, better MXF/single audio track management
- - Manage variable frame rate statistics
- - Export data values to other formats:
-   - XLSX
-   - Open Document spread sheet
-   - XML
-   - JSON
-   - SQLite
-   - ...
  - Produce numeric data in PNG/JPG graphics
    - Loudness
    - Audio stats
@@ -204,12 +272,15 @@ Some changes have been planned, like:
    - Media event (freeze, black, silence...)
    - Audio complexity / video complexity
    - ...
- - Work on live streams, instead of just regular files.
  - Create useful reports
    - HTML
    - PDF
    - DOCX
    - Open-Document text
+ - Manage variable frame rate statistics
+ - Work on live streams, instead of just regular files.
+
+And [many others](https://github.com/mediaexmachina/mediadeepa/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement), I hope !
 
 ## ❤️ Contributing and support
 
@@ -239,13 +310,15 @@ Mediadeepa would never have been possible without the help of these magnificent 
  - [FFmpeg](https://FFmpeg.org/)
  - [Spring Boot](https://spring.io/projects/spring-boot)
 
-<details>
-<summary>🛠️ Dig on tech Stack</summary>
-
+🛠️ And the tech stack:
   - Java 17
   - Spring Boot 3
   - Picocli 4
   - My [`prodlib`](https://github.com/hdsdi3g/prodlib) and  [`medialib`](https://github.com/hdsdi3g/medialib) utility libs.
   - Maven (see `pom.xml` for more information)
+  - Open CSV
+  - Apache POI (poi-ooxml)
+  - SQLite JDBC
+  - Jackson
 
-</details>
+See `THIRD-PARTY.txt` file for more information on licenses and the full tech stack.
