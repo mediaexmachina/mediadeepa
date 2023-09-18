@@ -34,8 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.tables.TableDocument.Table;
 
-// TODO readme
-
 @Slf4j
 public class TableSQLiteExportFormat extends TableExportFormat {
 

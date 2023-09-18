@@ -110,11 +110,6 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 		renderer.setLegendTextFont(0, font);
 		renderer.setSeriesItemLabelFont(0, font);
 
-		// NOPE plot.getRangeAxis().setLabelFont(font);
-
-		// System.out.println(renderer.getBaseItemLabelFont());
-		// XXX b.setFont(b.getFont().deriveFont(18.0f));
-
 		/**
 		 * series_short_term
 		 */
