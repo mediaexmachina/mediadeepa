@@ -92,7 +92,7 @@ abstract class E2EUtils {
 
 	static void importRawTXTToProcess(final E2ERawOutDataFiles rawData) throws IOException {
 		final var expectedFile = new File(
-				"target/e2e-export/" + rawData.getExtension() + "_ffprobe.xml");
+				"target/e2e-export/" + rawData.getExtension() + "_media-summary.txt");
 		if (expectedFile.exists()) {
 			return;
 		}
