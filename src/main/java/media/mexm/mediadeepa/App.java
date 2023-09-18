@@ -21,6 +21,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class App {
+	public static final String NAME = "mediadeepa";
 
 	public static void main(final String[] args) {
 		setDefaultProps();

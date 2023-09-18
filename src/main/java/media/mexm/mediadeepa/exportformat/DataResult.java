@@ -21,6 +21,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import lombok.EqualsAndHashCode;
@@ -49,9 +50,12 @@ public class DataResult {
 	private List<Ebur128StrErrFilterEvent> ebur128events;
 	@Getter
 	private List<RawStdErrFilterEvent> rawStdErrEvents;
+	@Getter
+	private final Map<String, String> versions;
 
-	public DataResult(final String source) {
+	public DataResult(final String source, final Map<String, String> versions) {
 		this.source = requireNonNull(source);
+		this.versions = versions;
 		ebur128events = List.of();
 		rawStdErrEvents = List.of();
 	}

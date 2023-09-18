@@ -39,10 +39,8 @@ public class TableJsonExportFormat extends TableExportFormat implements OutputSt
 	public static final String SUFFIX_FILE_NAME = "media-datas.json";
 
 	private final JsonFactory jsonFactory;
-	private final String appVersion;
 
-	public TableJsonExportFormat(final String appVersion) {
-		this.appVersion = appVersion;
+	public TableJsonExportFormat() {
 		jsonFactory = new JsonFactory();
 	}
 
@@ -63,8 +61,6 @@ public class TableJsonExportFormat extends TableExportFormat implements OutputSt
 
 		try (final var json = jsonFactory.createGenerator(createOutputStream(outputFile), JsonEncoding.UTF8)) {
 			json.writeStartObject();
-			json.writeStringField("appVersion", appVersion);
-
 			json.writeFieldName("report");
 			json.writeStartObject();
 			for (var posTable = 0; posTable < tables.size(); posTable++) {

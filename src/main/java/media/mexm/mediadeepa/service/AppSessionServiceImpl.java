@@ -17,8 +17,10 @@
 package media.mexm.mediadeepa.service;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.unmodifiableMap;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.joining;
+import static media.mexm.mediadeepa.App.NAME;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -30,6 +32,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -52,6 +55,7 @@ import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormatManager;
 import picocli.CommandLine;
 import picocli.CommandLine.ParameterException;
+import tv.hd3g.commons.version.EnvironmentVersion;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
@@ -65,6 +69,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 	@Autowired
 	private FFmpegService ffmpegService;
+	@Autowired
+	private EnvironmentVersion environmentVersion;
 	@Autowired
 	private ScheduledExecutorService scheduledExecutorService;
 	@Autowired
@@ -306,7 +312,13 @@ public class AppSessionServiceImpl implements AppSessionService {
 	public void createProcessingSession(final ProcessFile processFile,
 										final ExportTo exportTo,
 										final File tempDir) throws IOException {
-		final var dataResult = new DataResult(processFile.getInput().getName());
+
+		final var version = new LinkedHashMap<String, String>();
+		version.put(NAME, environmentVersion.appVersion());
+		version.putAll(ffmpegService.getVersions());
+		version.put(environmentVersion.jvmNameVendor(), environmentVersion.jvmVersion());
+
+		final var dataResult = new DataResult(processFile.getInput().getName(), unmodifiableMap(version));
 
 		if (processFile.isNoMediaAnalysing() == false) {
 			log.debug("Prepare media analysing...");
@@ -375,7 +387,11 @@ public class AppSessionServiceImpl implements AppSessionService {
 				.map(File::getName)
 				.orElse("(no source)");
 
-		final var dataResult = new DataResult(sourceName);
+		final var version = new LinkedHashMap<String, String>();
+		version.put("mediadeepa", environmentVersion.appVersion());
+		version.put(environmentVersion.jvmNameVendor(), environmentVersion.jvmVersion());
+
+		final var dataResult = new DataResult(sourceName, unmodifiableMap(version));
 
 		log.debug("Try to load XML ffprobe headers: {}", importFrom.getProbeHeaders());
 		dataResult.setFfprobeResult(Optional.ofNullable(importFrom.getProbeHeaders())

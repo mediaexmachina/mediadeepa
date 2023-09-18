@@ -42,11 +42,9 @@ public class TableXMLExportFormat extends TableExportFormat implements OutputStr
 	public static final String SUFFIX_FILE_NAME = "media-datas.xml";
 
 	private final XMLEventFactory xml;
-	private final String appVersion;
 	private final DecimalFormat highFormat;
 
-	public TableXMLExportFormat(final String appVersion) {
-		this.appVersion = appVersion;
+	public TableXMLExportFormat() {
 		xml = XMLEventFactory.newInstance();
 		highFormat = TabularDocumentExporter.getENHighDecimalFormat();
 	}
@@ -70,7 +68,6 @@ public class TableXMLExportFormat extends TableExportFormat implements OutputStr
 					.createXMLEventWriter(createOutputStream(outputFile));
 			writer.add(xml.createStartDocument());
 			writer.add(xml.createStartElement("", null, "report"));
-			writer.add(xml.createAttribute("", null, "appVersion", appVersion));
 
 			for (var posTable = 0; posTable < tables.size(); posTable++) {
 				makeTable(tables, writer, posTable);

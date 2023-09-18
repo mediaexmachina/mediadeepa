@@ -135,7 +135,8 @@ class TabularDocumentTest {
 
 	@Test
 	void testRowListOfString_noHeader() {
-		doc.row(List.of(""));
+		final var empty = List.of("");
+		assertThrows(IllegalArgumentException.class, () -> doc.row(empty));
 		assertNull(doc.exportToFile(exportTo));
 		verify(exporter, times(1)).getDocumentFileExtension();
 	}

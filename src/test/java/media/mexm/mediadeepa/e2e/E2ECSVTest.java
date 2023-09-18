@@ -69,7 +69,7 @@ class E2ECSVTest extends E2EUtils {
 				.filter(f -> f.getName().startsWith("mov_")
 							 && f.getName().endsWith(".csv"))
 				.count();
-		assertEquals(18, csvCount);
+		assertEquals(19, csvCount);
 	}
 
 	@Test
@@ -106,7 +106,7 @@ class E2ECSVTest extends E2EUtils {
 				.filter(f -> f.getName().startsWith("movfr_")
 							 && f.getName().endsWith(".csv"))
 				.count();
-		assertEquals(18, csvCount);
+		assertEquals(19, csvCount);
 	}
 
 }

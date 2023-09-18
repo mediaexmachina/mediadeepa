@@ -16,6 +16,7 @@
  */
 package media.mexm.mediadeepa.components;
 
+import static media.mexm.mediadeepa.App.NAME;
 import static org.apache.commons.io.FileUtils.forceMkdir;
 
 import java.io.File;
@@ -61,7 +62,6 @@ import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 @Component
 @Slf4j
 public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
-	public static final String APP_NAME = "mediadeepa";
 
 	@Autowired
 	private IFactory factory;
@@ -95,12 +95,12 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		exportFormatManager.register("csvfr", new CSVFrExportFormat());
 		exportFormatManager.register("xlsx", new TableXLSXExportFormat());
 		exportFormatManager.register("sqlite", new TableSQLiteExportFormat());
-		exportFormatManager.register("xml", new TableXMLExportFormat(environmentVersion.appVersion()));
-		exportFormatManager.register("json", new TableJsonExportFormat(environmentVersion.appVersion()));
+		exportFormatManager.register("xml", new TableXMLExportFormat());
+		exportFormatManager.register("json", new TableJsonExportFormat());
 		commandLine = new CommandLine(new AppCommand(), factory);
 	}
 
-	@Command(name = APP_NAME,
+	@Command(name = NAME,
 			 description = "Extract/process technical informations from audio/videos files/streams",
 			 version = { "Media Deep Analysis %1$s",
 						 "Copyright (C) 2022-%2$s Media ex Machina, under the GNU General Public License" },
@@ -356,9 +356,9 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		}
 
 		private void printAutoComplete() {
-			out().println(AutoComplete.bash(APP_NAME, commandLine).replace(
-					"# " + APP_NAME + " Bash Completion",
-					"# " + APP_NAME + " " + environmentVersion.appVersion() + " Bash Completion"));
+			out().println(AutoComplete.bash(NAME, commandLine).replace(
+					"# " + NAME + " Bash Completion",
+					"# " + NAME + " " + environmentVersion.appVersion() + " Bash Completion"));
 		}
 
 	}

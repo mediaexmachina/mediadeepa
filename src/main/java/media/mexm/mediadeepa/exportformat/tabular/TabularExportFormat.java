@@ -95,6 +95,16 @@ public abstract class TabularExportFormat implements ExportFormat, TabularDocume
 					saveFFprobeJAXB(ffprobeResult, exportDirectory, baseFileName);
 					makeMediaSummary(ffprobeResult.getMediaSummary()).exportToFile(exportTo);
 				});
+
+		makeAppAbout(result).exportToFile(exportTo);
+	}
+
+	public static final List<String> HEAD_APP_ABOUT = List.of("Type", VALUE);
+
+	private TabularDocument makeAppAbout(final DataResult result) {
+		final var t = new TabularDocument(this, "about").head(HEAD_APP_ABOUT);
+		result.getVersions().entrySet().forEach(entry -> t.row(entry.getKey(), entry.getValue()));
+		return t;
 	}
 
 	public static final List<String> HEAD_MEDIA_SUMMARY = List.of("Type", VALUE);

@@ -63,8 +63,8 @@ public class TabularDocument {
 		if (item == null || item.isEmpty()) {
 			return;
 		} else if (header.size() != item.size()) {
-			log.warn("Invalid item count ({}), header count is {}. Idem={}", item.size(), header.size(), item);
-			return;
+			throw new IllegalArgumentException(
+					"Invalid item count (" + item.size() + "), header count is " + header.size() + ". Idem=" + item);
 		}
 		lines.add(item);
 	}

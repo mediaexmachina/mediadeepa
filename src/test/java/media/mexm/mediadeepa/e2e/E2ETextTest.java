@@ -151,6 +151,7 @@ class E2ETextTest extends E2EUtils {
 				.filter(f -> f.getName().startsWith(ext + "_"))
 				.filter(f -> f.getName().endsWith(".txt"))
 				.filter(f -> f.getName().endsWith("media-summary.txt") == false)
+				.filter(f -> f.getName().endsWith("_about.txt") == false)
 				.toList();
 
 		return Stream.concat(

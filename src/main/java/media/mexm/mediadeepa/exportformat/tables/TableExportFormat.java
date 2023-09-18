@@ -20,6 +20,7 @@ import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.HEA
 import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.HEAD_ACONSTS;
 import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.HEAD_AFRAMES;
 import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.HEAD_APHASE;
+import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.HEAD_APP_ABOUT;
 import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.HEAD_ASTATS;
 import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.HEAD_BLOCK;
 import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.HEAD_BLUR;
@@ -101,11 +102,16 @@ public abstract class TableExportFormat implements ExportFormat {
 					saveAConsts(caResult, tableDocument);
 					saveGopStats(caResult, tableDocument);
 				});
-
+		saveAppAbout(tableDocument, result);
 		save(result, tableDocument.getTables(), exportDirectory, baseFileName);
 	}
 
 	public abstract void save(DataResult result, List<Table> tables, File exportDirectory, String baseFileName);
+
+	private void saveAppAbout(final TableDocument doc, final DataResult result) {
+		final var t = doc.createTable("About app").head(HEAD_APP_ABOUT);
+		result.getVersions().entrySet().forEach(entry -> t.addRow().addCell(entry.getKey()).addCell(entry.getValue()));
+	}
 
 	private void saveMediaSummary(final TableDocument doc, final MediaSummary mediaSummary) {
 		final var t = doc.createTable("Media summary").head(HEAD_MEDIA_SUMMARY);

@@ -18,8 +18,6 @@ package media.mexm.mediadeepa.e2e;
 
 import static com.fasterxml.jackson.core.JsonToken.FIELD_NAME;
 import static com.fasterxml.jackson.core.JsonToken.START_OBJECT;
-import static com.fasterxml.jackson.core.JsonToken.VALUE_STRING;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -124,9 +122,9 @@ class E2ETableTest extends E2EUtils {
 		verify(defaultHandler, times(1)).setDocumentLocator(any());
 
 		verify(defaultHandler, times(1)).startElement(eq(""), eq(""), eq("report"), any());
-		verify(defaultHandler, times(18)).startElement(eq(""), eq(""), eq("table"), any());
-		verify(defaultHandler, times(18)).startElement(eq(""), eq(""), eq("headers"), any());
-		verify(defaultHandler, times(162)).startElement(eq(""), eq(""), eq("header"), any());
+		verify(defaultHandler, times(19)).startElement(eq(""), eq(""), eq("table"), any());
+		verify(defaultHandler, times(19)).startElement(eq(""), eq(""), eq("headers"), any());
+		verify(defaultHandler, times(164)).startElement(eq(""), eq(""), eq("header"), any());
 		verify(defaultHandler, atLeast(23000)).startElement(eq(""), eq(""), eq("entry"), any());
 		verify(defaultHandler, atLeast(1)).endElement(anyString(), anyString(), anyString());
 	}
@@ -143,11 +141,6 @@ class E2ETableTest extends E2EUtils {
 		assertEquals(START_OBJECT, jParser.nextToken());
 		assertEquals(FIELD_NAME, jParser.nextToken());
 
-		assertEquals("appVersion", jParser.currentName());
-		assertThat(jParser.getText()).isNotBlank();
-		assertEquals(VALUE_STRING, jParser.nextToken());
-
-		assertEquals(FIELD_NAME, jParser.nextToken());
 		assertEquals("report", jParser.currentName());
 
 		assertEquals(START_OBJECT, jParser.nextToken());
