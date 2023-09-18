@@ -44,13 +44,7 @@ import tv.hd3g.ffprobejaxb.MediaSummary;
 public abstract class TabularExportFormat implements ExportFormat, TabularDocumentExporter {
 	public static final String TEMPORAL_INFO = "Temporal Info";
 	public static final String SPATIAL_INFO = "Spatial Info";
-	public static final String TRUE_PEAK = "True Peak";
-	public static final String SAMPLE_PEAK = "Sample Peak";
-	public static final String LOUDNESS_RANGE_HIGH = "Loudness Range High";
-	public static final String LOUDNESS_RANGE_LOW = "Loudness Range Low";
-	public static final String LOUDNESS_RANGE_THRESHOLD = "Loudness Range Threshold";
 	public static final String LOUDNESS_RANGE = "Loudness Range";
-	public static final String INTEGRATED_THRESHOLD = "Integrated Threshold";
 	public static final String INTEGRATED = "Integrated";
 	public static final String PTS_TIME = "Pts time";
 	public static final String STREAM_INDEX = "Stream index";
@@ -112,25 +106,26 @@ public abstract class TabularExportFormat implements ExportFormat, TabularDocume
 		return t;
 	}
 
-	public static final List<String> HEAD_EBUR128_SUMMARY = List.of("Type", VALUE);
+	public static final List<String> HEAD_EBUR128_SUMMARY = List.of(
+			INTEGRATED,
+			"Integrated Threshold",
+			LOUDNESS_RANGE,
+			"Loudness Range Threshold",
+			"Loudness Range Low",
+			"Loudness Range High",
+			"Sample Peak",
+			"True Peak");
 
 	private TabularDocument makeEbur128Summary(final Ebur128Summary ebu) {
 		final var t = new TabularDocument(this, "audio-ebur128-summary").head(HEAD_EBUR128_SUMMARY);
-		t.row(INTEGRATED,
-				formatToString(ebu.getIntegrated(), true));
-		t.row(INTEGRATED_THRESHOLD,
-				formatToString(ebu.getIntegratedThreshold(), true));
-		t.row(LOUDNESS_RANGE,
-				formatToString(ebu.getLoudnessRange(), true));
-		t.row(LOUDNESS_RANGE_THRESHOLD,
-				formatToString(ebu.getLoudnessRangeThreshold(), true));
-		t.row(LOUDNESS_RANGE_LOW,
-				formatToString(ebu.getLoudnessRangeLow(), true));
-		t.row(LOUDNESS_RANGE_HIGH,
-				formatToString(ebu.getLoudnessRangeHigh(), true));
-		t.row(SAMPLE_PEAK,
-				formatToString(ebu.getSamplePeak(), true));
-		t.row(TRUE_PEAK,
+		t.row(
+				formatToString(ebu.getIntegrated(), true),
+				formatToString(ebu.getIntegratedThreshold(), true),
+				formatToString(ebu.getLoudnessRange(), true),
+				formatToString(ebu.getLoudnessRangeThreshold(), true),
+				formatToString(ebu.getLoudnessRangeLow(), true),
+				formatToString(ebu.getLoudnessRangeHigh(), true),
+				formatToString(ebu.getSamplePeak(), true),
 				formatToString(ebu.getTruePeak(), true));
 		return t;
 	}

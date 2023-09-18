@@ -16,6 +16,7 @@
  */
 package media.mexm.mediadeepa.e2e;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
@@ -56,18 +57,13 @@ class E2ECSVTest extends E2EUtils {
 
 		final var outputFileEbur128 = new File("target/e2e-export", "mov_audio-ebur128-summary.csv");
 		lines = readLines(outputFileEbur128);
-		assertEquals(List.of(
-				"Type,Value",
-				"Integrated,-24.4",
-				"Integrated Threshold,-35.1",
-				"Loudness Range,17.2",
-				"Loudness Range Threshold,-45",
-				"Loudness Range Low,-36.1",
-				"Loudness Range High,-18.8",
-				"Sample Peak,-18"
-		/** "True Peak,-17.8" Not too stable with some ffmpeg builds */
-		),
-				lines.subList(0, lines.size() - 1));
+
+		assertEquals(2, lines.size());
+		assertThat(lines.get(0)).isEqualTo(
+				"Integrated,Integrated Threshold,Loudness Range,Loudness Range Threshold,Loudness Range Low,Loudness Range High,Sample Peak,True Peak");
+		assertThat(lines.get(1)).startsWith(
+				"-24.4,-35.1,17.2,-45,-36.1,-18.8,-18,-17.");
+		/** "True Peak = -17.8" Not enough stable with some ffmpeg builds */
 
 		final var csvCount = Stream.of(new File("target/e2e-export").listFiles())
 				.filter(f -> f.getName().startsWith("mov_")
@@ -99,18 +95,12 @@ class E2ECSVTest extends E2EUtils {
 
 		final var outputFileEbur128 = new File("target/e2e-export", "movfr_audio-ebur128-summary.csv");
 		final var lines = readLines(outputFileEbur128);
-		assertEquals(List.of(
-				"Type;Value",
-				"Integrated;-24,4",
-				"Integrated Threshold;-35,1",
-				"Loudness Range;17,2",
-				"Loudness Range Threshold;-45",
-				"Loudness Range Low;-36,1",
-				"Loudness Range High;-18,8",
-				"Sample Peak;-18"
-		/** "True Peak,;-17,8" Not too stable with some ffmpeg builds */
-		),
-				lines.subList(0, lines.size() - 1));
+		assertEquals(2, lines.size());
+		assertThat(lines.get(0)).isEqualTo(
+				"Integrated;Integrated Threshold;Loudness Range;Loudness Range Threshold;Loudness Range Low;Loudness Range High;Sample Peak;True Peak");
+		assertThat(lines.get(1)).startsWith(
+				"-24,4;-35,1;17,2;-45;-36,1;-18,8;-18;-17,");
+		/** "True Peak = -17,8" Not enough stable with some ffmpeg builds */
 
 		final var csvCount = Stream.of(new File("target/e2e-export").listFiles())
 				.filter(f -> f.getName().startsWith("movfr_")

@@ -30,8 +30,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
@@ -525,11 +527,14 @@ class E2ETextTest extends E2EUtils {
 		final var specificMediaFile = getFromMediaFile(rawData.mediaFile());
 		final var f = getProcessedTXTFromRaw(rawData, "audio-ebur128-summary.txt");
 		final var lines = readLines(f);
-		assertTableWith(2, lines);
-		final var floatValues = lines.stream().skip(1)
-				.map(l -> List.of(l.split("\t")))
-				.map(l -> new KV<>(l.get(0), Float.valueOf(l.get(1))))
+		assertTableWith(8, lines);
+
+		final var lineHeader = Arrays.asList(lines.get(0).split("\t"));
+		final var lineValues = Arrays.asList(lines.get(1).split("\t"));
+		final var floatValues = IntStream.range(0, lineHeader.size())
+				.mapToObj(i -> new KV<>(lineHeader.get(i), Float.valueOf(lineValues.get(i))))
 				.collect(toUnmodifiableMap(KV::key, KV::value));
+
 		assertEquals(-24, round(floatValues.get("Integrated")));
 		if (specificMediaFile == E2ESpecificMediaFile.MXF) {
 			assertEquals(-36, round(floatValues.get("Integrated Threshold")));
@@ -625,7 +630,7 @@ class E2ETextTest extends E2EUtils {
 
 		assertEquals(144001,
 				countLinesExportDir("long-mkv_audio-ebur128.txt"));
-		assertEquals(9,
+		assertEquals(2,
 				countLinesExportDir("long-mkv_audio-ebur128-summary.txt"));
 		assertEquals(600002,
 				countLinesExportDir("long-mkv_audio-phase-meter.txt"));

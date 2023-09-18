@@ -36,16 +36,8 @@ import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.HEA
 import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.HEAD_STDERRFILTERS;
 import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.HEAD_VCONSTS;
 import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.HEAD_VFRAMES;
-import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.INTEGRATED;
-import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.INTEGRATED_THRESHOLD;
-import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.LOUDNESS_RANGE;
-import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.LOUDNESS_RANGE_HIGH;
-import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.LOUDNESS_RANGE_LOW;
-import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.LOUDNESS_RANGE_THRESHOLD;
-import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.SAMPLE_PEAK;
 import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.SPATIAL_INFO;
 import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.TEMPORAL_INFO;
-import static media.mexm.mediadeepa.exportformat.tabular.TabularExportFormat.TRUE_PEAK;
 
 import java.io.File;
 import java.time.Duration;
@@ -122,15 +114,16 @@ public abstract class TableExportFormat implements ExportFormat {
 	}
 
 	private void saveEbur128Summary(final TableDocument doc, final Ebur128Summary ebu) {
-		final var t = doc.createTable("EBU-R128 Summary").head(HEAD_EBUR128_SUMMARY);
-		t.addRow().addCell(INTEGRATED).addCell(ebu.getIntegrated());
-		t.addRow().addCell(INTEGRATED_THRESHOLD).addCell(ebu.getIntegratedThreshold());
-		t.addRow().addCell(LOUDNESS_RANGE).addCell(ebu.getLoudnessRange());
-		t.addRow().addCell(LOUDNESS_RANGE_THRESHOLD).addCell(ebu.getLoudnessRangeThreshold());
-		t.addRow().addCell(LOUDNESS_RANGE_LOW).addCell(ebu.getLoudnessRangeLow());
-		t.addRow().addCell(LOUDNESS_RANGE_HIGH).addCell(ebu.getLoudnessRangeHigh());
-		t.addRow().addCell(SAMPLE_PEAK).addCell(ebu.getSamplePeak());
-		t.addRow().addCell(TRUE_PEAK).addCell(ebu.getTruePeak());
+		final var t = doc.createTable("EBU R 128 Summary").head(HEAD_EBUR128_SUMMARY);
+		t.addRow()
+				.addCell(ebu.getIntegrated())
+				.addCell(ebu.getIntegratedThreshold())
+				.addCell(ebu.getLoudnessRange())
+				.addCell(ebu.getLoudnessRangeThreshold())
+				.addCell(ebu.getLoudnessRangeLow())
+				.addCell(ebu.getLoudnessRangeHigh())
+				.addCell(ebu.getSamplePeak())
+				.addCell(ebu.getTruePeak());
 	}
 
 	private void saveSITIReport(final TableDocument doc,
@@ -305,7 +298,7 @@ public abstract class TableExportFormat implements ExportFormat {
 
 	private void saveEbur128(final List<Ebur128StrErrFilterEvent> ebur128events,
 							 final TableDocument doc) {
-		final var t = doc.createTable("EBU-r128").head(HEAD_EBUR128);
+		final var t = doc.createTable("EBU R 128").head(HEAD_EBUR128);
 		ebur128events.forEach(ebu -> t.addRow()
 				.addCell(ebu.getT())
 				.addCell(ebu.getI())
