@@ -190,7 +190,7 @@ class E2ETextTest extends E2EUtils {
 	void checkRaw_ProbeSummary(final E2ERawOutDataFiles rawData) throws IOException {
 		final var specificMediaFile = rawData.getSpecificMediaFile();
 		final var lines = readLines(rawData.outProbesummary());
-		assertEquals(lines, specificMediaFile.probesummary);
+		assertEquals(specificMediaFile.probesummary, lines);
 	}
 
 	void checkRaw_Container(final E2ERawOutDataFiles rawData) throws IOException {

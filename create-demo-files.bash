@@ -131,7 +131,7 @@ rm -f video-render.mkv
 
 ffmpeg -i demo-render.mkv -c:v copy -c:a copy $V demo-render.mov
 ffmpeg -i demo-render.mkv -c:v copy -c:a copy $V demo-render.avi
-ffmpeg -i demo-render.mkv -c:v mpeg2video -b:v 15M -c:a mp2 -b:a 256k $V demo-render.mpg
+ffmpeg -i demo-render.mkv -c:v mpeg2video -b:v 15M -c:a mp2 -bf 2 -b:a 256k $V demo-render.mpg
 ffmpeg -i demo-render.mpg -c:v copy -c:a copy $V \
        -f mpegts -metadata service_provider="Media ex Machina" -metadata service_name="Demo render" demo-render.ts
 ffmpeg -i demo-render.mkv -i demo-render.wav \

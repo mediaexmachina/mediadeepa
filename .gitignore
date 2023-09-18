@@ -1,10 +1,13 @@
 *.avi
 *.mov
+*.MOV
 *.mpg
 *.mxf
 *.ts
 *.mkv
 *.wav
+*.jpg
+*.webm
 
 # Windows / macOS
 desktop.ini
