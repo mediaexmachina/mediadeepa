@@ -28,10 +28,12 @@ import static java.lang.Math.max;
 import static media.mexm.mediadeepa.components.CLIRunner.makeOutputFileName;
 
 import java.awt.BasicStroke;
+import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.TimeZone;
+import java.util.stream.Stream;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
@@ -46,6 +48,9 @@ import org.jfree.data.time.TimeSeriesCollection;
 import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
+import tv.hd3g.fflauncher.resultparser.Ebur128Summary;
 
 @Slf4j
 public class LoudnessGraphicExportFormat implements ExportFormat {
@@ -63,14 +68,14 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 		if (r128events.isEmpty()) {
 			return;
 		}
+		// TODO polyvalent time/db (LogarithmicAxis or other ?) values graph
+		// TODO split TPK / LU
 
 		final var outputFile = new File(exportDirectory, makeOutputFileName(baseFileName, SUFFIX_FILE_NAME));
 		final var jpg_compression_ratio = 0.95f;
 		final var image_width = 1000 * 2;
 		final var image_height = 600 * 2;
-		final var lufsRef = -23;
 		final var truepeakRef = -3;
-		final var lufsRange = -80;
 
 		final var seriesMomentary = new TimeSeries("Momentary");
 		final var seriesShortTerm = new TimeSeries("Short term");
@@ -79,7 +84,6 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 
 		r128events.forEach(event -> {
 			final var position = new FixedMillisecond(Math.round(Math.ceil(event.getT() * 1000f)));
-			// TODO check if momentary/short_term == 0 >> -144
 			seriesMomentary.add(position, event.getM());
 			seriesShortTerm.add(position, event.getS());
 			seriesIntegrated.add(position, event.getI());
@@ -95,8 +99,8 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 		final var timechart = ChartFactory.createTimeSeriesChart("", "", "", tsc, true, false, false);
 		timechart.setAntiAlias(true);
 		timechart.setBackgroundPaint(BLACK);
-		timechart.getLegend().setBackgroundPaint(BLACK);
-		// timechart.getLegend().setItemFont(font);
+		final var legend = timechart.getLegend();
+		legend.setBackgroundPaint(BLACK);
 
 		final var plot = timechart.getXYPlot();
 		plot.setBackgroundPaint(BLACK);
@@ -110,24 +114,27 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 		renderer.setLegendTextFont(0, font);
 		renderer.setSeriesItemLabelFont(0, font);
 
+		final var thinStroke = new BasicStroke(3, CAP_BUTT, JOIN_MITER);
 		/**
 		 * series_short_term
 		 */
 		renderer.setSeriesPaint(0, ORANGE);
+		renderer.setSeriesStroke(0, thinStroke);
 		/**
 		 * series_momentary
 		 */
 		renderer.setSeriesPaint(1, RED);
+		renderer.setSeriesStroke(1, thinStroke);
 		/**
 		 * series_true_peak_per_frame
 		 */
 		renderer.setSeriesPaint(2, GRAY);
+		renderer.setSeriesStroke(2, thinStroke);
 		/**
 		 * series_integrated
 		 */
 		renderer.setSeriesPaint(3, BLUE);
-		final var thickStroke = new BasicStroke(6, CAP_BUTT, JOIN_MITER);
-		renderer.setSeriesStroke(3, thickStroke);
+		renderer.setSeriesStroke(3, new BasicStroke(6, CAP_BUTT, JOIN_MITER));
 
 		/**
 		 * Time units
@@ -146,49 +153,66 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 		timeAxis.setLabelFont(font);
 		timeAxis.setTickLabelFont(font);
 
-		/**
-		 * Display the -23 line
-		 */
-		final var zeroPos = new ValueMarker(lufsRef);
-		zeroPos.setLabel("   " + lufsRef);
-		zeroPos.setLabelPaint(CYAN);
-		// zeroPos.setAlpha(0.5f);
-		// zeroPos.setLabelBackgroundColor(Color.CYAN);
-		zeroPos.setPaint(CYAN);
-		zeroPos.setOutlinePaint(CYAN);
-		zeroPos.setLabelFont(font);
+		final var floorValuesStats = -40d;
+		final var valueStats = r128events.stream().flatMap(event -> Stream.of(
+				event.getFtpk().left(),
+				event.getFtpk().right(),
+				event.getI(),
+				event.getM(),
+				event.getS(),
+				event.getSpk().left(),
+				event.getSpk().right(),
+				event.getTarget(),
+				event.getTpk().left(),
+				event.getTpk().right()))
+				.mapToDouble(v -> (double) v)
+				.filter(v -> v > floorValuesStats)
+				.summaryStatistics();
+		final var maxValue = (int) Math.round(Math.floor(valueStats.getMax()));
+		final var minValue = (int) Math.round(Math.ceil(valueStats.getMin()));
 
-		/**
-		 * Display the -3 line
-		 */
-		final var zeroPos2 = new ValueMarker(truepeakRef);
-		zeroPos2.setLabel("   " + truepeakRef);
-		zeroPos2.setLabelPaint(CYAN);
-		// zeroPos2.setAlpha(0.5f);
-		// zeroPos2.setLabelBackgroundColor(Color.CYAN);
-		zeroPos2.setPaint(CYAN);
-		zeroPos2.setOutlinePaint(CYAN);
-		zeroPos2.setLabelFont(font);
-
-		final float[] dash = { 5.0f };
-		final var dashStroke = new BasicStroke(1, CAP_BUTT, JOIN_MITER, 10.0f, dash, 0.0f);
-		zeroPos.setStroke(dashStroke);
-		zeroPos2.setStroke(dashStroke);
-		plot.addRangeMarker(zeroPos);
-		plot.addRangeMarker(zeroPos2);
+		final var oEbur128Sum = result.getMediaAnalyserResult().map(MediaAnalyserResult::ebur128Summary);
+		final var integrated = Math.round(oEbur128Sum.map(Ebur128Summary::getIntegrated)
+				.orElseGet(() -> r128events.get(r128events.size() - 1).getI()));
+		final var lraH = oEbur128Sum.map(Ebur128Summary::getLoudnessRangeHigh)
+				.map(Math::floor)
+				.map(Math::round)
+				.orElse(-23l);
+		final var lraL = oEbur128Sum.map(Ebur128Summary::getLoudnessRangeLow)
+				.map(Math::ceil)
+				.map(Math::round)
+				.orElse(-23l);
 
 		final var rangeAxis = new LogarithmicAxis("dB LU");
-		rangeAxis.centerRange(0d);
+		rangeAxis.centerRange(integrated);
 		rangeAxis.setAllowNegativesFlag(true);
-		rangeAxis.setRange(lufsRange, 0);
+		rangeAxis.setRange(minValue - 10d, maxValue + 1d);
 		rangeAxis.setLabelPaint(GRAY);
 		rangeAxis.setAxisLineVisible(false);
 		rangeAxis.setTickLabelPaint(GRAY);
 		rangeAxis.setLabelFont(font);
+
 		rangeAxis.setTickLabelFont(font);
+		rangeAxis.setTickLabelsVisible(true);
+		rangeAxis.setTickMarksVisible(true);
+		rangeAxis.setTickMarkInsideLength(10);
+		rangeAxis.setTickMarkOutsideLength(0);
+		rangeAxis.setTickMarkPaint(GRAY);
 
 		plot.setRangeAxis(rangeAxis);
 		plot.setOutlinePaint(GRAY);
+
+		Stream.of(
+				r128events.stream()
+						.map(Ebur128StrErrFilterEvent::getTarget)
+						.map(Math::round)
+						.findFirst()
+						.orElse(-23),
+				-14, -23, maxValue, minValue, integrated, lraH.intValue(), lraL.intValue())
+				.distinct()
+				.map(ref -> createValueMarker(ref, font))
+				.forEach(plot::addRangeMarker);
+		plot.addRangeMarker(createValueMarker(truepeakRef, font));
 
 		timechart.setTextAntiAlias(true);
 
@@ -198,6 +222,18 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't save chart", e);
 		}
+	}
+
+	private ValueMarker createValueMarker(final int ref, final Font font) {
+		final var maker = new ValueMarker(ref);
+		maker.setLabel("   " + ref);
+		maker.setLabelPaint(CYAN);
+		maker.setPaint(CYAN);
+		maker.setOutlinePaint(CYAN);
+		maker.setLabelFont(font);
+		final float[] dash = { 5.0f };
+		maker.setStroke(new BasicStroke(1, CAP_BUTT, JOIN_MITER, 10.0f, dash, 0.0f));
+		return maker;
 	}
 
 }
