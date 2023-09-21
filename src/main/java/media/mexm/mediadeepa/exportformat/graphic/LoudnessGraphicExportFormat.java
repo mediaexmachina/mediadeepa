@@ -22,10 +22,10 @@ import static java.awt.Color.BLUE;
 import static java.awt.Color.GREEN;
 import static java.awt.Color.RED;
 import static media.mexm.mediadeepa.components.CLIRunner.makeOutputFileName;
+import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.IMAGE_SIZE_FULL_HEIGHT;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Point;
 import java.io.File;
 import java.util.stream.Stream;
 
@@ -78,7 +78,7 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 				r128events.stream().map(Ebur128StrErrFilterEvent::getI)));
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
 				"Short term",
-				GREEN,
+				GREEN.darker(),
 				thinStroke,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getS)));
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
@@ -96,7 +96,7 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 
 		dataGraphicLUFS.makeGraphic(
 				new File(exportDirectory, makeOutputFileName(baseFileName, SUFFIX_LUFS_FILE_NAME)),
-				new Point(2000, 1200));
+				IMAGE_SIZE_FULL_HEIGHT);
 
 		final var ra = RangeAxis.createFromValueSet("dB LU",
 				oEbur128Sum.map(Ebur128Summary::getIntegrated).orElse(-23f), 10, 1,
@@ -129,7 +129,7 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 
 		dataGraphicTPK.makeGraphic(
 				new File(exportDirectory, makeOutputFileName(baseFileName, SUFFIX_TPK_FILE_NAME)),
-				new Point(2000, 1200));
+				IMAGE_SIZE_FULL_HEIGHT);
 
 	}
 

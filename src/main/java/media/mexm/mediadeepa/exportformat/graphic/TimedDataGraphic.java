@@ -27,9 +27,9 @@ import static java.util.Locale.ENGLISH;
 import static org.jfree.ui.TextAnchor.CENTER_LEFT;
 
 import java.awt.BasicStroke;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Paint;
-import java.awt.Point;
 import java.awt.Stroke;
 import java.io.File;
 import java.io.IOException;
@@ -58,6 +58,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TimedDataGraphic {
+
+	public static final Dimension IMAGE_SIZE_FULL_HEIGHT = new Dimension(2000, 1200);
 
 	private static final float JPG_COMPRESSION_RATIO = 0.95f;
 	private static final String DECIMAL_FORMAT_PATTERN = "#.#";
@@ -175,7 +177,7 @@ public class TimedDataGraphic {
 
 	}
 
-	public void makeGraphic(final File outputFile, final Point imageSize) {
+	public void makeGraphic(final File outputFile, final Dimension imageSize) {
 		log.info("Save graphic to {}", outputFile);
 
 		final var tsc = new TimeSeriesCollection();
@@ -247,7 +249,12 @@ public class TimedDataGraphic {
 		timeAxis.setTickLabelFont(font);
 
 		try {
-			ChartUtilities.saveChartAsJPEG(outputFile, JPG_COMPRESSION_RATIO, timechart, imageSize.x, imageSize.y);
+			ChartUtilities.saveChartAsJPEG(
+					outputFile,
+					JPG_COMPRESSION_RATIO,
+					timechart,
+					imageSize.width,
+					imageSize.height);
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't save chart", e);
 		}
