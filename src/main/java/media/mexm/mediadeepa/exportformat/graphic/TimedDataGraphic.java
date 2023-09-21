@@ -19,8 +19,9 @@ package media.mexm.mediadeepa.exportformat.graphic;
 import static java.awt.BasicStroke.CAP_BUTT;
 import static java.awt.BasicStroke.JOIN_MITER;
 import static java.awt.Color.BLACK;
-import static java.awt.Color.CYAN;
 import static java.awt.Color.GRAY;
+import static java.awt.Color.WHITE;
+import static java.awt.Font.BOLD;
 import static java.util.Locale.ENGLISH;
 
 import java.awt.BasicStroke;
@@ -55,7 +56,7 @@ import org.jfree.ui.TextAnchor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class TimedDataGraphic { // TODO test ? E2E ?
+public class TimedDataGraphic {
 
 	private static final float JPG_COMPRESSION_RATIO = 0.95f;
 	private static final String DECIMAL_FORMAT_PATTERN = "#.#";
@@ -128,7 +129,6 @@ public class TimedDataGraphic { // TODO test ? E2E ?
 
 		private LogarithmicAxis toLogarithmicAxis(final Font font) {
 			final var rangeAxis = new LogarithmicAxis(name);
-			// rangeAxis.centerRange(integrated);
 			rangeAxis.setAllowNegativesFlag(true);
 			rangeAxis.setRange(min.doubleValue(), max.doubleValue());
 			rangeAxis.setLabelPaint(GRAY);
@@ -199,7 +199,7 @@ public class TimedDataGraphic { // TODO test ? E2E ?
 		final var renderer = (XYLineAndShapeRenderer) plot.getRenderer(0);
 		renderer.setBaseLegendTextPaint(GRAY);
 
-		final var font = renderer.getBaseItemLabelFont().deriveFont(24f);
+		final var font = renderer.getBaseItemLabelFont().deriveFont(28f);
 		markers.forEach(ref -> {
 			final var marker = new ValueMarker(ref);
 			final var label = decimalFormat.format(ref);
@@ -209,10 +209,13 @@ public class TimedDataGraphic { // TODO test ? E2E ?
 				marker.setLabel(label);
 			}
 
-			marker.setLabelPaint(CYAN);
-			marker.setPaint(CYAN);
-			marker.setOutlinePaint(CYAN);
-			marker.setLabelFont(font);
+			marker.setLabelPaint(WHITE);
+			marker.setPaint(WHITE);
+			marker.setLabelFont(font.deriveFont(BOLD));
+
+			// marker.setOutlineStroke(new BasicStroke(2, CAP_BUTT, JOIN_MITER));
+			// marker.setOutlinePaint(RED);
+
 			marker.setLabelTextAnchor(TextAnchor.TOP_LEFT);
 			final float[] dash = { 5.0f };
 			marker.setStroke(new BasicStroke(1, CAP_BUTT, JOIN_MITER, 10.0f, dash, 0.0f));
