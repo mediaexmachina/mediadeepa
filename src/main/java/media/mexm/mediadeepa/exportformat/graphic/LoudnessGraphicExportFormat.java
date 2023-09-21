@@ -95,6 +95,9 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 				.addValueMarker(oEbur128Sum.map(Ebur128Summary::getLoudnessRangeLow))
 				.addValueMarker(r128events.get(r128events.size() - 1).getI());
 
+		// XXX addValueMarker remove -10 & -10
+		// XXX add -20 -30 ...
+
 		dataGraphicLUFS.makeGraphic(
 				new File(exportDirectory, makeOutputFileName(baseFileName, SUFFIX_LUFS_FILE_NAME)),
 				new Point(2000, 1200));
