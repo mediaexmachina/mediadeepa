@@ -22,7 +22,9 @@ import static java.awt.Color.BLACK;
 import static java.awt.Color.GRAY;
 import static java.awt.Color.WHITE;
 import static java.awt.Font.BOLD;
+import static java.lang.Math.round;
 import static java.util.Locale.ENGLISH;
+import static org.jfree.ui.TextAnchor.CENTER_LEFT;
 
 import java.awt.BasicStroke;
 import java.awt.Font;
@@ -51,7 +53,6 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.FixedMillisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
-import org.jfree.ui.TextAnchor;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,19 +69,15 @@ public class TimedDataGraphic {
 	private final DecimalFormat decimalFormat;
 
 	public TimedDataGraphic(final Stream<Long> positionsMs, final RangeAxis rangeAxis) {
-		series = new ArrayList<>();
-		markers = new ArrayList<>();
-		positions = positionsMs.map(FixedMillisecond::new).toList();
-		this.rangeAxis = Objects.requireNonNull(rangeAxis, "\"rangeAxis\" can't to be null");
-
-		decimalFormat = new DecimalFormat(DECIMAL_FORMAT_PATTERN);
-		decimalFormat.setDecimalFormatSymbols(new DecimalFormatSymbols(ENGLISH));
+		this(
+				positionsMs.map(FixedMillisecond::new).toList(),
+				Objects.requireNonNull(rangeAxis, "\"rangeAxis\" can't to be null"));
 	}
 
-	private TimedDataGraphic(final TimedDataGraphic reference, final RangeAxis rangeAxis) {
+	private TimedDataGraphic(final List<FixedMillisecond> positions, final RangeAxis rangeAxis) {
 		series = new ArrayList<>();
 		markers = new ArrayList<>();
-		positions = reference.positions;
+		this.positions = positions;
 		this.rangeAxis = rangeAxis;
 
 		decimalFormat = new DecimalFormat(DECIMAL_FORMAT_PATTERN);
@@ -88,9 +85,14 @@ public class TimedDataGraphic {
 	}
 
 	public TimedDataGraphic addValueMarker(final Number position) {
-		final var doublePos = position.doubleValue();
-		if (markers.contains(doublePos) == false) {
-			markers.add(doublePos);
+		if (position.intValue() == -10) {
+			return this;
+		}
+		final var longPos = Math.round(position.doubleValue());
+		if (markers.stream()
+				.map(Math::round)
+				.noneMatch(l -> l == longPos)) {
+			markers.add(position.doubleValue());
 		}
 		return this;
 	}
@@ -107,7 +109,7 @@ public class TimedDataGraphic {
 	}
 
 	public TimedDataGraphic cloneWithSamePositions(final RangeAxis rangeAxis) {
-		return new TimedDataGraphic(this, rangeAxis);
+		return new TimedDataGraphic(positions, rangeAxis);
 	}
 
 	public static record RangeAxis(String name, Number min, Number max) {
@@ -132,15 +134,11 @@ public class TimedDataGraphic {
 			rangeAxis.setAllowNegativesFlag(true);
 			rangeAxis.setRange(min.doubleValue(), max.doubleValue());
 			rangeAxis.setLabelPaint(GRAY);
-			rangeAxis.setAxisLineVisible(false);
 			rangeAxis.setTickLabelPaint(GRAY);
 			rangeAxis.setLabelFont(font);
-
 			rangeAxis.setTickLabelFont(font);
 			rangeAxis.setTickLabelsVisible(true);
 			rangeAxis.setTickMarksVisible(true);
-			rangeAxis.setTickMarkInsideLength(10);
-			rangeAxis.setTickMarkOutsideLength(0);
 			rangeAxis.setTickMarkPaint(GRAY);
 			return rangeAxis;
 		}
@@ -200,28 +198,27 @@ public class TimedDataGraphic {
 		renderer.setBaseLegendTextPaint(GRAY);
 
 		final var font = renderer.getBaseItemLabelFont().deriveFont(28f);
-		markers.forEach(ref -> {
-			final var marker = new ValueMarker(ref);
-			final var label = decimalFormat.format(ref);
-			if (label.endsWith(".0")) {
-				marker.setLabel(Math.round(ref) + "");
-			} else {
-				marker.setLabel(label);
-			}
 
-			marker.setLabelPaint(WHITE);
-			marker.setPaint(WHITE);
-			marker.setLabelFont(font.deriveFont(BOLD));
+		markers.stream()
+				.map(ref -> {
+					final var marker = new ValueMarker(ref);
+					final var label = decimalFormat.format(ref);
+					if (label.endsWith(".0")) {
+						marker.setLabel(String.valueOf(round(ref)));
+					} else {
+						marker.setLabel(label);
+					}
 
-			// marker.setOutlineStroke(new BasicStroke(2, CAP_BUTT, JOIN_MITER));
-			// marker.setOutlinePaint(RED);
+					marker.setLabelPaint(WHITE);
+					marker.setPaint(WHITE);
+					marker.setLabelFont(font.deriveFont(BOLD));
 
-			marker.setLabelTextAnchor(TextAnchor.TOP_LEFT);
-			final float[] dash = { 5.0f };
-			marker.setStroke(new BasicStroke(1, CAP_BUTT, JOIN_MITER, 10.0f, dash, 0.0f));
-			plot.addRangeMarker(marker);
-		});
-
+					marker.setLabelTextAnchor(CENTER_LEFT);
+					final float[] dash = { 5.0f };
+					marker.setStroke(new BasicStroke(1, CAP_BUTT, JOIN_MITER, 10.0f, dash, 0.0f));
+					return marker;
+				})
+				.forEach(plot::addRangeMarker);
 		plot.setRangeAxis(rangeAxis.toLogarithmicAxis(font));
 
 		renderer.setBaseItemLabelFont(font);

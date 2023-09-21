@@ -20,7 +20,6 @@ import static java.awt.BasicStroke.CAP_BUTT;
 import static java.awt.BasicStroke.JOIN_MITER;
 import static java.awt.Color.BLUE;
 import static java.awt.Color.GREEN;
-import static java.awt.Color.ORANGE;
 import static java.awt.Color.RED;
 import static media.mexm.mediadeepa.components.CLIRunner.makeOutputFileName;
 
@@ -95,9 +94,6 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 				.addValueMarker(oEbur128Sum.map(Ebur128Summary::getLoudnessRangeLow))
 				.addValueMarker(r128events.get(r128events.size() - 1).getI());
 
-		// XXX addValueMarker remove -10 & -10
-		// XXX add -20 -30 ...
-
 		dataGraphicLUFS.makeGraphic(
 				new File(exportDirectory, makeOutputFileName(baseFileName, SUFFIX_LUFS_FILE_NAME)),
 				new Point(2000, 1200));
@@ -113,17 +109,11 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 		final var dataGraphicTPK = dataGraphicLUFS.cloneWithSamePositions(ra);
 
 		dataGraphicTPK.addSeries(dataGraphicLUFS.new Series(
-				"True peak left (per frame)", BLUE, thinStroke,
-				r128events.stream().map(Ebur128StrErrFilterEvent::getFtpk).map(Stereo::left)));
-		dataGraphicTPK.addSeries(dataGraphicLUFS.new Series(
 				"True peak right (per frame)", RED, thinStroke,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getFtpk).map(Stereo::right)));
 		dataGraphicTPK.addSeries(dataGraphicLUFS.new Series(
-				"Sample peak left", new Color(0, 128, 255), thickStroke,
-				r128events.stream().map(Ebur128StrErrFilterEvent::getSpk).map(Stereo::left)));
-		dataGraphicTPK.addSeries(dataGraphicLUFS.new Series(
-				"Sample peak right", ORANGE, thickStroke,
-				r128events.stream().map(Ebur128StrErrFilterEvent::getSpk).map(Stereo::right)));
+				"True peak left (per frame)", BLUE, thickStroke,
+				r128events.stream().map(Ebur128StrErrFilterEvent::getFtpk).map(Stereo::left)));
 		dataGraphicTPK
 				.addValueMarker(oEbur128Sum.map(Ebur128Summary::getTruePeak))
 				.addValueMarker(oEbur128Sum.map(Ebur128Summary::getSamplePeak))
