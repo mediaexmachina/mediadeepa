@@ -73,12 +73,12 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
 				"Integrated",
-				Color.getHSBColor(0.666f, 1f, 1f),
+				RED,
 				thickStroke,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getI)));
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
 				"Short term",
-				Color.getHSBColor(0.75f, 1f, 0.7f),
+				BLUE,
 				thinStroke,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getS)));
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
