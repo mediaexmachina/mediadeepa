@@ -72,13 +72,19 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 		final var thickStroke = new BasicStroke(6, CAP_BUTT, JOIN_MITER);
 
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
-				"Integrated", BLUE, thinStroke,
+				"Integrated",
+				Color.getHSBColor(0.6f, 1f, 1f),
+				thickStroke,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getI)));
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
-				"Short term", RED, thinStroke,
+				"Short term",
+				Color.getHSBColor(0.7f, 1f, 0.9f),
+				thinStroke,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getS)));
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
-				"Momentary", ORANGE, thinStroke,
+				"Momentary",
+				Color.getHSBColor(0.5f, 1f, 0.6f),
+				thinStroke,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getM)));
 
 		final var oEbur128Sum = result.getMediaAnalyserResult().map(MediaAnalyserResult::ebur128Summary);
