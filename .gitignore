@@ -5,6 +5,8 @@
 *.ts
 *.mkv
 *.wav
+*.jpg
+*.webm
 
 # Windows / macOS
 desktop.ini
