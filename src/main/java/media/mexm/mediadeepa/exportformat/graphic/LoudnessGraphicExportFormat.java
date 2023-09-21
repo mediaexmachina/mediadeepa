@@ -19,6 +19,7 @@ package media.mexm.mediadeepa.exportformat.graphic;
 import static java.awt.BasicStroke.CAP_BUTT;
 import static java.awt.BasicStroke.JOIN_MITER;
 import static java.awt.Color.BLUE;
+import static java.awt.Color.GREEN;
 import static java.awt.Color.ORANGE;
 import static java.awt.Color.RED;
 import static media.mexm.mediadeepa.components.CLIRunner.makeOutputFileName;
@@ -78,7 +79,7 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 				r128events.stream().map(Ebur128StrErrFilterEvent::getI)));
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
 				"Short term",
-				BLUE,
+				GREEN,
 				thinStroke,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getS)));
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
