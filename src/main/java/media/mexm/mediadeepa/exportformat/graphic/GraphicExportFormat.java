@@ -56,6 +56,22 @@ public class GraphicExportFormat implements ExportFormat {
 	public void exportResult(final DataResult result, final File exportDirectory, final String baseFileName) {
 		makeR128(result, exportDirectory, baseFileName);
 		makeAPhase(result, exportDirectory, baseFileName);
+		/*
+		TODO Audio stats, by channel: DC Offset (+/- 1)
+		TODO Audio stats, by channel: Entropy (%)
+		TODO Audio stats, by channel: Flat factor (count)
+		TODO Audio stats, by channel: Noise floor (dB)
+		TODO Audio stats, by channel: Peak level (dB)
+		TODO SITI
+		TODO Block detect
+		TODO Blur detect
+		TODO Crop detect
+		TODO Interlace detect
+		TODO Audio/video events graphical
+		TODO Container bitrate graphical Video
+		TODO Container bitrate graphical Audio
+		TODO GOP size / GOP Width graphical
+		*/
 	}
 
 	private void makeR128(final DataResult result, final File exportDirectory, final String baseFileName) {
