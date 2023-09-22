@@ -16,15 +16,14 @@
  */
 package media.mexm.mediadeepa.exportformat.graphic;
 
-import static java.awt.BasicStroke.CAP_BUTT;
-import static java.awt.BasicStroke.JOIN_MITER;
 import static java.awt.Color.BLUE;
 import static java.awt.Color.GREEN;
 import static java.awt.Color.RED;
 import static media.mexm.mediadeepa.components.CLIRunner.makeOutputFileName;
 import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.IMAGE_SIZE_FULL_HEIGHT;
+import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.THICK_STROKE;
+import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.THIN_STROKE;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.io.File;
 import java.util.stream.Stream;
@@ -68,23 +67,20 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 										event.getS(),
 										event.getTarget()))));
 
-		final var thinStroke = new BasicStroke(3, CAP_BUTT, JOIN_MITER);
-		final var thickStroke = new BasicStroke(6, CAP_BUTT, JOIN_MITER);
-
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
 				"Integrated",
 				BLUE,
-				thickStroke,
+				THICK_STROKE,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getI)));
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
 				"Short term",
 				GREEN.darker(),
-				thinStroke,
+				THIN_STROKE,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getS)));
 		dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
 				"Momentary",
 				Color.getHSBColor(0.5f, 1f, 0.3f),
-				thinStroke,
+				THIN_STROKE,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getM)));
 
 		final var oEbur128Sum = result.getMediaAnalyserResult().map(MediaAnalyserResult::ebur128Summary);
@@ -96,7 +92,8 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 
 		dataGraphicLUFS.makeGraphic(
 				new File(exportDirectory, makeOutputFileName(baseFileName, SUFFIX_LUFS_FILE_NAME)),
-				IMAGE_SIZE_FULL_HEIGHT);
+				IMAGE_SIZE_FULL_HEIGHT,
+				true);
 
 		final var ra = RangeAxis.createFromValueSet("dB LU",
 				oEbur128Sum.map(Ebur128Summary::getIntegrated).orElse(-23f), 10, 1,
@@ -109,10 +106,10 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 		final var dataGraphicTPK = dataGraphicLUFS.cloneWithSamePositions(ra);
 
 		dataGraphicTPK.addSeries(dataGraphicLUFS.new Series(
-				"True peak right (per frame)", RED, thinStroke,
+				"True peak right (per frame)", RED, THIN_STROKE,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getFtpk).map(Stereo::right)));
 		dataGraphicTPK.addSeries(dataGraphicLUFS.new Series(
-				"True peak left (per frame)", BLUE, thickStroke,
+				"True peak left (per frame)", BLUE, THICK_STROKE,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getFtpk).map(Stereo::left)));
 		dataGraphicTPK
 				.addValueMarker(oEbur128Sum.map(Ebur128Summary::getTruePeak))
@@ -129,7 +126,8 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 
 		dataGraphicTPK.makeGraphic(
 				new File(exportDirectory, makeOutputFileName(baseFileName, SUFFIX_TPK_FILE_NAME)),
-				IMAGE_SIZE_FULL_HEIGHT);
+				IMAGE_SIZE_FULL_HEIGHT,
+				true);
 
 	}
 

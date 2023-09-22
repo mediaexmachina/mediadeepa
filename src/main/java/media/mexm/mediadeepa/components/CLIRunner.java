@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.FilterOptions;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.exportformat.ExportFormatManager;
+import media.mexm.mediadeepa.exportformat.graphic.APhaseGraphicExportFormat;
 import media.mexm.mediadeepa.exportformat.graphic.LoudnessGraphicExportFormat;
 import media.mexm.mediadeepa.exportformat.tables.TableJsonExportFormat;
 import media.mexm.mediadeepa.exportformat.tables.TableSQLiteExportFormat;
@@ -99,6 +100,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		exportFormatManager.register("xml", new TableXMLExportFormat());
 		exportFormatManager.register("json", new TableJsonExportFormat());
 		exportFormatManager.register("lufs", new LoudnessGraphicExportFormat());// TODO all-in-one
+		exportFormatManager.register("graphic", new APhaseGraphicExportFormat());// TODO all-in-one
 		commandLine = new CommandLine(new AppCommand(), factory);
 	}
 

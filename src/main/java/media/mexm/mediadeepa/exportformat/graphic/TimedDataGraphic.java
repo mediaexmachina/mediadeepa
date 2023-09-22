@@ -24,9 +24,10 @@ import static java.awt.Color.WHITE;
 import static java.awt.Font.BOLD;
 import static java.lang.Math.round;
 import static java.util.Locale.ENGLISH;
-import static org.jfree.ui.TextAnchor.CENTER_LEFT;
+import static org.jfree.chart.ui.TextAnchor.CENTER_LEFT;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Paint;
@@ -45,9 +46,11 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.ChartUtils;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.LogarithmicAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.FixedMillisecond;
@@ -60,6 +63,11 @@ import lombok.extern.slf4j.Slf4j;
 public class TimedDataGraphic {
 
 	public static final Dimension IMAGE_SIZE_FULL_HEIGHT = new Dimension(2000, 1200);
+	public static final Dimension IMAGE_SIZE_HALF_HEIGHT = new Dimension(2000, IMAGE_SIZE_FULL_HEIGHT.height / 2);
+	public static final Color FULL_PINK = Color.getHSBColor(0.83f, 1f, 1f);
+
+	public static final BasicStroke THIN_STROKE = new BasicStroke(3, CAP_BUTT, JOIN_MITER);
+	public static final BasicStroke THICK_STROKE = new BasicStroke(6, CAP_BUTT, JOIN_MITER);
 
 	private static final float JPG_COMPRESSION_RATIO = 0.95f;
 	private static final String DECIMAL_FORMAT_PATTERN = "#.#";
@@ -73,6 +81,15 @@ public class TimedDataGraphic {
 	public TimedDataGraphic(final Stream<Long> positionsMs, final RangeAxis rangeAxis) {
 		this(
 				positionsMs.map(FixedMillisecond::new).toList(),
+				Objects.requireNonNull(rangeAxis, "\"rangeAxis\" can't to be null"));
+	}
+
+	public static TimedDataGraphic create(final Stream<Float> positionsS, final RangeAxis rangeAxis) {
+		return new TimedDataGraphic(
+				positionsS
+						.map(s -> s * 1000)
+						.map(Math::round)
+						.map(FixedMillisecond::new).toList(),
 				Objects.requireNonNull(rangeAxis, "\"rangeAxis\" can't to be null"));
 	}
 
@@ -134,7 +151,19 @@ public class TimedDataGraphic {
 		private LogarithmicAxis toLogarithmicAxis(final Font font) {
 			final var rangeAxis = new LogarithmicAxis(name);
 			rangeAxis.setAllowNegativesFlag(true);
+			setRangeAxisParam(font, rangeAxis);
+			return rangeAxis;
+		}
+
+		public ValueAxis toLinearAxis(final Font font) {
+			final var rangeAxis = new NumberAxis(name);
+			setRangeAxisParam(font, rangeAxis);
+			return rangeAxis;
+		}
+
+		private void setRangeAxisParam(final Font font, final NumberAxis rangeAxis) {
 			rangeAxis.setRange(min.doubleValue(), max.doubleValue());
+			rangeAxis.setAutoRange(false);
 			rangeAxis.setLabelPaint(GRAY);
 			rangeAxis.setTickLabelPaint(GRAY);
 			rangeAxis.setLabelFont(font);
@@ -142,7 +171,6 @@ public class TimedDataGraphic {
 			rangeAxis.setTickLabelsVisible(true);
 			rangeAxis.setTickMarksVisible(true);
 			rangeAxis.setTickMarkPaint(GRAY);
-			return rangeAxis;
 		}
 
 	}
@@ -177,7 +205,7 @@ public class TimedDataGraphic {
 
 	}
 
-	public void makeGraphic(final File outputFile, final Dimension imageSize) {
+	public void makeGraphic(final File outputFile, final Dimension imageSize, final boolean logarithmicAxis) {
 		log.info("Save graphic to {}", outputFile);
 
 		final var tsc = new TimeSeriesCollection();
@@ -197,9 +225,9 @@ public class TimedDataGraphic {
 		plot.setOutlinePaint(GRAY);
 
 		final var renderer = (XYLineAndShapeRenderer) plot.getRenderer(0);
-		renderer.setBaseLegendTextPaint(GRAY);
+		renderer.setDefaultLegendTextPaint(GRAY);
 
-		final var font = renderer.getBaseItemLabelFont().deriveFont(28f);
+		final var font = renderer.getDefaultItemLabelFont().deriveFont(28f);
 
 		markers.stream()
 				.map(ref -> {
@@ -214,17 +242,22 @@ public class TimedDataGraphic {
 					marker.setLabelPaint(WHITE);
 					marker.setPaint(WHITE);
 					marker.setLabelFont(font.deriveFont(BOLD));
-
 					marker.setLabelTextAnchor(CENTER_LEFT);
+
 					final float[] dash = { 5.0f };
 					marker.setStroke(new BasicStroke(1, CAP_BUTT, JOIN_MITER, 10.0f, dash, 0.0f));
 					return marker;
 				})
 				.forEach(plot::addRangeMarker);
-		plot.setRangeAxis(rangeAxis.toLogarithmicAxis(font));
 
-		renderer.setBaseItemLabelFont(font);
-		renderer.setBaseLegendTextFont(font);
+		if (logarithmicAxis) {
+			plot.setRangeAxis(rangeAxis.toLogarithmicAxis(font));
+		} else {
+			plot.setRangeAxis(rangeAxis.toLinearAxis(font));
+		}
+
+		renderer.setDefaultItemLabelFont(font);
+		renderer.setDefaultLegendTextFont(font);
 		renderer.setLegendTextFont(0, font);
 		renderer.setSeriesItemLabelFont(0, font);
 
@@ -249,7 +282,7 @@ public class TimedDataGraphic {
 		timeAxis.setTickLabelFont(font);
 
 		try {
-			ChartUtilities.saveChartAsJPEG(
+			ChartUtils.saveChartAsJPEG(
 					outputFile,
 					JPG_COMPRESSION_RATIO,
 					timechart,
