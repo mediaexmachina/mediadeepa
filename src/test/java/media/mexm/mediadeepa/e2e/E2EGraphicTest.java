@@ -20,20 +20,25 @@ import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.IMAGE_
 import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.IMAGE_SIZE_HALF_HEIGHT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 import java.awt.Color;
-import java.awt.image.BufferedImage;
+import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 
 class E2EGraphicTest extends E2EUtils {
 
+	E2ERawOutDataFiles rawData;
 	ThreadLocal<float[]> hsbvalsThreadLocal;
 
 	@BeforeEach
@@ -41,67 +46,45 @@ class E2EGraphicTest extends E2EUtils {
 		hsbvalsThreadLocal = ThreadLocal.withInitial(() -> new float[3]);
 	}
 
-	// TODO generic test for all graphics in one
-
-	@Test
-	void testLUFS() throws IOException {
-		final var rawData = prepareMovForSimpleE2ETests();
+	@TestFactory
+	Stream<DynamicTest> testTable() throws IOException {
+		rawData = prepareMovForSimpleE2ETests();
 		if (rawData == null) {
-			return;
+			return Stream.empty();
 		}
+		return Stream.of(
+				dynamicTest("LUFS", this::testLUFS));
+	}
 
-		final var outputFileLUFS = new File("target/e2e-export", "mov_lufs-events.jpg");
-		final var outputFileTPK = new File("target/e2e-export", "mov_lufs-tpk-events.jpg");
-		if (outputFileLUFS.exists() == false
-			|| outputFileTPK.exists() == false) {
-			runApp(
-					"--temp", "target/e2e-temp",
-					"--import-lavfi", rawData.outAlavfi().getPath(),
-					"--import-lavfi", rawData.outVlavfi().getPath(),
-					"--import-stderr", rawData.outStderr().getPath(),
-					"--import-probeheaders", rawData.outProbeheaders().getPath(),
-					"--import-container", rawData.outContainer().getPath(),
-					"-f", "lufs",
-					"-e", "target/e2e-export",
-					"--export-base-filename", "mov");
+	File makeOutputFile(final String baseFileName) throws IOException {
+		final var outputFile = new File("target/e2e-export", baseFileName);
+		if (outputFile.exists()) {
+			return outputFile;
 		}
+		runApp(
+				"--temp", "target/e2e-temp",
+				"--import-lavfi", rawData.outAlavfi().getPath(),
+				"--import-lavfi", rawData.outVlavfi().getPath(),
+				"--import-stderr", rawData.outStderr().getPath(),
+				"--import-probeheaders", rawData.outProbeheaders().getPath(),
+				"--import-container", rawData.outContainer().getPath(),
+				"-f", "graphic",
+				"-e", "target/e2e-export",
+				"--export-base-filename", "mov");
+		return outputFile;
+	}
 
-		var image = ImageIO.read(outputFileLUFS);
-		assertEquals(IMAGE_SIZE_FULL_HEIGHT.getWidth(), image.getWidth());
-		assertEquals(IMAGE_SIZE_FULL_HEIGHT.getHeight(), image.getHeight());
-		checkImageGraphic(image);
-
-		image = ImageIO.read(outputFileTPK);
-		assertEquals(IMAGE_SIZE_FULL_HEIGHT.getWidth(), image.getWidth());
-		assertEquals(IMAGE_SIZE_FULL_HEIGHT.getHeight(), image.getHeight());
-		checkImageGraphic(image);
+	void testLUFS() throws IOException {
+		final var outputFileLUFS = makeOutputFile("mov_lufs-events.jpg");
+		checkImageGraphic(outputFileLUFS, IMAGE_SIZE_FULL_HEIGHT);
+		final var outputFileTPK = makeOutputFile("mov_lufs-tpk-events.jpg");
+		checkImageGraphic(outputFileTPK, IMAGE_SIZE_FULL_HEIGHT);
 	}
 
 	@Test
 	void testAPhase() throws IOException {
-		final var rawData = prepareMovForSimpleE2ETests();
-		if (rawData == null) {
-			return;
-		}
-
-		final var outputFile = new File("target/e2e-export", "mov_audio-phase.jpg");
-		if (outputFile.exists() == false) {
-			runApp(
-					"--temp", "target/e2e-temp",
-					"--import-lavfi", rawData.outAlavfi().getPath(),
-					"--import-lavfi", rawData.outVlavfi().getPath(),
-					"--import-stderr", rawData.outStderr().getPath(),
-					"--import-probeheaders", rawData.outProbeheaders().getPath(),
-					"--import-container", rawData.outContainer().getPath(),
-					"-f", "graphic",
-					"-e", "target/e2e-export",
-					"--export-base-filename", "mov");
-		}
-
-		final var image = ImageIO.read(outputFile);
-		assertEquals(IMAGE_SIZE_HALF_HEIGHT.getWidth(), image.getWidth());
-		assertEquals(IMAGE_SIZE_HALF_HEIGHT.getHeight(), image.getHeight());
-		checkImageGraphic(image);
+		final var outputFile = makeOutputFile("mov_audio-phase.jpg");
+		checkImageGraphic(outputFile, IMAGE_SIZE_HALF_HEIGHT);
 	}
 
 	private static record HSV(float hue, float sat, float value) {
@@ -110,7 +93,12 @@ class E2EGraphicTest extends E2EUtils {
 		}
 	}
 
-	private void checkImageGraphic(final BufferedImage image) {
+	private void checkImageGraphic(final File outputFile,
+								   final Dimension expectedImageSize) throws IOException {
+		final var image = ImageIO.read(outputFile);
+		assertEquals(expectedImageSize.getWidth(), image.getWidth());
+		assertEquals(expectedImageSize.getHeight(), image.getHeight());
+
 		final var allColors = IntStream.range(0, image.getWidth())
 				.parallel()
 				.mapToObj(posX -> IntStream
