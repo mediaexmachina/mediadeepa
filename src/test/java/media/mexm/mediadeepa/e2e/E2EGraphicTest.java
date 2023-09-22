@@ -33,7 +33,6 @@ import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 class E2EGraphicTest extends E2EUtils {
@@ -53,7 +52,12 @@ class E2EGraphicTest extends E2EUtils {
 			return Stream.empty();
 		}
 		return Stream.of(
-				dynamicTest("LUFS", this::testLUFS));
+				dynamicTest("LUFS",
+						() -> checkImageGraphic(makeOutputFile("mov_lufs-events.jpg"), IMAGE_SIZE_FULL_HEIGHT)),
+				dynamicTest("LUFS TPK",
+						() -> checkImageGraphic(makeOutputFile("mov_lufs-tpk-events.jpg"), IMAGE_SIZE_FULL_HEIGHT)),
+				dynamicTest("Audio phase",
+						() -> checkImageGraphic(makeOutputFile("mov_audio-phase.jpg"), IMAGE_SIZE_HALF_HEIGHT)));
 	}
 
 	File makeOutputFile(final String baseFileName) throws IOException {
@@ -72,19 +76,6 @@ class E2EGraphicTest extends E2EUtils {
 				"-e", "target/e2e-export",
 				"--export-base-filename", "mov");
 		return outputFile;
-	}
-
-	void testLUFS() throws IOException {
-		final var outputFileLUFS = makeOutputFile("mov_lufs-events.jpg");
-		checkImageGraphic(outputFileLUFS, IMAGE_SIZE_FULL_HEIGHT);
-		final var outputFileTPK = makeOutputFile("mov_lufs-tpk-events.jpg");
-		checkImageGraphic(outputFileTPK, IMAGE_SIZE_FULL_HEIGHT);
-	}
-
-	@Test
-	void testAPhase() throws IOException {
-		final var outputFile = makeOutputFile("mov_audio-phase.jpg");
-		checkImageGraphic(outputFile, IMAGE_SIZE_HALF_HEIGHT);
 	}
 
 	private static record HSV(float hue, float sat, float value) {
