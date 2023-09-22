@@ -43,8 +43,8 @@ import tv.hd3g.fflauncher.resultparser.Stereo;
 
 public class GraphicExportFormat implements ExportFormat {
 
-	public static final String SUFFIX_LUFS_FILE_NAME = "lufs-events.jpg";// TODO RENAME
-	public static final String SUFFIX_TPK_FILE_NAME = "lufs-tpk-events.jpg";// TODO RENAME
+	public static final String LUFS_SUFFIX_FILE_NAME = "lufs-events.jpg";
+	public static final String LUFS_TPK_SUFFIX_FILE_NAME = "lufs-tpk-events.jpg";
 	public static final String A_PHASE_SUFFIX_FILE_NAME = "audio-phase.jpg";
 
 	@Override
@@ -102,7 +102,7 @@ public class GraphicExportFormat implements ExportFormat {
 				.addValueMarker(r128events.get(r128events.size() - 1).getI());
 
 		dataGraphicLUFS.makeLogarithmicAxisGraphic(
-				new File(exportDirectory, makeOutputFileName(baseFileName, SUFFIX_LUFS_FILE_NAME)),
+				new File(exportDirectory, makeOutputFileName(baseFileName, LUFS_SUFFIX_FILE_NAME)),
 				IMAGE_SIZE_FULL_HEIGHT);
 
 		final var ra = RangeAxis.createFromValueSet("dB LU",
@@ -135,7 +135,7 @@ public class GraphicExportFormat implements ExportFormat {
 						.summaryStatistics().getAverage());
 
 		dataGraphicTPK.makeLogarithmicAxisGraphic(
-				new File(exportDirectory, makeOutputFileName(baseFileName, SUFFIX_TPK_FILE_NAME)),
+				new File(exportDirectory, makeOutputFileName(baseFileName, LUFS_TPK_SUFFIX_FILE_NAME)),
 				IMAGE_SIZE_FULL_HEIGHT);
 	}
 
