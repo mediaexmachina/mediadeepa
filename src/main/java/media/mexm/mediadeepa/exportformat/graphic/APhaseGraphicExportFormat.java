@@ -65,9 +65,8 @@ public class APhaseGraphicExportFormat implements ExportFormat {
 		dataGraphic.addValueMarker(90);
 		dataGraphic.addValueMarker(-90);
 
-		dataGraphic.makeGraphic(
+		dataGraphic.makeLinearAxisGraphic(
 				new File(exportDirectory, makeOutputFileName(baseFileName, SUFFIX_FILE_NAME)),
-				IMAGE_SIZE_HALF_HEIGHT,
-				false);
+				IMAGE_SIZE_HALF_HEIGHT);
 	}
 }

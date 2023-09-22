@@ -90,10 +90,9 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 				.addValueMarker(oEbur128Sum.map(Ebur128Summary::getLoudnessRangeLow))
 				.addValueMarker(r128events.get(r128events.size() - 1).getI());
 
-		dataGraphicLUFS.makeGraphic(
+		dataGraphicLUFS.makeLogarithmicAxisGraphic(
 				new File(exportDirectory, makeOutputFileName(baseFileName, SUFFIX_LUFS_FILE_NAME)),
-				IMAGE_SIZE_FULL_HEIGHT,
-				true);
+				IMAGE_SIZE_FULL_HEIGHT);
 
 		final var ra = RangeAxis.createFromValueSet("dB LU",
 				oEbur128Sum.map(Ebur128Summary::getIntegrated).orElse(-23f), 10, 1,
@@ -124,10 +123,9 @@ public class LoudnessGraphicExportFormat implements ExportFormat {
 						.mapToDouble(Float::doubleValue)
 						.summaryStatistics().getAverage());
 
-		dataGraphicTPK.makeGraphic(
+		dataGraphicTPK.makeLogarithmicAxisGraphic(
 				new File(exportDirectory, makeOutputFileName(baseFileName, SUFFIX_TPK_FILE_NAME)),
-				IMAGE_SIZE_FULL_HEIGHT,
-				true);
+				IMAGE_SIZE_FULL_HEIGHT);
 
 	}
 

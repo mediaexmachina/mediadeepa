@@ -205,7 +205,15 @@ public class TimedDataGraphic {
 
 	}
 
-	public void makeGraphic(final File outputFile, final Dimension imageSize, final boolean logarithmicAxis) {
+	public void makeLogarithmicAxisGraphic(final File outputFile, final Dimension imageSize) {
+		makeGraphic(outputFile, imageSize, true);
+	}
+
+	public void makeLinearAxisGraphic(final File outputFile, final Dimension imageSize) {
+		makeGraphic(outputFile, imageSize, false);
+	}
+
+	private void makeGraphic(final File outputFile, final Dimension imageSize, final boolean logarithmicAxis) {
 		log.info("Save graphic to {}", outputFile);
 
 		final var tsc = new TimeSeriesCollection();
