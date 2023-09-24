@@ -19,8 +19,10 @@ package media.mexm.mediadeepa.e2e;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.A_PHASE_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.BLOCK_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.BLUR_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.CROP_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.DC_OFFSET_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.ENTROPY_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.EVENTS_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.FLAT_FACTOR_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.IDET_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.LUFS_SUFFIX_FILE_NAME;
@@ -100,6 +102,12 @@ class E2EGraphicTest extends E2EUtils {
 								IMAGE_SIZE_FULL_HEIGHT)),
 				dynamicTest("Video idet",
 						() -> checkImageGraphic(makeOutputFile(MOV + IDET_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_HALF_HEIGHT)),
+				dynamicTest("Video crop",
+						() -> checkImageGraphic(makeOutputFile(MOV + CROP_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_FULL_HEIGHT)),
+				dynamicTest("Events",
+						() -> checkImageGraphic(makeOutputFile(MOV + EVENTS_SUFFIX_FILE_NAME),
 								IMAGE_SIZE_HALF_HEIGHT)));
 	}
 

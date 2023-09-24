@@ -17,10 +17,12 @@
 package media.mexm.mediadeepa.exportformat.graphic;
 
 import static java.awt.Color.BLUE;
+import static java.awt.Color.CYAN;
 import static java.awt.Color.GRAY;
 import static java.awt.Color.GREEN;
 import static java.awt.Color.ORANGE;
 import static java.awt.Color.RED;
+import static java.awt.Color.YELLOW;
 import static media.mexm.mediadeepa.components.CLIRunner.makeOutputFileName;
 import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.COLORS_CHANNEL;
 import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.FULL_PINK;
@@ -38,6 +40,7 @@ import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetSingleFrameType.
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetSingleFrameType.UNDETERMINED;
 
 import java.awt.Color;
+import java.awt.Stroke;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -45,19 +48,26 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.ffmpeg.ffprobe.FormatType;
+import org.ffmpeg.ffprobe.StreamType;
+
 import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
 import media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.RangeAxis;
+import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdAstats;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdAstatsChannel;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdSiti;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.Ebur128Summary;
 import tv.hd3g.fflauncher.resultparser.Stereo;
+import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
 @Slf4j
 public class GraphicExportFormat implements ExportFormat {
@@ -74,6 +84,8 @@ public class GraphicExportFormat implements ExportFormat {
 	public static final String BLOCK_SUFFIX_FILE_NAME = "video-block.jpg";
 	public static final String BLUR_SUFFIX_FILE_NAME = "video-blur.jpg";
 	public static final String IDET_SUFFIX_FILE_NAME = "video-idet.jpg";
+	public static final String CROP_SUFFIX_FILE_NAME = "video-crop.jpg";
+	public static final String EVENTS_SUFFIX_FILE_NAME = "events.jpg";
 
 	@Override
 	public String getFormatLongName() {
@@ -89,6 +101,8 @@ public class GraphicExportFormat implements ExportFormat {
 		makeBlock(result, exportDirectory, baseFileName);
 		makeBlur(result, exportDirectory, baseFileName);
 		makeIdet(result, exportDirectory, baseFileName);
+		makeCrop(result, exportDirectory, baseFileName);
+		makeEvents(result, exportDirectory, baseFileName);
 	}
 
 	private void makeR128(final DataResult result, final File exportDirectory, final String baseFileName) {
@@ -451,16 +465,129 @@ public class GraphicExportFormat implements ExportFormat {
 				GRAY.darker(),
 				THICK_STROKE,
 				idetReport.stream().map(d -> repeatedDetectedTypeMap.get(d.value().repeated().currentFrame()))));
-
 		dataGraphic
 				.makeLinearAxisGraphic(
 						new File(exportDirectory, makeOutputFileName(baseFileName, IDET_SUFFIX_FILE_NAME)),
 						IMAGE_SIZE_HALF_HEIGHT);
 	}
 
+	private void makeCrop(final DataResult result, final File exportDirectory, final String baseFileName) {
+		final var cropReport = result.getMediaAnalyserResult()
+				.map(MediaAnalyserResult::lavfiMetadatas)
+				.map(LavfiMetadataFilterParser::getCropDetectReport)
+				.orElse(List.of());
+		if (cropReport.isEmpty()) {
+			return;
+		}
+
+		final var rangeAxis = RangeAxis.createFromRelativesValueSet("Pixels", 0,
+				cropReport.stream()
+						.map(LavfiMtdValue::value)
+						.flatMap(d -> Stream.of(d.x(), d.y(), d.w(), d.h())));
+
+		final var dataGraphic = TimedDataGraphic.create(
+				cropReport.stream().map(LavfiMtdValue::ptsTime),
+				rangeAxis);
+
+		dataGraphic.addSeries(dataGraphic.new Series(
+				"Crop X offset",
+				BLUE,
+				THIN_STROKE,
+				cropReport.stream().map(d -> d.value().x())));
+		dataGraphic.addSeries(dataGraphic.new Series(
+				"Crop Y offset",
+				RED,
+				THICK_STROKE,
+				cropReport.stream().map(d -> d.value().y())));
+		dataGraphic.addSeries(dataGraphic.new Series(
+				"Crop width",
+				CYAN,
+				THIN_STROKE,
+				cropReport.stream().map(d -> d.value().w())));
+		dataGraphic.addSeries(dataGraphic.new Series(
+				"Crop height",
+				ORANGE,
+				THICK_STROKE,
+				cropReport.stream().map(d -> d.value().h())));
+
+		result.getFFprobeResult()
+				.flatMap(FFprobeJAXB::getFirstVideoStream)
+				.map(StreamType::getHeight)
+				.or(() -> result.getContainerAnalyserResult()
+						.map(ContainerAnalyserResult::videoConst)
+						.map(FFprobeVideoFrameConst::height))
+				.ifPresent(dataGraphic::addValueMarker);
+		result.getFFprobeResult()
+				.flatMap(FFprobeJAXB::getFirstVideoStream)
+				.map(StreamType::getWidth)
+				.or(() -> result.getContainerAnalyserResult()
+						.map(ContainerAnalyserResult::videoConst)
+						.map(FFprobeVideoFrameConst::width))
+				.ifPresent(dataGraphic::addValueMarker);
+
+		dataGraphic
+				.makeLinearAxisGraphic(
+						new File(exportDirectory, makeOutputFileName(baseFileName, CROP_SUFFIX_FILE_NAME)),
+						IMAGE_SIZE_FULL_HEIGHT);
+	}
+
+	private void addSeriesFromEvent(final DataResult result,
+									final Function<LavfiMetadataFilterParser, List<LavfiMtdEvent>> dataSelector,
+									final int secDurationRoundedInt,
+									final String seriesName,
+									final Color color,
+									final Stroke stroke,
+									final TimedDataGraphic dataGraphic) {
+		final var events = result.getMediaAnalyserResult()
+				.map(MediaAnalyserResult::lavfiMetadatas)
+				.stream()
+				.map(dataSelector)
+				.flatMap(List::stream)
+				.toList();
+		dataGraphic.addSeries(dataGraphic.new Series(
+				seriesName,
+				color,
+				stroke,
+				IntStream.range(0, secDurationRoundedInt)
+						.mapToObj(posSec -> events.stream()
+								.anyMatch(event -> posSec >= event.start().toSeconds()
+												   && posSec < event.end().toSeconds()) ? 1 : 0)));
+	}
+
+	private void makeEvents(final DataResult result, final File exportDirectory, final String baseFileName) {
+		final var eventsReportCount = result.getMediaAnalyserResult()
+				.map(MediaAnalyserResult::lavfiMetadatas)
+				.map(LavfiMetadataFilterParser::getEventCount)
+				.orElse(0);
+		final var secDurationFloat = result.getFFprobeResult()
+				.map(FFprobeJAXB::getFormat)
+				.map(FormatType::getDuration)
+				.orElse(0f);
+		if (eventsReportCount == 0 || secDurationFloat < 1f) {
+			return;
+		}
+
+		final var secDurationRoundedInt = (int) Math.round(Math.floor(secDurationFloat));
+		final var dataGraphic = TimedDataGraphic.create(
+				IntStream.range(0, secDurationRoundedInt)
+						.mapToObj(f -> (float) f),
+				new RangeAxis("Events", 0, 1));
+
+		addSeriesFromEvent(result, LavfiMetadataFilterParser::getBlackEvents, secDurationRoundedInt,
+				"Full black frames", BLUE, THIN_STROKE, dataGraphic);
+		addSeriesFromEvent(result, LavfiMetadataFilterParser::getSilenceEvents, secDurationRoundedInt,
+				"Audio silence", GRAY, THICK_STROKE, dataGraphic);
+		addSeriesFromEvent(result, LavfiMetadataFilterParser::getFreezeEvents, secDurationRoundedInt,
+				"Freeze frames", RED, THICK_STROKE, dataGraphic);
+		addSeriesFromEvent(result, LavfiMetadataFilterParser::getMonoEvents, secDurationRoundedInt,
+				"Audio mono", YELLOW, THIN_STROKE, dataGraphic);
+		dataGraphic
+				.makeLinearAxisGraphic(
+						new File(exportDirectory, makeOutputFileName(baseFileName, EVENTS_SUFFIX_FILE_NAME)),
+						IMAGE_SIZE_HALF_HEIGHT);
+	}
+
 	/*
-	TODO Crop detect w	h	x	y
-	TODO Audio/video events graphical
 	TODO Container bitrate graphical Video
 	TODO Container bitrate graphical Audio
 	TODO GOP size / GOP Width graphical
