@@ -55,6 +55,9 @@ import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
 import media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.RangeAxis;
+import tv.hd3g.fflauncher.ffprobecontainer.FFprobeAudioFrame;
+import tv.hd3g.fflauncher.ffprobecontainer.FFprobeBaseFrame;
+import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdAstats;
@@ -86,6 +89,9 @@ public class GraphicExportFormat implements ExportFormat {
 	public static final String IDET_SUFFIX_FILE_NAME = "video-idet.jpg";
 	public static final String CROP_SUFFIX_FILE_NAME = "video-crop.jpg";
 	public static final String EVENTS_SUFFIX_FILE_NAME = "events.jpg";
+	public static final String VBITRATE_SUFFIX_FILE_NAME = "video-bitrate.jpg";
+	public static final String ABITRATE_SUFFIX_FILE_NAME = "audio-bitrate.jpg";
+	public static final String VFRAMEDURATION_SUFFIX_FILE_NAME = "video-frame-duration.jpg";
 
 	@Override
 	public String getFormatLongName() {
@@ -103,6 +109,9 @@ public class GraphicExportFormat implements ExportFormat {
 		makeIdet(result, exportDirectory, baseFileName);
 		makeCrop(result, exportDirectory, baseFileName);
 		makeEvents(result, exportDirectory, baseFileName);
+		makeVideoBitrate(result, exportDirectory, baseFileName);
+		makeAudioBitrate(result, exportDirectory, baseFileName);
+		makeVideoFrameDuration(result, exportDirectory, baseFileName);
 	}
 
 	private void makeR128(final DataResult result, final File exportDirectory, final String baseFileName) {
@@ -587,9 +596,143 @@ public class GraphicExportFormat implements ExportFormat {
 						IMAGE_SIZE_HALF_HEIGHT);
 	}
 
+	private void makeVideoBitrate(final DataResult result, final File exportDirectory, final String baseFileName) {
+		final var videoFramesReport = result.getContainerAnalyserResult()
+				.map(ContainerAnalyserResult::videoFrames)
+				.stream()
+				.flatMap(List::stream)
+				.toList();
+		if (videoFramesReport.isEmpty()) {
+			return;
+		}
+		final var firstStreamIndex = videoFramesReport.stream()
+				.map(FFprobeVideoFrame::frame)
+				.map(FFprobeBaseFrame::streamIndex)
+				.findFirst().orElseThrow(() -> new IllegalArgumentException("Can't found video stream index"));
+
+		final var values = videoFramesReport.stream()
+				.map(FFprobeVideoFrame::frame)
+				.filter(f -> f.streamIndex() == firstStreamIndex)
+				.map(FFprobeBaseFrame::pktSize)
+				.map(f -> (float) f / 1024f)
+				.toList();
+
+		final var dataGraphic = TimedDataGraphic.create(
+				videoFramesReport.stream()
+						.map(FFprobeVideoFrame::frame)
+						.map(FFprobeBaseFrame::ptsTime),
+				RangeAxis.createFromRelativesValueSet(
+						"Frame size (kbytes)", 0,
+						values.stream()));
+
+		dataGraphic.addSeries(dataGraphic.new Series(
+				"Video packet/frame size",
+				BLUE.brighter(),
+				THIN_STROKE,
+				values.stream()));
+		dataGraphic
+				.addMinMaxValueMarkers()
+				.makeLinearAxisGraphic(
+						new File(exportDirectory, makeOutputFileName(baseFileName, VBITRATE_SUFFIX_FILE_NAME)),
+						IMAGE_SIZE_FULL_HEIGHT);
+	}
+
+	private void makeAudioBitrate(final DataResult result, final File exportDirectory, final String baseFileName) {
+		final var audioBReport = result.getContainerAnalyserResult()
+				.map(ContainerAnalyserResult::audioFrames)
+				.stream()
+				.flatMap(List::stream)
+				.toList();
+		if (audioBReport.isEmpty()) {
+			return;
+		}
+
+		final var firstStreamIndex = audioBReport.stream()
+				.map(FFprobeAudioFrame::frame)
+				.map(FFprobeBaseFrame::streamIndex)
+				.findFirst().orElseThrow(() -> new IllegalArgumentException("Can't found audio stream index"));
+
+		final var dataGraphic = TimedDataGraphic.create(
+				audioBReport.stream()
+						.map(FFprobeAudioFrame::frame)
+						.filter(f -> f.streamIndex() == firstStreamIndex)
+						.map(FFprobeBaseFrame::ptsTime),
+				RangeAxis.createFromRelativesValueSet(
+						"Audio packet/frame size (bytes)", 0,
+						audioBReport.stream()
+								.map(FFprobeAudioFrame::frame)
+								.map(FFprobeBaseFrame::pktSize)));
+
+		final var allStreamIndexes = audioBReport.stream()
+				.map(FFprobeAudioFrame::frame)
+				.map(FFprobeBaseFrame::streamIndex)
+				.distinct()
+				.sorted()
+				.toList();
+		final var colorSpliter = 1f / allStreamIndexes.size();
+
+		allStreamIndexes.forEach(streamIndex -> dataGraphic
+				.addSeries(dataGraphic.new Series(
+						"Stream #" + streamIndex + " (audio)",
+						Color.getHSBColor(allStreamIndexes.indexOf(streamIndex) * colorSpliter, 1, 1),
+						THIN_STROKE,
+						audioBReport.stream()
+								.map(FFprobeAudioFrame::frame)
+								.filter(f -> f.streamIndex() == streamIndex)
+								.map(FFprobeBaseFrame::pktSize))));
+		dataGraphic
+				.addMinMaxValueMarkers()
+				.makeLinearAxisGraphic(
+						new File(exportDirectory, makeOutputFileName(baseFileName, ABITRATE_SUFFIX_FILE_NAME)),
+						IMAGE_SIZE_HALF_HEIGHT);
+	}
+
+	private void makeVideoFrameDuration(final DataResult result,
+										final File exportDirectory,
+										final String baseFileName) {
+
+		final var videoFramesReport = result.getContainerAnalyserResult()
+				.map(ContainerAnalyserResult::videoFrames)
+				.stream()
+				.flatMap(List::stream)
+				.toList();
+		if (videoFramesReport.isEmpty()) {
+			return;
+		}
+		final var firstStreamIndex = videoFramesReport.stream()
+				.map(FFprobeVideoFrame::frame)
+				.map(FFprobeBaseFrame::streamIndex)
+				.findFirst().orElseThrow(() -> new IllegalArgumentException("Can't found video stream index"));
+
+		final var values = videoFramesReport.stream()
+				.map(FFprobeVideoFrame::frame)
+				.filter(f -> f.streamIndex() == firstStreamIndex)
+				.map(FFprobeBaseFrame::pktDurationTime)
+				.map(f -> f * 1000f)
+				.toList();
+
+		final var dataGraphic = TimedDataGraphic.create(
+				videoFramesReport.stream()
+						.map(FFprobeVideoFrame::frame)
+						.map(FFprobeBaseFrame::ptsTime),
+				RangeAxis.createFromRelativesValueSet(
+						"Frame duration (milliseconds)", 0,
+						values.stream()));
+
+		dataGraphic.addSeries(dataGraphic.new Series(
+				"Video frame duration",
+				GREEN.darker(),
+				THIN_STROKE,
+				values.stream()));
+		dataGraphic
+				.addMinMaxValueMarkers()
+				.makeLinearAxisGraphic(
+						new File(exportDirectory, makeOutputFileName(baseFileName, VFRAMEDURATION_SUFFIX_FILE_NAME)),
+						IMAGE_SIZE_HALF_HEIGHT);
+
+	}
+
 	/*
-	TODO Container bitrate graphical Video
-	TODO Container bitrate graphical Audio
 	TODO GOP size / GOP Width graphical
 	*/
 
