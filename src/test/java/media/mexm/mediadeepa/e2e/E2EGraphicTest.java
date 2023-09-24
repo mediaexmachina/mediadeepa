@@ -16,6 +16,18 @@
  */
 package media.mexm.mediadeepa.e2e;
 
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.A_PHASE_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.BLOCK_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.BLUR_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.DC_OFFSET_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.ENTROPY_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.FLAT_FACTOR_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.IDET_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.LUFS_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.LUFS_TPK_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.NOISE_FLOOR_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.PEAK_LEVEL_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.SITI_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.IMAGE_SIZE_FULL_HEIGHT;
 import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.IMAGE_SIZE_HALF_HEIGHT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +49,7 @@ import org.junit.jupiter.api.TestFactory;
 
 class E2EGraphicTest extends E2EUtils {
 
+	private static final String MOV = "mov_";
 	E2ERawOutDataFiles rawData;
 	ThreadLocal<float[]> hsbvalsThreadLocal;
 
@@ -53,11 +66,41 @@ class E2EGraphicTest extends E2EUtils {
 		}
 		return Stream.of(
 				dynamicTest("LUFS",
-						() -> checkImageGraphic(makeOutputFile("mov_lufs-events.jpg"), IMAGE_SIZE_FULL_HEIGHT)),
+						() -> checkImageGraphic(makeOutputFile(MOV + LUFS_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_FULL_HEIGHT)),
 				dynamicTest("LUFS TPK",
-						() -> checkImageGraphic(makeOutputFile("mov_lufs-tpk-events.jpg"), IMAGE_SIZE_FULL_HEIGHT)),
+						() -> checkImageGraphic(makeOutputFile(MOV + LUFS_TPK_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_FULL_HEIGHT)),
 				dynamicTest("Audio phase",
-						() -> checkImageGraphic(makeOutputFile("mov_audio-phase.jpg"), IMAGE_SIZE_HALF_HEIGHT)));
+						() -> checkImageGraphic(makeOutputFile(MOV + A_PHASE_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_HALF_HEIGHT)),
+				dynamicTest("Audio entropy",
+						() -> checkImageGraphic(makeOutputFile(MOV + ENTROPY_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_HALF_HEIGHT)),
+				dynamicTest("Audio flat-factor",
+						() -> checkImageGraphic(makeOutputFile(MOV + FLAT_FACTOR_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_HALF_HEIGHT)),
+				dynamicTest("Audio noise-floor",
+						() -> checkImageGraphic(makeOutputFile(MOV + NOISE_FLOOR_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_HALF_HEIGHT)),
+				dynamicTest("Audio peak-level",
+						() -> checkImageGraphic(makeOutputFile(MOV + PEAK_LEVEL_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_HALF_HEIGHT)),
+				dynamicTest("Audio DC offset",
+						() -> checkImageGraphic(makeOutputFile(MOV + DC_OFFSET_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_HALF_HEIGHT)),
+				dynamicTest("Video SITI",
+						() -> checkImageGraphic(makeOutputFile(MOV + SITI_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_FULL_HEIGHT)),
+				dynamicTest("Video block",
+						() -> checkImageGraphic(makeOutputFile(MOV + BLOCK_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_FULL_HEIGHT)),
+				dynamicTest("Video blur",
+						() -> checkImageGraphic(makeOutputFile(MOV + BLUR_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_FULL_HEIGHT)),
+				dynamicTest("Video idet",
+						() -> checkImageGraphic(makeOutputFile(MOV + IDET_SUFFIX_FILE_NAME),
+								IMAGE_SIZE_HALF_HEIGHT)));
 	}
 
 	File makeOutputFile(final String baseFileName) throws IOException {

@@ -19,9 +19,13 @@ package media.mexm.mediadeepa.exportformat.graphic;
 import static java.awt.BasicStroke.CAP_BUTT;
 import static java.awt.BasicStroke.JOIN_MITER;
 import static java.awt.Color.BLACK;
+import static java.awt.Color.BLUE;
 import static java.awt.Color.GRAY;
+import static java.awt.Color.RED;
 import static java.awt.Color.WHITE;
 import static java.awt.Font.BOLD;
+import static java.lang.Double.isNaN;
+import static java.lang.Math.abs;
 import static java.lang.Math.round;
 import static java.util.Locale.ENGLISH;
 import static org.jfree.chart.ui.TextAnchor.CENTER_LEFT;
@@ -57,6 +61,7 @@ import org.jfree.data.time.FixedMillisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -64,10 +69,13 @@ public class TimedDataGraphic {
 
 	public static final Dimension IMAGE_SIZE_FULL_HEIGHT = new Dimension(2000, 1200);
 	public static final Dimension IMAGE_SIZE_HALF_HEIGHT = new Dimension(2000, IMAGE_SIZE_FULL_HEIGHT.height / 2);
-	public static final Color FULL_PINK = Color.getHSBColor(0.83f, 1f, 1f);
 
-	public static final BasicStroke THIN_STROKE = new BasicStroke(3, CAP_BUTT, JOIN_MITER);
-	public static final BasicStroke THICK_STROKE = new BasicStroke(6, CAP_BUTT, JOIN_MITER);
+	public static final Color FULL_PINK = Color.getHSBColor(0.83f, 1f, 1f);
+	public static final List<Color> COLORS_CHANNEL = List.of(BLUE, RED);
+
+	public static final Stroke THIN_STROKE = new BasicStroke(3, CAP_BUTT, JOIN_MITER);
+	public static final Stroke THICK_STROKE = new BasicStroke(6, CAP_BUTT, JOIN_MITER);
+	public static final List<Stroke> STROKES_CHANNEL = List.of(THIN_STROKE, THICK_STROKE);
 
 	private static final float JPG_COMPRESSION_RATIO = 0.95f;
 	private static final String DECIMAL_FORMAT_PATTERN = "#.#";
@@ -104,14 +112,31 @@ public class TimedDataGraphic {
 	}
 
 	public TimedDataGraphic addValueMarker(final Number position) {
-		if (position.intValue() == -10) {
-			return this;
-		}
 		final var longPos = Math.round(position.doubleValue());
 		if (markers.stream()
 				.map(Math::round)
 				.noneMatch(l -> l == longPos)) {
 			markers.add(position.doubleValue());
+		}
+		return this;
+	}
+
+	public TimedDataGraphic addMinMaxValueMarkers() {
+		final var stats = series.stream()
+				.map(Series::getDatas)
+				.flatMap(List::stream)
+				.filter(Float::isFinite)
+				.filter(f -> Float.isNaN(f) == false)
+				.mapToDouble(Float::doubleValue)
+				.summaryStatistics();
+		if (stats.getMax() != 0d) {
+			addValueMarker(stats.getMax());
+		}
+		if (stats.getMin() != 0d) {
+			addValueMarker(stats.getMin());
+		}
+		if (stats.getAverage() != 0d) {
+			addValueMarker(stats.getAverage());
 		}
 		return this;
 	}
@@ -139,13 +164,41 @@ public class TimedDataGraphic {
 																	  final Number addMarginMax,
 																	  final Stream<T> values) {
 			final var doubleFloor = floor.doubleValue();
-			final var stats = values.mapToDouble(Number::doubleValue)
+			final var stats = values
+					.mapToDouble(Number::doubleValue)
+					.filter(Double::isFinite)
+					.filter(d -> isNaN(d) == false)
 					.filter(v -> v > doubleFloor)
 					.summaryStatistics();
 			return new RangeAxis(
 					name,
 					stats.getMin() - subMarginMin.doubleValue(),
 					stats.getMax() + addMarginMax.doubleValue());
+		}
+
+		public static <T extends Number> RangeAxis createFromRelativesValueSet(final String name,
+																			   final Number min,
+																			   final Stream<T> values) {
+			final var stats = values.mapToDouble(Number::doubleValue)
+					.filter(Double::isFinite)
+					.filter(v -> Double.isNaN(v) == false)
+					.summaryStatistics();
+			final var maxAbsValue = Math.max(abs(stats.getMax()), abs(stats.getMin()));
+
+			double maxRangeValue;
+			if (maxAbsValue < min.doubleValue()) {
+				maxRangeValue = min.doubleValue();
+			} else {
+				final var floorValue = Math.floor(maxAbsValue);
+				maxRangeValue = floorValue + floorValue / 10;
+			}
+
+			final var manageNegative = stats.getMax() < 0d || stats.getMin() < 0d;
+			if (manageNegative) {
+				return new RangeAxis(name, -maxRangeValue, maxRangeValue);
+			} else {
+				return new RangeAxis(name, 0, maxRangeValue);
+			}
 		}
 
 		private LogarithmicAxis toLogarithmicAxis(final Font font) {
@@ -166,15 +219,15 @@ public class TimedDataGraphic {
 			rangeAxis.setAutoRange(false);
 			rangeAxis.setLabelPaint(GRAY);
 			rangeAxis.setTickLabelPaint(GRAY);
-			rangeAxis.setLabelFont(font);
-			rangeAxis.setTickLabelFont(font);
+			rangeAxis.setLabelFont(font.deriveFont(10));
+			rangeAxis.setTickLabelFont(font.deriveFont(10));
 			rangeAxis.setTickLabelsVisible(true);
 			rangeAxis.setTickMarksVisible(true);
 			rangeAxis.setTickMarkPaint(GRAY);
 		}
-
 	}
 
+	@Data
 	public class Series {
 		private final String name;
 		private final Paint paint;
@@ -189,7 +242,14 @@ public class TimedDataGraphic {
 			this.paint = Objects.requireNonNull(paint, "\"paint\" can't to be null");
 			this.stroke = Objects.requireNonNull(stroke, "\"stroke\" can't to be null");
 
-			this.datas = datas.map(Number::floatValue).toList();
+			this.datas = datas.map(Number::floatValue)
+					.map(f -> {
+						if (f.isInfinite() || f.isNaN()) {
+							return 0f;
+						}
+						return f;
+					})
+					.toList();
 			if (positions.size() != this.datas.size()) {
 				throw new IllegalArgumentException(
 						"Invalid dataset size (" + this.datas.size() + "), expect " + positions.size());
@@ -286,8 +346,8 @@ public class TimedDataGraphic {
 		timeAxis.setMinorTickCount(10);
 		timeAxis.setMinorTickMarkInsideLength(5);
 		timeAxis.setMinorTickMarkOutsideLength(0);
-		timeAxis.setLabelFont(font);
-		timeAxis.setTickLabelFont(font);
+		timeAxis.setLabelFont(font.deriveFont(10f));
+		timeAxis.setTickLabelFont(font.deriveFont(20f));
 
 		try {
 			ChartUtils.saveChartAsJPEG(
@@ -301,5 +361,4 @@ public class TimedDataGraphic {
 		}
 
 	}
-
 }
