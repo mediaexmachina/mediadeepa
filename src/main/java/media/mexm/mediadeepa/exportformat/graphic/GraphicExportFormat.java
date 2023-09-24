@@ -730,6 +730,7 @@ public class GraphicExportFormat implements ExportFormat {
 						new File(exportDirectory, makeOutputFileName(baseFileName, VFRAMEDURATION_SUFFIX_FILE_NAME)),
 						IMAGE_SIZE_HALF_HEIGHT);
 
+		// TODO check data consistency for frame duration
 	}
 
 	/*
