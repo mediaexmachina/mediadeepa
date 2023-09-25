@@ -16,7 +16,7 @@
  */
 package media.mexm.mediadeepa.exportformat.graphic;
 
-import static org.jfree.chart.plot.PlotOrientation.HORIZONTAL;
+import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ public class XYLineChartDataGraphic extends DataGraphic {
 	}
 
 	public void addSeries(final SeriesStyle style, final double[] values) {
-		dataset.addSeries(style.getName(), new double[][] { values, xValues });
+		dataset.addSeries(style.getName(), new double[][] { xValues, values });
 		seriesStyles.add(style);
 	}
 
@@ -53,7 +53,7 @@ public class XYLineChartDataGraphic extends DataGraphic {
 
 	@Override
 	protected JFreeChart getChart() {
-		return ChartFactory.createXYLineChart("", "", "", dataset, HORIZONTAL, true, false, false);
+		return ChartFactory.createXYLineChart("", "", "", dataset, VERTICAL, true, false, false);
 	}
 
 }

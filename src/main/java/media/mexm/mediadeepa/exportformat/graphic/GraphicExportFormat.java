@@ -43,7 +43,6 @@ import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetSingleFrameType.
 import java.awt.Color;
 import java.awt.Stroke;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -102,6 +101,7 @@ public class GraphicExportFormat implements ExportFormat {
 
 	@Override
 	public void exportResult(final DataResult result, final File exportDirectory, final String baseFileName) {
+		/*
 		makeR128(result, exportDirectory, baseFileName);
 		makeAPhase(result, exportDirectory, baseFileName);
 		makeAStat(result, exportDirectory, baseFileName);
@@ -113,6 +113,7 @@ public class GraphicExportFormat implements ExportFormat {
 		makeEvents(result, exportDirectory, baseFileName);
 		makeVideoBitrate(result, exportDirectory, baseFileName);
 		makeAudioBitrate(result, exportDirectory, baseFileName);
+		*/
 		makeVideoFrameDuration(result, exportDirectory, baseFileName);
 	}
 
@@ -724,19 +725,35 @@ public class GraphicExportFormat implements ExportFormat {
 				.map(secToMs),
 				allFrames.size());
 
-		final var rangeAxis = RangeAxis.createFromRelativesValueSet("Frame duration (milliseconds)", 0,
-				Arrays.stream(ptsTimeDerivative).mapToObj(y -> y));
-		final var dataGraphic = new XYLineChartDataGraphic(rangeAxis, allFrames.size());
+		final var dataGraphic = new XYLineChartDataGraphic(new RangeAxis(
+				"Frame duration (milliseconds)", getMin(ptsTimeDerivative) - 10d, getMax(ptsTimeDerivative) + 10d), // XXX FIXME
+				allFrames.size());
 
-		dataGraphic.addSeries(new SeriesStyle("Video frame", BLUE, THICK_STROKE),
+		dataGraphic.addSeries(new SeriesStyle("Video frame", BLUE, THIN_STROKE),
 				ptsTimeDerivative);
-		dataGraphic.addSeries(new SeriesStyle("DTS v. frame", RED, THIN_STROKE),
+		dataGraphic.addSeries(new SeriesStyle("DTS video frame", RED, THICK_STROKE),
 				pktDtsTimeDerivative);
-		dataGraphic.addSeries(new SeriesStyle("Best effort v. frame", GREEN, THICK_STROKE),
+		dataGraphic.addSeries(new SeriesStyle("Best effort video frame", GREEN, THICK_STROKE),
 				bestEffortTimestampTimeDerivative);
 
 		dataGraphic.makeLinearAxisGraphic(new File(exportDirectory, makeOutputFileName(baseFileName,
 				VFRAMEDURATION_SUFFIX_FILE_NAME)), IMAGE_SIZE_HALF_HEIGHT);
+	}
+
+	private static double getMax(final double[] values) {
+		var max = Double.MIN_VALUE;
+		for (var pos = 0; pos < values.length; pos++) {
+			max = Math.max(max, values[pos]);
+		}
+		return max;
+	}
+
+	private static double getMin(final double[] values) {
+		var min = Double.MAX_VALUE;
+		for (var pos = 0; pos < values.length; pos++) {
+			min = Math.min(min, values[pos]);
+		}
+		return min;
 	}
 
 	private double[] getTimeDerivative(final Stream<Float> timeValues, final int itemCount) {
