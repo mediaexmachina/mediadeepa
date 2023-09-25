@@ -23,14 +23,15 @@ import static java.awt.Color.GREEN;
 import static java.awt.Color.ORANGE;
 import static java.awt.Color.RED;
 import static java.awt.Color.YELLOW;
+import static java.lang.Float.NaN;
 import static media.mexm.mediadeepa.components.CLIRunner.makeOutputFileName;
-import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.COLORS_CHANNEL;
-import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.FULL_PINK;
-import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.IMAGE_SIZE_FULL_HEIGHT;
-import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.IMAGE_SIZE_HALF_HEIGHT;
-import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.STROKES_CHANNEL;
-import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.THICK_STROKE;
-import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.THIN_STROKE;
+import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.COLORS_CHANNEL;
+import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.FULL_PINK;
+import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.IMAGE_SIZE_FULL_HEIGHT;
+import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.IMAGE_SIZE_HALF_HEIGHT;
+import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.STROKES_CHANNEL;
+import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.THICK_STROKE;
+import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.THIN_STROKE;
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetRepeatedFrameType.BOTTOM;
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetRepeatedFrameType.NEITHER;
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetRepeatedFrameType.TOP;
@@ -42,9 +43,11 @@ import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetSingleFrameType.
 import java.awt.Color;
 import java.awt.Stroke;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -54,7 +57,6 @@ import org.ffmpeg.ffprobe.StreamType;
 import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
-import media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.RangeAxis;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeAudioFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeBaseFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrame;
@@ -687,10 +689,11 @@ public class GraphicExportFormat implements ExportFormat {
 						IMAGE_SIZE_HALF_HEIGHT);
 	}
 
+	private static final UnaryOperator<Float> secToMs = s -> s * 1000f;
+
 	private void makeVideoFrameDuration(final DataResult result,
 										final File exportDirectory,
 										final String baseFileName) {
-
 		final var videoFramesReport = result.getContainerAnalyserResult()
 				.map(ContainerAnalyserResult::videoFrames)
 				.stream()
@@ -703,38 +706,58 @@ public class GraphicExportFormat implements ExportFormat {
 				.map(FFprobeVideoFrame::frame)
 				.map(FFprobeBaseFrame::streamIndex)
 				.findFirst().orElseThrow(() -> new IllegalArgumentException("Can't found video stream index"));
-
-		final var values = videoFramesReport.stream()
+		final var allFrames = videoFramesReport.stream()
 				.map(FFprobeVideoFrame::frame)
 				.filter(f -> f.streamIndex() == firstStreamIndex)
-				.map(FFprobeBaseFrame::pktDurationTime)
-				.map(f -> f * 1000f)
 				.toList();
 
-		final var dataGraphic = TimedDataGraphic.create(
-				videoFramesReport.stream()
-						.map(FFprobeVideoFrame::frame)
-						.map(FFprobeBaseFrame::ptsTime),
-				RangeAxis.createFromRelativesValueSet(
-						"Frame duration (milliseconds)", 0,
-						values.stream()));
+		final var ptsTimeDerivative = getTimeDerivative(allFrames.stream()
+				.map(FFprobeBaseFrame::ptsTime)
+				.map(secToMs),
+				allFrames.size());
+		final var pktDtsTimeDerivative = getTimeDerivative(allFrames.stream()
+				.map(FFprobeBaseFrame::pktDtsTime)
+				.map(secToMs),
+				allFrames.size());
+		final var bestEffortTimestampTimeDerivative = getTimeDerivative(allFrames.stream()
+				.map(FFprobeBaseFrame::bestEffortTimestampTime)
+				.map(secToMs),
+				allFrames.size());
 
-		dataGraphic.addSeries(dataGraphic.new Series(
-				"Video frame duration",
-				GREEN.darker(),
-				THIN_STROKE,
-				values.stream()));
-		dataGraphic
-				.addMinMaxValueMarkers()
-				.makeLinearAxisGraphic(
-						new File(exportDirectory, makeOutputFileName(baseFileName, VFRAMEDURATION_SUFFIX_FILE_NAME)),
-						IMAGE_SIZE_HALF_HEIGHT);
+		final var rangeAxis = RangeAxis.createFromRelativesValueSet("Frame duration (milliseconds)", 0,
+				Arrays.stream(ptsTimeDerivative).mapToObj(y -> y));
+		final var dataGraphic = new XYLineChartDataGraphic(rangeAxis, allFrames.size());
 
-		// TODO check data consistency for frame duration
+		dataGraphic.addSeries(new SeriesStyle("Video frame", BLUE, THICK_STROKE),
+				ptsTimeDerivative);
+		dataGraphic.addSeries(new SeriesStyle("DTS v. frame", RED, THIN_STROKE),
+				pktDtsTimeDerivative);
+		dataGraphic.addSeries(new SeriesStyle("Best effort v. frame", GREEN, THICK_STROKE),
+				bestEffortTimestampTimeDerivative);
+
+		dataGraphic.makeLinearAxisGraphic(new File(exportDirectory, makeOutputFileName(baseFileName,
+				VFRAMEDURATION_SUFFIX_FILE_NAME)), IMAGE_SIZE_HALF_HEIGHT);
+	}
+
+	private double[] getTimeDerivative(final Stream<Float> timeValues, final int itemCount) {
+		final var result = new double[itemCount];
+
+		final var interator = timeValues.iterator();
+		Float previous;
+		var actual = NaN;
+		var pos = 0;
+		while (interator.hasNext()) {
+			previous = actual;
+			actual = interator.next();
+			if (previous != NaN) {
+				result[pos++] = actual - previous;
+			}
+		}
+		return result;
 	}
 
 	/*
-	TODO GOP size / GOP Width graphical
+	TODO GOP size / GOP Width graphical -- ChartFactory.createXYAreaChart(title, xAxisLabel, yAxisLabel, dataset)
 	*/
 
 }

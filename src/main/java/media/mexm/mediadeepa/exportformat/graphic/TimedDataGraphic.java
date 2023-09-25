@@ -16,75 +16,28 @@
  */
 package media.mexm.mediadeepa.exportformat.graphic;
 
-import static java.awt.BasicStroke.CAP_BUTT;
-import static java.awt.BasicStroke.JOIN_MITER;
-import static java.awt.Color.BLACK;
-import static java.awt.Color.BLUE;
-import static java.awt.Color.GRAY;
-import static java.awt.Color.RED;
-import static java.awt.Color.WHITE;
-import static java.awt.Font.BOLD;
-import static java.lang.Double.isNaN;
-import static java.lang.Math.abs;
-import static java.lang.Math.round;
-import static java.util.Locale.ENGLISH;
-import static org.jfree.chart.ui.TextAnchor.CENTER_LEFT;
-
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Stroke;
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.TimeZone;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtils;
-import org.jfree.chart.axis.DateAxis;
-import org.jfree.chart.axis.LogarithmicAxis;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.JFreeChart;
 import org.jfree.data.time.FixedMillisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import lombok.EqualsAndHashCode;
 
-@Slf4j
-public class TimedDataGraphic {
-
-	public static final Dimension IMAGE_SIZE_FULL_HEIGHT = new Dimension(2000, 1200);
-	public static final Dimension IMAGE_SIZE_HALF_HEIGHT = new Dimension(2000, IMAGE_SIZE_FULL_HEIGHT.height / 2);
-
-	public static final Color FULL_PINK = Color.getHSBColor(0.83f, 1f, 1f);
-	public static final List<Color> COLORS_CHANNEL = List.of(BLUE, RED);
-
-	public static final Stroke THIN_STROKE = new BasicStroke(3, CAP_BUTT, JOIN_MITER);
-	public static final Stroke THICK_STROKE = new BasicStroke(6, CAP_BUTT, JOIN_MITER);
-	public static final List<Stroke> STROKES_CHANNEL = List.of(THIN_STROKE, THICK_STROKE);
-
-	private static final float JPG_COMPRESSION_RATIO = 0.95f;
-	private static final String DECIMAL_FORMAT_PATTERN = "#.#";
+public class TimedDataGraphic extends DataGraphic {
 
 	private final List<Series> series;
-	private final List<Double> markers;
 	private final List<FixedMillisecond> positions;
-	private final RangeAxis rangeAxis;
-	private final DecimalFormat decimalFormat;
 
 	public TimedDataGraphic(final Stream<Long> positionsMs, final RangeAxis rangeAxis) {
 		this(
@@ -102,23 +55,9 @@ public class TimedDataGraphic {
 	}
 
 	private TimedDataGraphic(final List<FixedMillisecond> positions, final RangeAxis rangeAxis) {
+		super(rangeAxis);
 		series = new ArrayList<>();
-		markers = new ArrayList<>();
 		this.positions = positions;
-		this.rangeAxis = rangeAxis;
-
-		decimalFormat = new DecimalFormat(DECIMAL_FORMAT_PATTERN);
-		decimalFormat.setDecimalFormatSymbols(new DecimalFormatSymbols(ENGLISH));
-	}
-
-	public TimedDataGraphic addValueMarker(final Number position) {
-		final var longPos = Math.round(position.doubleValue());
-		if (markers.stream()
-				.map(Math::round)
-				.noneMatch(l -> l == longPos)) {
-			markers.add(position.doubleValue());
-		}
-		return this;
 	}
 
 	public TimedDataGraphic addMinMaxValueMarkers() {
@@ -156,91 +95,19 @@ public class TimedDataGraphic {
 		return new TimedDataGraphic(positions, rangeAxis);
 	}
 
-	public static record RangeAxis(String name, Number min, Number max) {
-
-		public static <T extends Number> RangeAxis createFromValueSet(final String name,
-																	  final Number floor,
-																	  final Number subMarginMin,
-																	  final Number addMarginMax,
-																	  final Stream<T> values) {
-			final var doubleFloor = floor.doubleValue();
-			final var stats = values
-					.mapToDouble(Number::doubleValue)
-					.filter(Double::isFinite)
-					.filter(d -> isNaN(d) == false)
-					.filter(v -> v > doubleFloor)
-					.summaryStatistics();
-			return new RangeAxis(
-					name,
-					stats.getMin() - subMarginMin.doubleValue(),
-					stats.getMax() + addMarginMax.doubleValue());
-		}
-
-		public static <T extends Number> RangeAxis createFromRelativesValueSet(final String name,
-																			   final Number min,
-																			   final Stream<T> values) {
-			final var stats = values.mapToDouble(Number::doubleValue)
-					.filter(Double::isFinite)
-					.filter(v -> Double.isNaN(v) == false)
-					.summaryStatistics();
-			final var maxAbsValue = Math.max(abs(stats.getMax()), abs(stats.getMin()));
-
-			double maxRangeValue;
-			if (maxAbsValue < min.doubleValue()) {
-				maxRangeValue = min.doubleValue();
-			} else {
-				final var floorValue = Math.floor(maxAbsValue);
-				maxRangeValue = floorValue + floorValue / 10;
-			}
-
-			final var manageNegative = stats.getMax() < 0d || stats.getMin() < 0d;
-			if (manageNegative) {
-				return new RangeAxis(name, -maxRangeValue, maxRangeValue);
-			} else {
-				return new RangeAxis(name, 0, maxRangeValue);
-			}
-		}
-
-		private LogarithmicAxis toLogarithmicAxis(final Font font) {
-			final var rangeAxis = new LogarithmicAxis(name);
-			rangeAxis.setAllowNegativesFlag(true);
-			setRangeAxisParam(font, rangeAxis);
-			return rangeAxis;
-		}
-
-		public ValueAxis toLinearAxis(final Font font) {
-			final var rangeAxis = new NumberAxis(name);
-			setRangeAxisParam(font, rangeAxis);
-			return rangeAxis;
-		}
-
-		private void setRangeAxisParam(final Font font, final NumberAxis rangeAxis) {
-			rangeAxis.setRange(min.doubleValue(), max.doubleValue());
-			rangeAxis.setAutoRange(false);
-			rangeAxis.setLabelPaint(GRAY);
-			rangeAxis.setTickLabelPaint(GRAY);
-			rangeAxis.setLabelFont(font.deriveFont(10));
-			rangeAxis.setTickLabelFont(font.deriveFont(10));
-			rangeAxis.setTickLabelsVisible(true);
-			rangeAxis.setTickMarksVisible(true);
-			rangeAxis.setTickMarkPaint(GRAY);
-		}
-	}
-
 	@Data
-	public class Series {
-		private final String name;
-		private final Paint paint;
-		private final Stroke stroke;
+	@EqualsAndHashCode(callSuper = true)
+	public class Series extends SeriesStyle {
 		private final List<Float> datas;
 
 		public Series(final String name,
 					  final Paint paint,
 					  final Stroke stroke,
 					  final Stream<? extends Number> datas) {
-			this.name = Objects.requireNonNull(name, "\"name\" can't to be null");
-			this.paint = Objects.requireNonNull(paint, "\"paint\" can't to be null");
-			this.stroke = Objects.requireNonNull(stroke, "\"stroke\" can't to be null");
+			super(
+					Objects.requireNonNull(name, "\"name\" can't to be null"),
+					Objects.requireNonNull(paint, "\"paint\" can't to be null"),
+					Objects.requireNonNull(stroke, "\"stroke\" can't to be null"));
 
 			this.datas = datas.map(Number::floatValue)
 					.map(f -> {
@@ -257,7 +124,7 @@ public class TimedDataGraphic {
 		}
 
 		private TimeSeries getTimeSeries() {
-			final var ts = new TimeSeries(name);
+			final var ts = new TimeSeries(getName());
 			IntStream.range(0, datas.size())
 					.forEach(pos -> ts.add(positions.get(pos), datas.get(pos)));
 			return ts;
@@ -265,100 +132,18 @@ public class TimedDataGraphic {
 
 	}
 
-	public void makeLogarithmicAxisGraphic(final File outputFile, final Dimension imageSize) {
-		makeGraphic(outputFile, imageSize, true);
-	}
-
-	public void makeLinearAxisGraphic(final File outputFile, final Dimension imageSize) {
-		makeGraphic(outputFile, imageSize, false);
-	}
-
-	private void makeGraphic(final File outputFile, final Dimension imageSize, final boolean logarithmicAxis) {
-		log.info("Save graphic to {}", outputFile);
-
+	@Override
+	protected JFreeChart getChart() {
 		final var tsc = new TimeSeriesCollection();
 		series.stream()
 				.map(Series::getTimeSeries)
 				.forEach(tsc::addSeries);
-
-		final var timechart = ChartFactory.createTimeSeriesChart("", "", "", tsc, true, false, false);
-		timechart.setAntiAlias(true);
-		timechart.setTextAntiAlias(true);
-		timechart.setBackgroundPaint(BLACK);
-		final var legend = timechart.getLegend();
-		legend.setBackgroundPaint(BLACK);
-
-		final var plot = timechart.getXYPlot();
-		plot.setBackgroundPaint(BLACK);
-		plot.setOutlinePaint(GRAY);
-
-		final var renderer = (XYLineAndShapeRenderer) plot.getRenderer(0);
-		renderer.setDefaultLegendTextPaint(GRAY);
-
-		final var font = renderer.getDefaultItemLabelFont().deriveFont(28f);
-
-		markers.stream()
-				.map(ref -> {
-					final var marker = new ValueMarker(ref);
-					final var label = decimalFormat.format(ref);
-					if (label.endsWith(".0")) {
-						marker.setLabel(String.valueOf(round(ref)));
-					} else {
-						marker.setLabel(label);
-					}
-
-					marker.setLabelPaint(WHITE);
-					marker.setPaint(WHITE);
-					marker.setLabelFont(font.deriveFont(BOLD));
-					marker.setLabelTextAnchor(CENTER_LEFT);
-
-					final float[] dash = { 5.0f };
-					marker.setStroke(new BasicStroke(1, CAP_BUTT, JOIN_MITER, 10.0f, dash, 0.0f));
-					return marker;
-				})
-				.forEach(plot::addRangeMarker);
-
-		if (logarithmicAxis) {
-			plot.setRangeAxis(rangeAxis.toLogarithmicAxis(font));
-		} else {
-			plot.setRangeAxis(rangeAxis.toLinearAxis(font));
-		}
-
-		renderer.setDefaultItemLabelFont(font);
-		renderer.setDefaultLegendTextFont(font);
-		renderer.setLegendTextFont(0, font);
-		renderer.setSeriesItemLabelFont(0, font);
-
-		for (var pos = 0; pos < series.size(); pos++) {
-			final var s = series.get(pos);
-			renderer.setSeriesPaint(pos, s.paint);
-			renderer.setSeriesStroke(pos, s.stroke);
-		}
-
-		final var timeAxis = (DateAxis) plot.getDomainAxis();
-		timeAxis.setAxisLineVisible(false);
-		timeAxis.setLabelPaint(GRAY);
-		timeAxis.setTickLabelPaint(GRAY);
-		timeAxis.setLowerMargin(0);
-		timeAxis.setUpperMargin(0);
-		timeAxis.setTimeZone(TimeZone.getTimeZone("GMT"));
-		timeAxis.setMinorTickMarksVisible(true);
-		timeAxis.setMinorTickCount(10);
-		timeAxis.setMinorTickMarkInsideLength(5);
-		timeAxis.setMinorTickMarkOutsideLength(0);
-		timeAxis.setLabelFont(font.deriveFont(10f));
-		timeAxis.setTickLabelFont(font.deriveFont(20f));
-
-		try {
-			ChartUtils.saveChartAsJPEG(
-					outputFile,
-					JPG_COMPRESSION_RATIO,
-					timechart,
-					imageSize.width,
-					imageSize.height);
-		} catch (final IOException e) {
-			throw new UncheckedIOException("Can't save chart", e);
-		}
-
+		return ChartFactory.createTimeSeriesChart("", "", "", tsc, true, false, false);
 	}
+
+	@Override
+	protected List<? extends SeriesStyle> getSeriesStyle() {
+		return series;
+	}
+
 }
