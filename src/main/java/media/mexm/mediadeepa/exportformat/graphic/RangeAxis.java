@@ -29,6 +29,10 @@ import org.jfree.chart.axis.ValueAxis;
 
 public record RangeAxis(String name, Number min, Number max) {
 
+	public static RangeAxis createAutomaticRangeAxis(final String name) {
+		return new RangeAxis(name, null, null);
+	}
+
 	public static <T extends Number> RangeAxis createFromValueSet(final String name,
 																  final Number floor,
 																  final Number subMarginMin,
@@ -86,8 +90,13 @@ public record RangeAxis(String name, Number min, Number max) {
 	}
 
 	private void setRangeAxisParam(final Font font, final NumberAxis rangeAxis) {
-		rangeAxis.setRange(min.doubleValue(), max.doubleValue());
-		rangeAxis.setAutoRange(false);
+		if (min != null && max != null) {
+			rangeAxis.setRange(min.doubleValue(), max.doubleValue());
+			rangeAxis.setAutoRange(false);
+		} else {
+			rangeAxis.setAutoRange(true);
+			rangeAxis.setAutoRangeIncludesZero(false);
+		}
 		rangeAxis.setLabelPaint(GRAY);
 		rangeAxis.setTickLabelPaint(GRAY);
 		rangeAxis.setLabelFont(font.deriveFont(10));

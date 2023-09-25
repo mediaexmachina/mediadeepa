@@ -725,35 +725,18 @@ public class GraphicExportFormat implements ExportFormat {
 				.map(secToMs),
 				allFrames.size());
 
-		final var dataGraphic = new XYLineChartDataGraphic(new RangeAxis(
-				"Frame duration (milliseconds)", getMin(ptsTimeDerivative) - 10d, getMax(ptsTimeDerivative) + 10d), // XXX FIXME
-				allFrames.size());
+		final var dataGraphic = new XYLineChartDataGraphic(RangeAxis.createAutomaticRangeAxis(
+				"Frame duration (milliseconds)"), allFrames.size());
 
-		dataGraphic.addSeries(new SeriesStyle("Video frame", BLUE, THIN_STROKE),
+		dataGraphic.addSeries(new SeriesStyle("Video frame duration", BLUE, THIN_STROKE),
 				ptsTimeDerivative);
-		dataGraphic.addSeries(new SeriesStyle("DTS video frame", RED, THICK_STROKE),
+		dataGraphic.addSeries(new SeriesStyle("DTS video frame duration", RED, THICK_STROKE),
 				pktDtsTimeDerivative);
-		dataGraphic.addSeries(new SeriesStyle("Best effort video frame", GREEN, THICK_STROKE),
+		dataGraphic.addSeries(new SeriesStyle("Best effort video frame duration", GREEN, THICK_STROKE),
 				bestEffortTimestampTimeDerivative);
 
 		dataGraphic.makeLinearAxisGraphic(new File(exportDirectory, makeOutputFileName(baseFileName,
 				VFRAMEDURATION_SUFFIX_FILE_NAME)), IMAGE_SIZE_HALF_HEIGHT);
-	}
-
-	private static double getMax(final double[] values) {
-		var max = Double.MIN_VALUE;
-		for (var pos = 0; pos < values.length; pos++) {
-			max = Math.max(max, values[pos]);
-		}
-		return max;
-	}
-
-	private static double getMin(final double[] values) {
-		var min = Double.MAX_VALUE;
-		for (var pos = 0; pos < values.length; pos++) {
-			min = Math.min(min, values[pos]);
-		}
-		return min;
 	}
 
 	private double[] getTimeDerivative(final Stream<Float> timeValues, final int itemCount) {
