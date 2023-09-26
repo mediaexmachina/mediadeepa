@@ -30,12 +30,12 @@ class E2ECSVTest extends E2EUtils {
 
 	@Test
 	void testCSV_classic() throws IOException {
-		final var rawData = prepareMovForSimpleE2ETests();
+		final var rawData = prepareMpgForSimpleE2ETests();
 		if (rawData == null) {
 			return;
 		}
 
-		final var outputFileMediaSum = new File("target/e2e-export", "mov_media-summary.csv");
+		final var outputFileMediaSum = new File("target/e2e-export", "mpg_media-summary.csv");
 		if (outputFileMediaSum.exists() == false) {
 			runApp(
 					"--temp", "target/e2e-temp",
@@ -46,30 +46,30 @@ class E2ECSVTest extends E2EUtils {
 					"--import-container", rawData.outContainer().getPath(),
 					"-f", "csv",
 					"-e", "target/e2e-export",
-					"--export-base-filename", "mov");
+					"--export-base-filename", "mpg");
 		}
 		var lines = readLines(outputFileMediaSum);
 		assertEquals(List.of(
 				"Type,Value",
-				"Stream,video: ffv1 352×288 @ 25 fps [5731 kbps] yuv420p (1400 frms) default stream",
-				"Stream,audio: pcm_s16le stereo @ 48000 Hz [1536 kbps] default stream",
-				"Format,\"QuickTime / MOV, 00:00:56, 48 MB\""), lines);
+				"Stream,video: mpeg2video 352×288 Main/Main with B frames @ 25 fps yuv420p/colRange:TV",
+				"Stream,audio: mp2 s16p stereo @ 48000 Hz [256 kbps]",
+				"Format,\"MPEG-PS (MPEG-2 Program Stream), 00:00:56, 17 MB\""), lines);
 
-		final var outputFileEbur128 = new File("target/e2e-export", "mov_audio-ebur128-summary.csv");
+		final var outputFileEbur128 = new File("target/e2e-export", "mpg_audio-ebur128-summary.csv");
 		lines = readLines(outputFileEbur128);
 
 		assertEquals(2, lines.size());
 		assertThat(lines.get(0)).isEqualTo(
 				"Integrated,Integrated Threshold,Loudness Range,Loudness Range Threshold,Loudness Range Low,Loudness Range High,Sample Peak,True Peak");
 		assertThat(lines.get(1)).startsWith(
-				"-24.4,-35.1,17.2,-45,-36.1,-18.8,-18,-17.");
+				"-24.5,-35.3,17.3,-45.1,-36.2,-18.9,-17.6,-17.6");
 		/** "True Peak = -17.8" Not enough stable with some ffmpeg builds */
 
 		final var csvCount = Stream.of(new File("target/e2e-export").listFiles())
-				.filter(f -> f.getName().startsWith("mov_")
+				.filter(f -> f.getName().startsWith("mpg_")
 							 && f.getName().endsWith(".csv"))
 				.count();
-		assertEquals(19, csvCount);
+		assertEquals(20, csvCount);
 	}
 
 	@Test
