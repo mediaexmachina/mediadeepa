@@ -42,7 +42,7 @@ import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.chart.ui.TextAnchor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -110,9 +110,7 @@ public abstract class DataGraphic {
 		plot.setBackgroundPaint(BLACK);
 		plot.setOutlinePaint(GRAY);
 
-		final var renderer = (XYLineAndShapeRenderer) plot.getRenderer(0);// XXX
-		renderer.setDefaultLegendTextPaint(GRAY);
-
+		final var renderer = (AbstractXYItemRenderer) plot.getRenderer(0);
 		final var font = renderer.getDefaultItemLabelFont().deriveFont(28f);
 
 		markers.stream()
@@ -143,6 +141,7 @@ public abstract class DataGraphic {
 		}
 
 		renderer.setDefaultItemLabelFont(font);
+		renderer.setDefaultLegendTextPaint(GRAY);
 		renderer.setDefaultLegendTextFont(font);
 		renderer.setLegendTextFont(0, font);
 		renderer.setSeriesItemLabelFont(0, font);
@@ -169,8 +168,6 @@ public abstract class DataGraphic {
 
 		if (domainAxis instanceof final DateAxis timeAxis) {
 			timeAxis.setTimeZone(TimeZone.getTimeZone("GMT"));
-		} else {
-			// domainAxis.
 		}
 
 		try {

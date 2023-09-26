@@ -28,8 +28,8 @@ import org.jfree.data.xy.DefaultXYDataset;
 
 public class XYLineChartDataGraphic extends DataGraphic {
 
-	private final double[] xValues;
-	private final DefaultXYDataset dataset;
+	protected final double[] xValues;
+	protected final DefaultXYDataset dataset;
 	private final List<SeriesStyle> seriesStyles;
 
 	protected XYLineChartDataGraphic(final RangeAxis rangeAxis,

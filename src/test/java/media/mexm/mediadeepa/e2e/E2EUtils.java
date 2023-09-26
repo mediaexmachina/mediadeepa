@@ -159,9 +159,17 @@ abstract class E2EUtils {
 		}
 	}
 
-	E2ERawOutDataFiles prepareMovForSimpleE2ETests() throws IOException {
-		final var rawData = E2ERawOutDataFiles.create(MEDIA_FILE_NAME_MOV);
-		if (MEDIA_FILE_NAME_MOV.exists() == false) {
+	static E2ERawOutDataFiles prepareMovForSimpleE2ETests() throws IOException {
+		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_MOV);
+	}
+
+	static E2ERawOutDataFiles prepareMpgForSimpleE2ETests() throws IOException {
+		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_MPG);
+	}
+
+	static E2ERawOutDataFiles prepareMovForSimpleE2ETests(final File mediaFile) throws IOException {
+		final var rawData = E2ERawOutDataFiles.create(mediaFile);
+		if (mediaFile.exists() == false) {
 			return null;
 		}
 		extractRawTXT(rawData);

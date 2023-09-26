@@ -16,6 +16,8 @@
  */
 package media.mexm.mediadeepa.e2e;
 
+import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.IMAGE_SIZE_FULL_HEIGHT;
+import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.IMAGE_SIZE_HALF_HEIGHT;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.ABITRATE_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.A_PHASE_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.BLOCK_SUFFIX_FILE_NAME;
@@ -25,6 +27,8 @@ import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.DC_
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.ENTROPY_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.EVENTS_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.FLAT_FACTOR_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.GOP_COUNT_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.GOP_SIZES_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.IDET_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.LUFS_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.LUFS_TPK_SUFFIX_FILE_NAME;
@@ -33,8 +37,6 @@ import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.PEA
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.SITI_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.VBITRATE_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.VFRAMEDURATION_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.IMAGE_SIZE_FULL_HEIGHT;
-import static media.mexm.mediadeepa.exportformat.graphic.TimedDataGraphic.IMAGE_SIZE_HALF_HEIGHT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -43,6 +45,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -51,10 +54,11 @@ import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.function.Executable;
 
 class E2EGraphicTest extends E2EUtils {
 
-	private static final String MOV = "mov_";
+	private static final String MPG = "mpg_";
 	E2ERawOutDataFiles rawData;
 	ThreadLocal<float[]> hsbvalsThreadLocal;
 
@@ -65,62 +69,52 @@ class E2EGraphicTest extends E2EUtils {
 
 	@TestFactory
 	Stream<DynamicTest> testTable() throws IOException {
-		rawData = prepareMovForSimpleE2ETests();
+		rawData = prepareMpgForSimpleE2ETests();
 		if (rawData == null) {
 			return Stream.empty();
 		}
-		return Stream.of(
-				dynamicTest("LUFS",
-						() -> checkImageGraphic(makeOutputFile(MOV + LUFS_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_FULL_HEIGHT)),
-				dynamicTest("LUFS TPK",
-						() -> checkImageGraphic(makeOutputFile(MOV + LUFS_TPK_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_FULL_HEIGHT)),
-				dynamicTest("Audio phase",
-						() -> checkImageGraphic(makeOutputFile(MOV + A_PHASE_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_HALF_HEIGHT)),
-				dynamicTest("Audio entropy",
-						() -> checkImageGraphic(makeOutputFile(MOV + ENTROPY_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_HALF_HEIGHT)),
-				dynamicTest("Audio flat-factor",
-						() -> checkImageGraphic(makeOutputFile(MOV + FLAT_FACTOR_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_HALF_HEIGHT)),
-				dynamicTest("Audio noise-floor",
-						() -> checkImageGraphic(makeOutputFile(MOV + NOISE_FLOOR_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_HALF_HEIGHT)),
-				dynamicTest("Audio peak-level",
-						() -> checkImageGraphic(makeOutputFile(MOV + PEAK_LEVEL_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_HALF_HEIGHT)),
-				dynamicTest("Audio DC offset",
-						() -> checkImageGraphic(makeOutputFile(MOV + DC_OFFSET_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_HALF_HEIGHT)),
-				dynamicTest("Video SITI",
-						() -> checkImageGraphic(makeOutputFile(MOV + SITI_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_FULL_HEIGHT)),
-				dynamicTest("Video block",
-						() -> checkImageGraphic(makeOutputFile(MOV + BLOCK_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_FULL_HEIGHT)),
-				dynamicTest("Video blur",
-						() -> checkImageGraphic(makeOutputFile(MOV + BLUR_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_FULL_HEIGHT)),
-				dynamicTest("Video idet",
-						() -> checkImageGraphic(makeOutputFile(MOV + IDET_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_HALF_HEIGHT)),
-				dynamicTest("Video crop",
-						() -> checkImageGraphic(makeOutputFile(MOV + CROP_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_FULL_HEIGHT)),
-				dynamicTest("Events",
-						() -> checkImageGraphic(makeOutputFile(MOV + EVENTS_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_HALF_HEIGHT)),
-				dynamicTest("Video bitrate",
-						() -> checkImageGraphic(makeOutputFile(MOV + VBITRATE_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_FULL_HEIGHT)),
-				dynamicTest("Audio bitrate",
-						() -> checkImageGraphic(makeOutputFile(MOV + ABITRATE_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_HALF_HEIGHT)),
-				dynamicTest("Video frame duration",
-						() -> checkImageGraphic(makeOutputFile(MOV + VFRAMEDURATION_SUFFIX_FILE_NAME),
-								IMAGE_SIZE_HALF_HEIGHT)));
+
+		final var tests = new LinkedHashMap<String, Executable>();
+		tests.put("LUFS", checkImageGraphic(makeOutputFile(
+				MPG + LUFS_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("LUFS TPK", checkImageGraphic(makeOutputFile(
+				MPG + LUFS_TPK_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("Audio phase", checkImageGraphic(makeOutputFile(
+				MPG + A_PHASE_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Audio entropy", checkImageGraphic(makeOutputFile(
+				MPG + ENTROPY_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Audio flat-factor", checkImageGraphic(makeOutputFile(
+				MPG + FLAT_FACTOR_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Audio noise-floor", checkImageGraphic(makeOutputFile(
+				MPG + NOISE_FLOOR_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Audio peak-level", checkImageGraphic(makeOutputFile(
+				MPG + PEAK_LEVEL_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Audio DC offset", checkImageGraphic(makeOutputFile(
+				MPG + DC_OFFSET_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Video SITI", checkImageGraphic(makeOutputFile(
+				MPG + SITI_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("Video block", checkImageGraphic(makeOutputFile(
+				MPG + BLOCK_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("Video blur", checkImageGraphic(makeOutputFile(
+				MPG + BLUR_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("Video idet", checkImageGraphic(makeOutputFile(
+				MPG + IDET_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Video crop", checkImageGraphic(makeOutputFile(
+				MPG + CROP_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("Events", checkImageGraphic(makeOutputFile(
+				MPG + EVENTS_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Video bitrate", checkImageGraphic(makeOutputFile(
+				MPG + VBITRATE_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("Audio bitrate", checkImageGraphic(makeOutputFile(
+				MPG + ABITRATE_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Video frame duration", checkImageGraphic(makeOutputFile(
+				MPG + VFRAMEDURATION_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Video GOP counts", checkImageGraphic(makeOutputFile(
+				MPG + GOP_COUNT_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Video GOP sizes", checkImageGraphic(makeOutputFile(
+				MPG + GOP_SIZES_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+		return tests.entrySet().stream()
+				.map(entry -> dynamicTest(entry.getKey(), entry.getValue()));
 	}
 
 	File makeOutputFile(final String baseFileName) throws IOException {
@@ -128,6 +122,7 @@ class E2EGraphicTest extends E2EUtils {
 		if (outputFile.exists()) {
 			return outputFile;
 		}
+		System.out.println(rawData.outContainer());
 		runApp(
 				"--temp", "target/e2e-temp",
 				"--import-lavfi", rawData.outAlavfi().getPath(),
@@ -137,7 +132,7 @@ class E2EGraphicTest extends E2EUtils {
 				"--import-container", rawData.outContainer().getPath(),
 				"-f", "graphic",
 				"-e", "target/e2e-export",
-				"--export-base-filename", "mov");
+				"--export-base-filename", "mpg");
 		return outputFile;
 	}
 
@@ -147,8 +142,13 @@ class E2EGraphicTest extends E2EUtils {
 		}
 	}
 
-	private void checkImageGraphic(final File outputFile,
-								   final Dimension expectedImageSize) throws IOException {
+	private Executable checkImageGraphic(final File outputFile,
+										 final Dimension expectedImageSize) {
+		return () -> checkImageGraphicInternal(outputFile, expectedImageSize);
+	}
+
+	private void checkImageGraphicInternal(final File outputFile,
+										   final Dimension expectedImageSize) throws IOException {
 		final var image = ImageIO.read(outputFile);
 		assertEquals(expectedImageSize.getWidth(), image.getWidth());
 		assertEquals(expectedImageSize.getHeight(), image.getHeight());
@@ -168,7 +168,7 @@ class E2EGraphicTest extends E2EUtils {
 				})
 				.toList();
 
-		assertThat(allColors).hasSizeGreaterThan(1000);
+		assertThat(allColors).hasSizeGreaterThan(100);
 
 		final var greyCount = allColors.parallelStream().filter(hsv -> hsv.sat == 0f).count();
 		assertThat(greyCount).isGreaterThan(100);

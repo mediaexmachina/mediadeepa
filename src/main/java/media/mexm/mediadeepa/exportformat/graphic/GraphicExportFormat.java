@@ -32,6 +32,7 @@ import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.IMAGE_SIZE_
 import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.STROKES_CHANNEL;
 import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.THICK_STROKE;
 import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.THIN_STROKE;
+import static tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType.VIDEO;
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetRepeatedFrameType.BOTTOM;
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetRepeatedFrameType.NEITHER;
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetRepeatedFrameType.TOP;
@@ -67,6 +68,7 @@ import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdSiti;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
+import tv.hd3g.fflauncher.recipes.GOPStatItem;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.Ebur128Summary;
@@ -93,6 +95,8 @@ public class GraphicExportFormat implements ExportFormat {
 	public static final String VBITRATE_SUFFIX_FILE_NAME = "video-bitrate.jpg";
 	public static final String ABITRATE_SUFFIX_FILE_NAME = "audio-bitrate.jpg";
 	public static final String VFRAMEDURATION_SUFFIX_FILE_NAME = "video-frame-duration.jpg";
+	public static final String GOP_COUNT_SUFFIX_FILE_NAME = "video-gop-count.jpg";
+	public static final String GOP_SIZES_SUFFIX_FILE_NAME = "video-gop-size.jpg";
 
 	@Override
 	public String getFormatLongName() {
@@ -101,7 +105,6 @@ public class GraphicExportFormat implements ExportFormat {
 
 	@Override
 	public void exportResult(final DataResult result, final File exportDirectory, final String baseFileName) {
-		/*
 		makeR128(result, exportDirectory, baseFileName);
 		makeAPhase(result, exportDirectory, baseFileName);
 		makeAStat(result, exportDirectory, baseFileName);
@@ -113,8 +116,9 @@ public class GraphicExportFormat implements ExportFormat {
 		makeEvents(result, exportDirectory, baseFileName);
 		makeVideoBitrate(result, exportDirectory, baseFileName);
 		makeAudioBitrate(result, exportDirectory, baseFileName);
-		*/
 		makeVideoFrameDuration(result, exportDirectory, baseFileName);
+		makeVideoGOPCount(result, exportDirectory, baseFileName);
+		makeVideoGOPSize(result, exportDirectory, baseFileName);
 	}
 
 	private void makeR128(final DataResult result, final File exportDirectory, final String baseFileName) {
@@ -604,17 +608,19 @@ public class GraphicExportFormat implements ExportFormat {
 				.map(ContainerAnalyserResult::videoFrames)
 				.stream()
 				.flatMap(List::stream)
+				.filter(d -> d.repeatPict() == false)
+				.map(FFprobeVideoFrame::frame)
+				.filter(f -> f.mediaType() == VIDEO)
 				.toList();
 		if (videoFramesReport.isEmpty()) {
 			return;
 		}
 		final var firstStreamIndex = videoFramesReport.stream()
-				.map(FFprobeVideoFrame::frame)
 				.map(FFprobeBaseFrame::streamIndex)
+				.skip(1)
 				.findFirst().orElseThrow(() -> new IllegalArgumentException("Can't found video stream index"));
 
 		final var values = videoFramesReport.stream()
-				.map(FFprobeVideoFrame::frame)
 				.filter(f -> f.streamIndex() == firstStreamIndex)
 				.map(FFprobeBaseFrame::pktSize)
 				.map(f -> (float) f / 1024f)
@@ -622,8 +628,8 @@ public class GraphicExportFormat implements ExportFormat {
 
 		final var dataGraphic = TimedDataGraphic.create(
 				videoFramesReport.stream()
-						.map(FFprobeVideoFrame::frame)
-						.map(FFprobeBaseFrame::ptsTime),
+						.filter(f -> f.streamIndex() == firstStreamIndex)
+						.map(FFprobeBaseFrame::pktDtsTime),
 				RangeAxis.createFromRelativesValueSet(
 						"Frame size (kbytes)", 0,
 						values.stream()));
@@ -692,6 +698,23 @@ public class GraphicExportFormat implements ExportFormat {
 
 	private static final UnaryOperator<Float> secToMs = s -> s * 1000f;
 
+	private double[] getTimeDerivative(final Stream<Float> timeValues, final int itemCount) {
+		final var result = new double[itemCount];
+
+		final var interator = timeValues.iterator();
+		Float previous;
+		var actual = NaN;
+		var pos = 0;
+		while (interator.hasNext()) {
+			previous = actual;
+			actual = interator.next();
+			if (previous != NaN) {
+				result[pos++] = actual - previous;
+			}
+		}
+		return result;
+	}
+
 	private void makeVideoFrameDuration(final DataResult result,
 										final File exportDirectory,
 										final String baseFileName) {
@@ -712,52 +735,83 @@ public class GraphicExportFormat implements ExportFormat {
 				.filter(f -> f.streamIndex() == firstStreamIndex)
 				.toList();
 
-		final var ptsTimeDerivative = getTimeDerivative(allFrames.stream()
-				.map(FFprobeBaseFrame::ptsTime)
-				.map(secToMs),
-				allFrames.size());
 		final var pktDtsTimeDerivative = getTimeDerivative(allFrames.stream()
 				.map(FFprobeBaseFrame::pktDtsTime)
+				.map(ms -> ms > -1f ? ms : Float.NaN)
 				.map(secToMs),
 				allFrames.size());
 		final var bestEffortTimestampTimeDerivative = getTimeDerivative(allFrames.stream()
 				.map(FFprobeBaseFrame::bestEffortTimestampTime)
+				.map(ms -> ms > -1f ? ms : Float.NaN)
 				.map(secToMs),
 				allFrames.size());
 
 		final var dataGraphic = new XYLineChartDataGraphic(RangeAxis.createAutomaticRangeAxis(
 				"Frame duration (milliseconds)"), allFrames.size());
 
-		dataGraphic.addSeries(new SeriesStyle("Video frame duration", BLUE, THIN_STROKE),
-				ptsTimeDerivative);
-		dataGraphic.addSeries(new SeriesStyle("DTS video frame duration", RED, THICK_STROKE),
+		dataGraphic.addSeries(new SeriesStyle("DTS video frame duration", BLUE, THIN_STROKE),
 				pktDtsTimeDerivative);
-		dataGraphic.addSeries(new SeriesStyle("Best effort video frame duration", GREEN, THICK_STROKE),
+		dataGraphic.addSeries(new SeriesStyle("Best effort video frame duration", RED, THICK_STROKE),
 				bestEffortTimestampTimeDerivative);
 
 		dataGraphic.makeLinearAxisGraphic(new File(exportDirectory, makeOutputFileName(baseFileName,
 				VFRAMEDURATION_SUFFIX_FILE_NAME)), IMAGE_SIZE_HALF_HEIGHT);
 	}
 
-	private double[] getTimeDerivative(final Stream<Float> timeValues, final int itemCount) {
-		final var result = new double[itemCount];
-
-		final var interator = timeValues.iterator();
-		Float previous;
-		var actual = NaN;
-		var pos = 0;
-		while (interator.hasNext()) {
-			previous = actual;
-			actual = interator.next();
-			if (previous != NaN) {
-				result[pos++] = actual - previous;
-			}
+	private void makeVideoGOPCount(final DataResult result, final File exportDirectory, final String baseFileName) {
+		final var gopStatsReport = result.getContainerAnalyserResult()
+				.map(ContainerAnalyserResult::extractGOPStats)
+				.stream()
+				.flatMap(List::stream)
+				.toList();
+		if (gopStatsReport.isEmpty()) {
+			return;
 		}
-		return result;
+
+		final var dataGraphic = new XYAreaChartDataGraphic(RangeAxis.createAutomaticRangeAxis("Number of frames"));
+		dataGraphic.addValueMarker(gopStatsReport.stream().mapToInt(GOPStatItem::gopFrameCount).max().orElse(0));
+
+		dataGraphic.addSeriesByCounter(new SeriesStyle("P frame count by GOP", BLUE, THIN_STROKE),
+				gopStatsReport.stream().map(GOPStatItem::pFramesCount));
+		dataGraphic.addSeriesByCounter(new SeriesStyle("B frame count by GOP", RED.darker(), THIN_STROKE),
+				gopStatsReport.stream().map(GOPStatItem::bFramesCount));
+		dataGraphic.addSeriesByCounter(new SeriesStyle("Video frame count by GOP", GRAY, THIN_STROKE),
+				gopStatsReport.stream().map(g -> g.gopFrameCount() - (g.bFramesCount() + g.pFramesCount())));
+		dataGraphic.makeLinearAxisGraphic(new File(exportDirectory, makeOutputFileName(baseFileName,
+				GOP_COUNT_SUFFIX_FILE_NAME)), IMAGE_SIZE_HALF_HEIGHT);
 	}
 
-	/*
-	TODO GOP size / GOP Width graphical -- ChartFactory.createXYAreaChart(title, xAxisLabel, yAxisLabel, dataset)
-	*/
+	private void makeVideoGOPSize(final DataResult result, final File exportDirectory, final String baseFileName) {
+		final var gopStatsReport = result.getContainerAnalyserResult()
+				.map(ContainerAnalyserResult::extractGOPStats)
+				.stream()
+				.flatMap(List::stream)
+				.toList();
+		if (gopStatsReport.isEmpty()) {
+			return;
+		}
+
+		final var dataGraphic = new XYAreaChartDataGraphic(RangeAxis.createAutomaticRangeAxis(
+				"GOP frame size (kbytes)"));
+		dataGraphic.addValueMarker(gopStatsReport.stream()
+				.mapToDouble(GOPStatItem::gopDataSize)
+				.max()
+				.stream()
+				.map(d -> d / 1024d)
+				.findFirst().orElse(0d));
+
+		dataGraphic.addSeriesByCounter(new SeriesStyle("P frames size in GOP", BLUE, THIN_STROKE),
+				gopStatsReport.stream().flatMap(g -> g.videoFrames().stream()
+						.map(f -> g.pFramesDataSize() / 1024d)));
+		dataGraphic.addSeriesByCounter(new SeriesStyle("B frames size in GOP", RED.darker(), THIN_STROKE),
+				gopStatsReport.stream().flatMap(g -> g.videoFrames().stream()
+						.map(f -> g.bFramesDataSize() / 1024d)));
+		dataGraphic.addSeriesByCounter(new SeriesStyle("I frames size in GOP", GRAY, THIN_STROKE),
+				gopStatsReport.stream().flatMap(g -> g.videoFrames().stream()
+						.map(f -> (g.gopDataSize() - (g.bFramesDataSize() + g.pFramesDataSize())) / 1024d)));
+
+		dataGraphic.makeLinearAxisGraphic(new File(exportDirectory, makeOutputFileName(baseFileName,
+				GOP_SIZES_SUFFIX_FILE_NAME)), IMAGE_SIZE_FULL_HEIGHT);
+	}
 
 }
