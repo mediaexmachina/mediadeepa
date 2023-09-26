@@ -59,7 +59,7 @@ public enum E2ESpecificMediaFile {
 			"mpeg",
 			0,
 			List.of(
-					"MPEG-PS (MPEG-2 Program Stream), 00:00:56, 18 MB",
+					"MPEG-PS (MPEG-2 Program Stream), 00:00:56, 17 MB",
 					"video: mpeg2video 352×288 Main/Main with B frames @ 25 fps yuv420p/colRange:TV",
 					"audio: mp2 s16p stereo @ 48000 Hz [256 kbps]")),
 
@@ -79,7 +79,7 @@ public enum E2ESpecificMediaFile {
 			"mpegts",
 			0,
 			List.of(
-					"MPEG-TS (MPEG-2 Transport Stream), 00:00:56, 19 MB, 1 program(s)",
+					"MPEG-TS (MPEG-2 Transport Stream), 00:00:56, 18 MB, 1 program(s)",
 					"video: mpeg2video 352×288 Main/Main with B frames @ 25 fps yuv420p/colRange:TV",
 					"audio: mp2 stereo @ 48000 Hz [256 kbps]")),
 

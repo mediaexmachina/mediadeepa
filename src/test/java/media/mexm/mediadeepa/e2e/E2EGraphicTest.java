@@ -122,7 +122,6 @@ class E2EGraphicTest extends E2EUtils {
 		if (outputFile.exists()) {
 			return outputFile;
 		}
-		System.out.println(rawData.outContainer());
 		runApp(
 				"--temp", "target/e2e-temp",
 				"--import-lavfi", rawData.outAlavfi().getPath(),
