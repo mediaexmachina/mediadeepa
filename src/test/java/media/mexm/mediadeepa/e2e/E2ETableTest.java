@@ -66,7 +66,7 @@ class E2ETableTest extends E2EUtils {
 
 	@TestFactory
 	Stream<DynamicTest> testTable() throws IOException {
-		rawData = prepareMovForSimpleE2ETests();
+		rawData = prepareMpgForSimpleE2ETests();
 		if (rawData == null) {
 			return Stream.empty();
 		}
@@ -92,24 +92,24 @@ class E2ETableTest extends E2EUtils {
 				"--import-container", rawData.outContainer().getPath(),
 				"-f", format,
 				"-e", "target/e2e-export",
-				"--export-base-filename", "mov");
+				"--export-base-filename", "mpg");
 		return outputFile;
 	}
 
 	void testXLSX() throws IOException {
-		final var outputFile = makeOutputFile("mov_media-datas.xlsx", "xlsx");
+		final var outputFile = makeOutputFile("mpg_media-datas.xlsx", "xlsx");
 		assertTrue(outputFile.exists());
 		assertTrue(outputFile.length() > 0);
 	}
 
 	void testSQLite() throws IOException {
-		final var outputFile = makeOutputFile("mov_media-datas.sqlite", "sqlite");
+		final var outputFile = makeOutputFile("mpg_media-datas.sqlite", "sqlite");
 		assertTrue(outputFile.exists());
 		assertTrue(outputFile.length() > 0);
 	}
 
 	void testXML() throws IOException, SAXException, ParserConfigurationException {
-		final var outputFile = makeOutputFile("mov_media-datas.xml", "xml");
+		final var outputFile = makeOutputFile("mpg_media-datas.xml", "xml");
 		assertTrue(outputFile.exists());
 		assertTrue(outputFile.length() > 0);
 
@@ -122,16 +122,16 @@ class E2ETableTest extends E2EUtils {
 		verify(defaultHandler, times(1)).setDocumentLocator(any());
 
 		verify(defaultHandler, times(1)).startElement(eq(""), eq(""), eq("report"), any());
-		verify(defaultHandler, times(19)).startElement(eq(""), eq(""), eq("table"), any());
-		verify(defaultHandler, times(19)).startElement(eq(""), eq(""), eq("headers"), any());
-		verify(defaultHandler, times(164)).startElement(eq(""), eq(""), eq("header"), any());
+		verify(defaultHandler, times(20)).startElement(eq(""), eq(""), eq("table"), any());
+		verify(defaultHandler, times(20)).startElement(eq(""), eq(""), eq("headers"), any());
+		verify(defaultHandler, times(171)).startElement(eq(""), eq(""), eq("header"), any());
 		verify(defaultHandler, atLeast(23000)).startElement(eq(""), eq(""), eq("entry"), any());
 		verify(defaultHandler, atLeast(1)).endElement(anyString(), anyString(), anyString());
 	}
 
 	void testJSON() throws IOException {
 		rawData = prepareMovForSimpleE2ETests();
-		final var outputFile = makeOutputFile("mov_media-datas.json", "json");
+		final var outputFile = makeOutputFile("mpg_media-datas.json", "json");
 		assertTrue(outputFile.exists());
 		assertTrue(outputFile.length() > 0);
 
