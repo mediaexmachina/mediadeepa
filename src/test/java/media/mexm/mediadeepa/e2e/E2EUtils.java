@@ -167,6 +167,10 @@ abstract class E2EUtils {
 		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_MPG);
 	}
 
+	static E2ERawOutDataFiles prepareTsForSimpleE2ETests() throws IOException {
+		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_TS);
+	}
+
 	static E2ERawOutDataFiles prepareMovForSimpleE2ETests(final File mediaFile) throws IOException {
 		final var rawData = E2ERawOutDataFiles.create(mediaFile);
 		if (mediaFile.exists() == false) {

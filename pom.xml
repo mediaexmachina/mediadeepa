@@ -23,7 +23,7 @@
         <apache.poi.version>5.2.3</apache.poi.version>
         <jfreechart.version>1.5.4</jfreechart.version>
         <prodlib.version>18.0.2</prodlib.version>
-        <medialib.version>12.2.0</medialib.version>
+        <medialib.version>12.3.0</medialib.version>
     </properties>
 
     <dependencies>
@@ -42,7 +42,7 @@
             <artifactId>env-version</artifactId>
             <version>${prodlib.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli-spring-boot-starter</artifactId>
@@ -71,10 +71,10 @@
             <artifactId>poi-ooxml</artifactId>
             <version>${apache.poi.version}</version>
             <exclusions>
-            	<exclusion>
-            		<groupId>org.apache.logging.log4j</groupId>
-            		<artifactId>log4j-api</artifactId>
-            	</exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -89,6 +89,10 @@
             <groupId>org.jfree</groupId>
             <artifactId>jfreechart</artifactId>
             <version>${jfreechart.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.j2html</groupId>
+            <artifactId>j2html</artifactId>
         </dependency>
     </dependencies>
 

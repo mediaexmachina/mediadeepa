@@ -1,0 +1,260 @@
+/*
+ * This file is part of mediadeepa.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * Copyright (C) Media ex Machina 2023
+ *
+ */
+
+body {
+	font-family: "Tahoma", Sans serif;
+}
+article {
+	margin-bottom: 2em;
+}
+
+a.backtotop {
+	text-decoration: none;
+}
+
+a:link {
+	color: blue;
+}
+
+a:visited {
+	color: blue;
+}
+
+div.entry span.unit {
+	color: #666;
+}
+
+a.backtotop {
+	padding-left: .3em;
+}
+
+ul {
+	list-style-type: none;
+	margin-block-start: 0em;
+	margin-block-end: 0em;
+	margin-inline-start: 0px;
+	margin-inline-end: 0px;
+	padding-inline-start: 0px;
+}
+li {
+	display: block;
+}
+
+div.entry {
+	padding-top: 0.3em;
+	padding-bottom: 0.3em;
+	margin-bottom: 0.3em;
+	margin-right: 0.3em;
+}
+
+span.key {
+	font-weight: bold;
+	font-size: .95rem;
+	color: #555;
+}
+
+div.subset {
+	display: flex;
+}
+
+div.entry {
+	display: flex;
+	flex-flow: row wrap;
+}
+
+div.entry span.key {
+	width: 16rem;
+	padding-right: 0.5rem;
+}
+
+div.entry span.value {
+	min-width: 3rem;
+}
+
+div.entry:nth-child(even) {
+	background: #F8F8F8;
+}
+
+div.subset div.entry.stats span.key {
+	margin-bottom: 0.5rem;
+}
+
+div.entry.stats li span.key {
+	font-weight: normal;
+	color: #000;
+	font-size: 1rem;
+	margin-bottom: inherit;
+}
+
+div.entry.stats li {
+    width: 25%;
+    margin-right: 0.2rem;
+	margin-bottom: 0.1rem;
+}
+
+div.entry.stats li span.value {
+	padding-left: 0.3rem;
+}
+
+div.entry.stats li span.key::after {
+	content: ':';
+}
+
+div.entry.stats ul.value li {
+	display: flex;
+	width: inherit;
+}
+
+div.entry.stats ul.value li span.key {
+	width: 5rem;
+}
+
+div.subset div.entry:not(:first-child) {
+	margin-left: 0.6rem;
+}
+
+div.subset div.entry.stats {
+	display: inline;
+	width: 16rem;
+	margin-right: 0;
+}
+
+div.subset div.entry.stats:not(:first-child) {
+	padding-left: 0.4rem;
+	margin-left: 0.3rem;
+}
+
+div.subset div.entry.stats ul.value {
+	padding-left: 0.3rem;
+}
+
+div.subset div.entry.stats span.key {
+	display: block;
+	width: inherit;
+}
+
+div.entry span.unit {
+	padding-left: 0.3em;
+}
+
+nav ul {
+	padding-left: 1rem;
+}
+
+nav ul li {
+	padding-bottom: 0.3rem;
+}
+
+@media print {
+	a.backtotop {
+		display: none;
+	}
+}
+
+article {
+	break-inside: avoid;
+}
+
+div.entry.event {
+	margin-bottom: 0rem;
+}
+
+div.entry.event span.key {
+	padding-right: 0rem;
+}
+
+div.entry.event span.value {
+	margin-right: 1rem;
+    width: 8rem;
+}
+
+/****************************************/
+
+div.streamentries {
+	display: inherit;
+}
+
+div.streamlist {
+	display: flex;
+	overflow-x: auto;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+    margin-bottom: 0.3em;
+    margin-right: 0.3em;
+}
+
+@media print {
+	div.streamlist {
+		display: inline;
+		overflow-x: clip;
+	}
+
+	div.streamlist div.streamentry {
+		margin-top: 0.5rem;
+		margin-bottom: 0.5rem;
+		break-inside: avoid;
+	}
+}
+
+div.streamlist div.streamentry {
+    margin-left: 0rem;
+    margin-right: 0.4rem;
+    margin-top: 0rem;
+}
+
+div.streamlist div.streamentry div.entry {
+	font-size: 0.9rem;
+	margin-left: 0rem;
+    padding-top: 0em;
+    padding-bottom: 0.05em;
+    margin-bottom: 0.05em;
+    margin-right: 0.05em;
+}
+
+div.streamindex {
+	margin-top: 0.1875rem;
+	margin-bottom: 0.1875rem;
+	margin-left: 0rem;
+	margin-right: 0rem;
+    padding: 0.05rem 0.6rem;
+    font-size: 1.2em;
+    border-radius: 0.25rem;
+	font-family: monospace;
+    color: white;
+    background-color: grey;
+}
+
+div.streamlist div.streamentry div.entry span.key {
+	width: inherit;
+    min-width: 11rem;
+    padding-left: 0.5rem;
+}
+
+div.streamlist div.streamentry div.entry span.value {
+    min-width: 2rem;
+    padding-right: 0.5rem;
+}
+
+div.streamindex.video {
+    color: white;
+    background-color: blue;
+}
+
+div.streamindex.audio {
+    color: white;
+    background-color: red;
+}

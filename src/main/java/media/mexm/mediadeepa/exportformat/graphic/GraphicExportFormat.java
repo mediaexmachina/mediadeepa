@@ -46,6 +46,7 @@ import java.awt.Stroke;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
@@ -101,6 +102,16 @@ public class GraphicExportFormat implements ExportFormat {
 	@Override
 	public String getFormatLongName() {
 		return "Graphical representation of data";
+	}
+
+	public Optional<File> getGraphicFileBySuffixName(final File exportDirectory,
+													 final String baseFileName,
+													 final String suffixName) {
+		final var outFile = new File(exportDirectory, makeOutputFileName(baseFileName, suffixName));
+		if (outFile.exists()) {
+			return Optional.ofNullable(outFile);
+		}
+		return Optional.empty();
 	}
 
 	@Override
@@ -696,9 +707,9 @@ public class GraphicExportFormat implements ExportFormat {
 						IMAGE_SIZE_HALF_HEIGHT);
 	}
 
-	private static final UnaryOperator<Float> secToMs = s -> s * 1000f;
+	public static final UnaryOperator<Float> secToMs = s -> s * 1000f;
 
-	private double[] getTimeDerivative(final Stream<Float> timeValues, final int itemCount) {
+	public static double[] getTimeDerivative(final Stream<Float> timeValues, final int itemCount) {
 		final var result = new double[itemCount];
 
 		final var interator = timeValues.iterator();
@@ -768,7 +779,8 @@ public class GraphicExportFormat implements ExportFormat {
 			return;
 		}
 
-		final var dataGraphic = new StackedXYAreaChartDataGraphic(RangeAxis.createAutomaticRangeAxis("Number of frames"));
+		final var dataGraphic = new StackedXYAreaChartDataGraphic(RangeAxis.createAutomaticRangeAxis(
+				"Number of frames"));
 		dataGraphic.addValueMarker(gopStatsReport.stream().mapToInt(GOPStatItem::gopFrameCount).max().orElse(0));
 
 		dataGraphic.addSeriesByCounter(new SeriesStyle("P frame count by GOP", BLUE, THIN_STROKE),

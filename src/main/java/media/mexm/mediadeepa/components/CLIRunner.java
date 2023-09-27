@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.ExitCodeGenerator;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -41,6 +42,7 @@ import media.mexm.mediadeepa.FilterOptions;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.exportformat.ExportFormatManager;
 import media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat;
+import media.mexm.mediadeepa.exportformat.report.HTMLExportFormat;
 import media.mexm.mediadeepa.exportformat.tables.TableJsonExportFormat;
 import media.mexm.mediadeepa.exportformat.tables.TableSQLiteExportFormat;
 import media.mexm.mediadeepa.exportformat.tables.TableXLSXExportFormat;
@@ -85,6 +87,8 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 
 	@Value("${mediadeepa.disableKeyPressExit:false}")
 	private boolean disableKeyPressExit;
+	@Value("classpath:html-report-style.css")
+	private Resource cssHTMLReportResource;
 
 	private CommandLine commandLine;
 	private int exitCode;
@@ -99,6 +103,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		exportFormatManager.register("xml", new TableXMLExportFormat());
 		exportFormatManager.register("json", new TableJsonExportFormat());
 		exportFormatManager.register("graphic", new GraphicExportFormat());
+		exportFormatManager.register("html", new HTMLExportFormat(cssHTMLReportResource));
 		commandLine = new CommandLine(new AppCommand(), factory);
 	}
 
