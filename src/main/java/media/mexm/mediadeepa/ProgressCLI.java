@@ -59,28 +59,20 @@ public class ProgressCLI {
 		return ", x" + String.format(US, "%02.1f", speed);
 	}
 
-	private void writeLn(final String value) {
+	private void write(final String value) {
 		if (value.equals(lastEntry)) {
 			return;
 		}
 		lastEntry = value;
+		out.print(" ");
 		out.print(value);
 		out.print("\r");
 		out.flush();
 	}
 
-	private void writeFlush(final String value) {
-		if (value.equals(lastEntry)) {
-			return;
-		}
-		lastEntry = value;
-		out.print(value);
-		out.println();
-	}
-
 	public void start() {
 		startTime = System.currentTimeMillis();
-		writeFlush("|" + repeat(".", WIDTH) + "|");
+		write("|" + repeat(" ", WIDTH) + "|");
 	}
 
 	public void displayProgress(final double value, final float speed) {
@@ -96,13 +88,22 @@ public class ProgressCLI {
 		final var pSize = Math.round((float) Math.floor(value * WIDTH));
 		final var bSize = WIDTH - pSize;
 
-		writeFlush("|" + repeat(PROGRESS, pSize) + repeat(BLANK, bSize) + "|" +
-				   makePercent(value)
-				   + makeETA(value)
-				   + makeSpeed(speed));
+		write("|" + repeat(PROGRESS, pSize) + repeat(BLANK, bSize) + "|" +
+			  makePercent(value)
+			  + makeETA(value)
+			  + makeSpeed(speed));
 	}
 
 	public void end() {
-		writeLn("|" + repeat(PROGRESS, WIDTH) + "|" + makePercent(1));
+		if (lastEntry != null && lastEntry.isEmpty() == false) {
+			write(repeat(" ", lastEntry.length()));
+		}
+		final var eta = Duration.ofMillis(System.currentTimeMillis() - startTime);
+		final var totalTime = ", total time: " +
+							  StringUtils.right("0" + eta.toHoursPart(), 2) + ":" +
+							  StringUtils.right("0" + eta.toMinutesPart(), 2) + ":" +
+							  StringUtils.right("0" + eta.toSecondsPart(), 2);
+		write("|" + repeat(PROGRESS, WIDTH) + "| " + makePercent(1) + totalTime);
+		out.println();
 	}
 }

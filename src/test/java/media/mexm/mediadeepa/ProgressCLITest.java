@@ -16,7 +16,7 @@
  */
 package media.mexm.mediadeepa;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 import java.io.ByteArrayOutputStream;
@@ -52,22 +52,25 @@ class ProgressCLITest {
 	@Test
 	void testStart() {
 		c.start();
-		assertEquals("|....................|" + NL, outputStream.toString());
+		assertThat(outputStream).asString()
+				.contains(" |                    |");
 	}
 
 	@Test
 	void testStart_twice() {
 		c.start();
 		c.start();
-		assertEquals("|....................|" + NL, outputStream.toString());
+		assertThat(outputStream).asString()
+				.contains(" |                    |");
 	}
 
 	@Test
 	void testDisplayProgress_simple() {
 		c.start();
 		c.displayProgress(value, speed);
-		assertEquals("|....................|" + NL + "|======              | 33% ETA 00:00:00, x0.7" + NL,
-				outputStream.toString());
+		assertThat(outputStream).asString()
+				.contains(" |                    |")
+				.contains(" |======              | 33% ETA 00:00:00, x0.7");
 	}
 
 	@Test
@@ -75,35 +78,40 @@ class ProgressCLITest {
 		c.start();
 		c.displayProgress(value, speed);
 		c.displayProgress(value, speed);
-		assertEquals("|....................|" + NL + "|======              | 33% ETA 00:00:00, x0.7" + NL,
-				outputStream.toString());
+		assertThat(outputStream).asString()
+				.contains(" |                    |")
+				.contains(" |======              | 33% ETA 00:00:00, x0.7");
 	}
 
 	@Test
 	void testEnd() {
 		c.end();
-		assertEquals("|====================|100%\r", outputStream.toString());
+		assertThat(outputStream).asString()
+				.contains(" |====================| 100%, total time:");
 	}
 
 	@Test
 	void testEnd_twice() {
 		c.end();
 		c.end();
-		assertEquals("|====================|100%\r", outputStream.toString());
+		assertThat(outputStream).asString()
+				.contains(" |====================| 100%, total time:");
 	}
 
 	@Test
 	void testDisplayProgress_rude_start() {
 		c.displayProgress(0, speed);
-		assertEquals("|....................|" + NL, outputStream.toString());
+		assertThat(outputStream).asString()
+				.contains(" |                    |");
 	}
 
 	@Test
 	void testDisplayProgress_rude_end() {
 		c.start();
 		c.displayProgress(1, speed);
-		assertEquals("|....................|" + NL + "|====================|100%\r",
-				outputStream.toString());
+		assertThat(outputStream).asString()
+				.contains(" |                    |")
+				.contains(" |====================| 100%, total time:");
 	}
 
 }
