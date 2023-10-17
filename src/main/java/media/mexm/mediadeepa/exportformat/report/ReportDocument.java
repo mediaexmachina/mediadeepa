@@ -449,7 +449,10 @@ public class ReportDocument {
 		sections.add(vConstSection);
 	}
 
-	public static String durationToString(final float d) {
+	public static String durationToString(final Float d) {
+		if (d == null) {
+			return null;
+		}
 		return TabularDocument.durationToString(Duration.ofMillis(Math.round(d * 1000d)));
 	}
 
