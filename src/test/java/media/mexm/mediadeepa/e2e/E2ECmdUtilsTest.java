@@ -36,7 +36,7 @@ class E2ECmdUtilsTest extends E2EUtils {
 	@ValueSource(strings = { "-h", "--help" })
 	void testShowHelp(final String param, final CapturedOutput output) {
 		runApp(param);
-		assertThat(output.getOut()).startsWith("Usage: mediadeepa");
+		assertThat(output.getOut()).startsWith("Base usage: mediadeepa");
 		assertThat(output.getErr()).isEmpty();
 	}
 
@@ -47,7 +47,7 @@ class E2ECmdUtilsTest extends E2EUtils {
 				SpringApplication.exit(SpringApplication.run(App.class)),
 				"App exit code must return 2");
 		assertThat(output.getOut()).isEmpty();
-		assertThat(output.getErr()).contains("Usage: mediadeepa");
+		assertThat(output.getErr()).contains("Base usage: mediadeepa");
 	}
 
 	@ParameterizedTest

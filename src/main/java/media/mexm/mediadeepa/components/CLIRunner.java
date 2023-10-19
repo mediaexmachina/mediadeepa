@@ -59,6 +59,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Help;
 import picocli.CommandLine.IFactory;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.UnmatchedArgumentException;
 import tv.hd3g.commons.version.EnvironmentVersion;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
@@ -105,6 +106,22 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		exportFormatManager.register("graphic", new GraphicExportFormat());
 		exportFormatManager.register("html", new HTMLExportFormat(cssHTMLReportResource));
 		commandLine = new CommandLine(new AppCommand(), factory);
+
+		commandLine.setParameterExceptionHandler((ex, args) -> {
+			final var cmd = ex.getCommandLine();
+			final var writer = cmd.getErr();
+
+			writer.println(ex.getMessage());
+			UnmatchedArgumentException.printSuggestions(ex, writer);
+			writer.print(cmd.getHelp().fullSynopsis());
+
+			final var spec = cmd.getCommandSpec();
+			writer.printf("Try '%s -h' for more information.%n", spec.qualifiedName());
+
+			return cmd.getExitCodeExceptionMapper() != null
+															? cmd.getExitCodeExceptionMapper().getExitCode(ex)
+															: spec.exitCodeOnInvalidInput();
+		});
 	}
 
 	@Command(name = NAME,
@@ -112,7 +129,15 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 			 version = { "Media Deep Analysis %1$s",
 						 "Copyright (C) 2022-%2$s Media ex Machina, under the GNU General Public License" },
 			 sortOptions = false,
-			 separator = " ")
+			 separator = " ",
+			 usageHelpAutoWidth = true,
+			 synopsisHeading = "",
+			 customSynopsis = {
+								"Base usage: mediadeepa [-hov] [--temp DIRECTORY] [-i FILE]",
+								"                       [-c] [-mn] [-an | -vn] [-f FORMAT_TYPE] [-e DIRECTORY]",
+								"                       [-fo FILTER] [-fn FILTER] [--filter-X VALUE]",
+								"                       [--extract-X FILE] [--import-X FILE]"
+			 })
 	public class AppCommand implements Callable<Integer> {
 
 		@Option(names = { "-h", "--help" }, description = "Show the usage help", usageHelp = true)
