@@ -190,11 +190,11 @@ public class GraphicExportFormat implements ExportFormat {
 		final var dataGraphicTPK = dataGraphicLUFS.cloneWithSamePositions(ra);
 
 		dataGraphicTPK.addSeries(dataGraphicLUFS.new Series(
-				"True peak right (per frame)", RED, THIN_STROKE,
-				r128events.stream().map(Ebur128StrErrFilterEvent::getFtpk).map(Stereo::right)));
-		dataGraphicTPK.addSeries(dataGraphicLUFS.new Series(
-				"True peak left (per frame)", BLUE, THICK_STROKE,
+				"True peak left (per frame)", BLUE, THIN_STROKE,
 				r128events.stream().map(Ebur128StrErrFilterEvent::getFtpk).map(Stereo::left)));
+		dataGraphicTPK.addSeries(dataGraphicLUFS.new Series(
+				"True peak right (per frame)", RED, THICK_STROKE,
+				r128events.stream().map(Ebur128StrErrFilterEvent::getFtpk).map(Stereo::right)));
 		dataGraphicTPK
 				.addValueMarker(oEbur128Sum.map(Ebur128Summary::getTruePeak))
 				.addValueMarker(oEbur128Sum.map(Ebur128Summary::getSamplePeak))
@@ -224,23 +224,19 @@ public class GraphicExportFormat implements ExportFormat {
 
 		final var values = aPhaseMeterReport.stream()
 				.map(LavfiMtdValue::value)
-				.map(d -> d * 180f)
+				.map(d -> d * 100f)
 				.toList();
 
 		final var dataGraphic = TimedDataGraphic.create(
 				aPhaseMeterReport.stream().map(LavfiMtdValue::ptsTime),
 				RangeAxis.createFromRelativesValueSet(
-						"Phase (°)", 5,
-						values.stream())); // new RangeAxis("Phase (°)", -190, 190)
+						"Phase (%)", 5,
+						values.stream()));
 		dataGraphic.addSeries(dataGraphic.new Series(
 				"Phase correlation",
 				FULL_PINK,
 				THIN_STROKE,
 				values.stream()));
-		dataGraphic.addValueMarker(180);
-		dataGraphic.addValueMarker(-180);
-		dataGraphic.addValueMarker(90);
-		dataGraphic.addValueMarker(-90);
 
 		dataGraphic.makeLinearAxisGraphic(
 				new File(exportDirectory, makeOutputFileName(baseFileName, A_PHASE_SUFFIX_FILE_NAME)),
@@ -331,7 +327,7 @@ public class GraphicExportFormat implements ExportFormat {
 
 		prepareAStatGraphic(
 				RangeAxis.createFromValueSet("Audio noise floor (dBFS)",
-						-96, 10, 5,
+						-144, 20, 0,
 						aStatReport.stream()
 								.map(LavfiMtdValue::value)
 								.map(LavfiMtdAstats::channels)
