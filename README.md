@@ -65,6 +65,7 @@ Export analysis format produce:
      - Video frame duration stability, by frame
      - Video GOP (group of picture) size (number of frames by GOP, and by frame type), by GOP index.
      - Video GOP frame size, by frame type, by GOP, by frame number.
+   - Useful HTML report with file and signal stats, event detection, codecs, GOP stats...
 
 ## ⚡ Getting started
 
@@ -75,7 +76,12 @@ Export analysis format produce:
 
 Declared on OS (Windows/Linux/macOS) PATH.
 
-Make the application jar file (autonomous *fat* jar) via Maven with
+Download the last application release, as an executable JAR (autonomous *fat* JAR file), downloaded directly from [GitHub releases page](https://github.com/mediaexmachina/mediadeepa/releases), and build at each releases.
+
+<details>
+<summary>Or, you can build yourself this JAR, with Git and Maven.</summary>
+
+Run on Linux/WSL/macOS, after setup Git and Maven:
 
 ```bash
 git clone https://github.com/mediaexmachina/mediadeepa.git
@@ -83,15 +89,21 @@ cd mediadeepa
 mvn install -DskipTests
 ```
 
-Build jar will found on `target` directory like `mediadeepa-<version>.jar`
+Build jar will be founded on `target` directory as `mediadeepa-<version>.jar`
 
-And run the application simple with
+</details>
+
+And simply run the application with
 
 ```bash
 java -jar mediadeepa-<version>.jar
 ```
 
-Mediadeepa contain embedded help, displayed by default, or with `-h` parameter.
+Mediadeepa contain embedded help, displayed with the `-h` parameter.
+
+> You can set the command line parameters with `java -jar mediadeepa-<version>.jar [parameters]`.
+>
+> Example: `java -jar mediadeepa-1.0.0.jar -h`
 
 ## 🛫 Usage
 
@@ -243,6 +255,7 @@ xlsx           XLSX Spreadsheet
 sqlite         SQLite database
 xml            XML Document
 json           JSON Document
+HTML           HTML report document
 [...]
 ```
 
@@ -277,15 +290,11 @@ aspell check --lang=en_US --dont-backup --mode=markdown README.md
 ## 🎈 Road-map
 
 Some changes have been planned, like:
- - Analyzing all audio streams, better MXF audio tracks, audio track management
- - Create useful reports
-   - HTML
-   - PDF
-   - DOCX
-   - Open-Document text
- - Manage variable frame rate statistics (actually done, but need to be deeply checked to ensure the measure method is correct)
+ - Analyzing all audio streams, better MXF audio tracks and audio track management.
+ - Better reports, (as PDF?) with embedded graphics.
+ - Manage variable frame rate statistics (actually done, but need to be deeply checked to ensure the measure method is correct).
  - Work on live streams, instead of just regular files.
- - FFmpeg and FFprobe parallel executions
+ - FFmpeg and FFprobe parallel executions.
 
 And [many others](https://github.com/mediaexmachina/mediadeepa/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement), I hope !
 
@@ -295,11 +304,9 @@ And [many others](https://github.com/mediaexmachina/mediadeepa/issues?q=is%3Aope
 You can found some information about what the application cannot do.
 </summary>
 
- - It only support the first video, and audio stream of a file
- - Audio mono and stereo only
- - Some process take time to do, like SITI and container analyzing, caused by poor FFmpeg/FFprobe performances.
- - Audio signal entropy, flat factor and noise floor as provided "as it": I cannot say the interest or the quality of these measures.
- - Video frame duration stability use "pkt DTS time" and "best effort timestamp", but I can't yet say if these measurements indicate really frame rate instability.
+ - It only support the first video, and the first founded audio stream of a file.
+ - Audio mono and stereo only.
+ - Some process take (long) time to do, like SITI and container analyzing, caused by poor FFmpeg/FFprobe performances with **this** filters.
 
 </details>
 
@@ -341,5 +348,7 @@ Mediadeepa would never have been possible without the help of these magnificent 
   - Apache POI (poi-ooxml)
   - SQLite JDBC
   - Jackson
+  - jFreechart
+  - j2html
 
 See `THIRD-PARTY.txt` file for more information on licenses and the full tech stack.
