@@ -182,7 +182,7 @@ public abstract class TableExportFormat implements ExportFormat {
 								.addCell(pos + 1)
 								.addCell(channel.dcOffset())
 								.addCell(channel.entropy())
-								.addCell(channel.flatFactor())
+								.addCell(channel.flatness())
 								.addCell(channel.noiseFloor())
 								.addCell(channel.noiseFloorCount())
 								.addCell(channel.peakLevel())

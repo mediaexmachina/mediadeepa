@@ -26,7 +26,7 @@ import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.CRO
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.DC_OFFSET_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.ENTROPY_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.EVENTS_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.FLAT_FACTOR_SUFFIX_FILE_NAME;
+import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.FLATNESS_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.GOP_COUNT_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.GOP_SIZES_SUFFIX_FILE_NAME;
 import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.IDET_SUFFIX_FILE_NAME;
@@ -84,7 +84,7 @@ class E2EGraphicTest extends E2EUtils {
 		tests.put("Audio entropy", checkImageGraphic(makeOutputFile(
 				MPG + ENTROPY_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Audio flat-factor", checkImageGraphic(makeOutputFile(
-				MPG + FLAT_FACTOR_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+				MPG + FLATNESS_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Audio noise-floor", checkImageGraphic(makeOutputFile(
 				MPG + NOISE_FLOOR_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Audio peak-level", checkImageGraphic(makeOutputFile(

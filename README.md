@@ -58,7 +58,7 @@ Export analysis format produce:
    - Values displayed in charts:
      - Audio Loudness (integrated, short-term, momentary, true-peak), by time
      - Audio phase correlation (+/- 180°), by time
-     - Audio DC offset, signal entropy, flat factor, noise floor, peak level, silence/mono events, by time
+     - Audio DC offset, signal entropy, flatness, noise floor, peak level, silence/mono events, by time
      - Video quality as spatial information (SI) and temporal information
      - Video block/blur/black/interlacing/crop/freeze detection, by time
      - Video and audio iterate frames, by frame

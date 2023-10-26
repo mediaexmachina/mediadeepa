@@ -197,7 +197,7 @@ public class ReportDocument {
 				.mapToObj(chIndex -> {
 					final var list = aStatsChannelsValuesList.stream()
 							.map(f -> f.get(chIndex))
-							.map(p -> (float) p.flatFactor()) /** Workaround for maven compiler bug */
+							.map(p -> (long) p.flatness()) /** Workaround for maven compiler bug */
 							.toList();
 					return new NumericUnitValueReportEntry("Flatness count channel " + (chIndex + 1),
 							list.get(list.size() - 1),

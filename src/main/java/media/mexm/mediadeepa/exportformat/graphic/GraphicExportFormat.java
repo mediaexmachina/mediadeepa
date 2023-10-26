@@ -84,7 +84,7 @@ public class GraphicExportFormat implements ExportFormat {
 	public static final String A_PHASE_SUFFIX_FILE_NAME = "audio-phase.jpg";
 	public static final String DC_OFFSET_SUFFIX_FILE_NAME = "audio-dcoffset.jpg";
 	public static final String ENTROPY_SUFFIX_FILE_NAME = "audio-entropy.jpg";
-	public static final String FLAT_FACTOR_SUFFIX_FILE_NAME = "audio-flat-factor.jpg";
+	public static final String FLATNESS_SUFFIX_FILE_NAME = "audio-flatness.jpg";
 	public static final String NOISE_FLOOR_SUFFIX_FILE_NAME = "audio-noise-floor.jpg";
 	public static final String PEAK_LEVEL_SUFFIX_FILE_NAME = "audio-peak-level.jpg";
 	public static final String SITI_SUFFIX_FILE_NAME = "video-siti.jpg";
@@ -319,10 +319,10 @@ public class GraphicExportFormat implements ExportFormat {
 		prepareAStatGraphic(
 				aStatReport,
 				chCount,
-				LavfiMtdAstatsChannel::flatFactor,
-				"Audio flat factor",
+				LavfiMtdAstatsChannel::flatness,
+				"Audio flatness",
 				1).makeLinearAxisGraphic(
-						new File(exportDirectory, makeOutputFileName(baseFileName, FLAT_FACTOR_SUFFIX_FILE_NAME)),
+						new File(exportDirectory, makeOutputFileName(baseFileName, FLATNESS_SUFFIX_FILE_NAME)),
 						IMAGE_SIZE_HALF_HEIGHT);
 
 		prepareAStatGraphic(
