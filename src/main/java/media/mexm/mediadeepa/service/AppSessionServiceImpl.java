@@ -20,25 +20,23 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toUnmodifiableMap;
+import static java.util.stream.Stream.concat;
 import static media.mexm.mediadeepa.App.NAME;
+import static org.apache.commons.io.FilenameUtils.getBaseName;
 
-import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
@@ -47,6 +45,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
+import media.mexm.mediadeepa.ImpExArchiveExtractionSession;
+import media.mexm.mediadeepa.ImpExArchiveExtractionSession.ExtractedFileEntry;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExportTo;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExtractTo;
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ImportFrom;
@@ -67,6 +67,14 @@ import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 @Slf4j
 public class AppSessionServiceImpl implements AppSessionService {
 
+	public static final String SUMMARY_TXT = "summary.txt";
+	public static final String SOURCENAME_TXT = "sourcename.txt";
+	public static final String VERSION_XML = "version.xml";
+	public static final String CONTAINER_XML = "container.xml";
+	public static final String STDERR_TXT = "stderr.txt";
+	public static final String LAVFI_BASE_FILENAME = "lavfi";
+	public static final String FFPROBE_XML = "ffprobe.xml";
+
 	@Autowired
 	private FFmpegService ffmpegService;
 	@Autowired
@@ -77,6 +85,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 	private MediaAnalyticsTransformerService mediaAnalyticsTransformerService;
 	@Autowired
 	private ExportFormatManager exportFormatManager;
+	@Autowired
+	private ImpExArchiveService impExArchiveService;
 
 	static void checkNotNullParams(final CommandLine commandLine,
 								   final ExportTo exportTo,
@@ -127,21 +137,9 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		Optional.ofNullable(processFile)
 				.ifPresent(p -> validateInputFile(commandLine, p.getInput()));
-
-		Optional.ofNullable(extractTo).ifPresent(et -> {
-			Optional.ofNullable(et.getVlavfi())
-					.ifPresent(f -> validateOutputFile(commandLine, f));
-			Optional.ofNullable(et.getAlavfi())
-					.ifPresent(f -> validateOutputFile(commandLine, f));
-			Optional.ofNullable(et.getContainer())
-					.ifPresent(f -> validateOutputFile(commandLine, f));
-			Optional.ofNullable(et.getStderr())
-					.ifPresent(f -> validateOutputFile(commandLine, f));
-			Optional.ofNullable(et.getProbeHeaders())
-					.ifPresent(f -> validateOutputFile(commandLine, f));
-			Optional.ofNullable(et.getProbeSummary())
-					.ifPresent(f -> validateOutputFile(commandLine, f));
-		});
+		Optional.ofNullable(extractTo)
+				.ifPresent(et -> Optional.ofNullable(et.getArchiveFile())
+						.ifPresent(f -> validateOutputFile(commandLine, f)));
 
 		Optional.ofNullable(exportTo).ifPresent(et -> {
 			validateOutputDir(commandLine, et.getExport());
@@ -158,18 +156,9 @@ public class AppSessionServiceImpl implements AppSessionService {
 			}
 		});
 
-		Optional.ofNullable(importFrom).ifPresent(i -> {
-			Optional.ofNullable(i.getContainer())
-					.ifPresent(f -> validateInputFile(commandLine, f));
-			Optional.ofNullable(i.getLavfi())
-					.stream()
-					.flatMap(Set::stream)
-					.forEach(f -> validateInputFile(commandLine, f));
-			Optional.ofNullable(i.getStderr())
-					.ifPresent(f -> validateInputFile(commandLine, f));
-			Optional.ofNullable(i.getProbeHeaders())
-					.ifPresent(f -> validateInputFile(commandLine, f));
-		});
+		Optional.ofNullable(importFrom)
+				.ifPresent(i -> Optional.ofNullable(i.getArchiveFile())
+						.ifPresent(f -> validateInputFile(commandLine, f)));
 	}
 
 	@Override
@@ -214,25 +203,12 @@ public class AppSessionServiceImpl implements AppSessionService {
 		}
 	}
 
-	private void ffprobeToFiles(final ExtractTo extractTo, final FFprobeJAXB probeResult) throws IOException {
-		if (extractTo.getProbeHeaders() != null
-			&& probeResult.getXmlContent().isEmpty() == false) {
-			try {
-				FileUtils.write(extractTo.getProbeHeaders(), probeResult.getXmlContent(), UTF_8);
-			} catch (final IOException e) {
-				throw new UncheckedIOException("Can't write to ffprobe file", e);
-			}
-		}
-
-		final var mediaS = probeResult.getMediaSummary();
-		writeNonEmptyLines(extractTo.getProbeSummary(),
-				Stream.concat(Stream.of(mediaS.format()), mediaS.streams().stream()).toList());
-	}
-
 	@Override
 	public void createExtractionSession(final ProcessFile processFile,
 										final ExtractTo extractTo,
 										final File tempDir) throws IOException {
+		final var extractSession = new ImpExArchiveExtractionSession();
+
 		if (processFile.isNoMediaAnalysing() == false) {
 			log.debug("Prepare media analysing...");
 
@@ -247,87 +223,63 @@ public class AppSessionServiceImpl implements AppSessionService {
 					processFile.getFilterOptions());
 			maSession.setFFprobeResult(probeResult);
 			maSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()), scheduledExecutorService);
-			ffprobeToFiles(extractTo, probeResult);
+
+			if (probeResult.getXmlContent().isEmpty() == false) {
+				extractSession.add(FFPROBE_XML, probeResult.getXmlContent());
+			}
+			final var mediaS = probeResult.getMediaSummary();
+			extractSession.add(SUMMARY_TXT, concat(Stream.of(mediaS.format()), mediaS.streams().stream()).toList());
 
 			final var stderrList = new ArrayList<String>();
+			final var lavfiList = new ArrayList<String>();
+			maSession.extract(lavfiList::add, stderrList::add);
+			extractSession.add(LAVFI_BASE_FILENAME + "0.txt", lavfiList);
+			extractSession.add(STDERR_TXT, stderrList);
 
-			if (maSession.getAudioFilters().isEmpty() == false) {
-				final var aLavfiList = new ArrayList<String>();
-				final var cAlavfi = makeConsumerToList(aLavfiList, extractTo.getAlavfi());
-				final var cStderr = makeConsumerToList(stderrList, extractTo.getStderr());
-
-				log.debug("Start media analysing session...");
-				maSession.extract(cAlavfi, cStderr);
-
-				log.debug("Save media analysing to file(s)...");
-				writeNonEmptyLines(extractTo.getAlavfi(), aLavfiList);
-				writeNonEmptyLines(extractTo.getStderr(), stderrList);
-
-				if (maSession.getVideoFilters().isEmpty() == false
-					&& lavfiSecondaryFile.exists()) {
-					if (lavfiSecondaryFile.length() == 0
-						|| extractTo.getVlavfi() == null) {
-						FileUtils.deleteQuietly(lavfiSecondaryFile);
-					} else {
-						forceDeleteIfExists(extractTo);
-						FileUtils.moveFile(lavfiSecondaryFile, extractTo.getVlavfi());
-					}
-				}
-			} else {
-				final var vLavfiList = new ArrayList<String>();
-				final var cVlavfi = makeConsumerToList(vLavfiList, extractTo.getVlavfi());
-				final var cStderr = makeConsumerToList(stderrList, extractTo.getStderr());
-
-				log.debug("Start container analysing session...");
-				maSession.extract(cVlavfi, cStderr);
-
-				log.debug("Save container analysing to file(s)...");
-				writeNonEmptyLines(extractTo.getVlavfi(), vLavfiList);
-				writeNonEmptyLines(extractTo.getStderr(), stderrList);
+			if (lavfiSecondaryFile.exists()) {
+				extractSession.add(LAVFI_BASE_FILENAME + "1.txt", FileUtils.readLines(lavfiSecondaryFile, UTF_8));
+				FileUtils.deleteQuietly(lavfiSecondaryFile);
 			}
 		}
 
 		if (processFile.isContainerAnalysing()) {
 			log.info("Start container analysing...");
-
 			final var caSession = ffmpegService.createContainerAnalyserSession(processFile);
 			caSession.setMaxExecutionTime(Duration.ofSeconds(processFile.getMaxSec()), scheduledExecutorService);
-			Objects.requireNonNull(extractTo.getContainer(), "You must set a --extract-container FILE");
 
-			log.debug("Save container analysing to file...");
-			try (var pw = new PrintWriter(extractTo.getContainer())) {
-				caSession.extract(pw::println);
-			}
+			final var containerListLines = new ArrayList<String>();
+			caSession.extract(containerListLines::add);
+			extractSession.add(CONTAINER_XML, containerListLines);
 		}
+
+		extractSession.add(SOURCENAME_TXT, processFile.getInput().getName());
+		extractSession.addVersion(VERSION_XML, getVersion());
+
+		impExArchiveService.saveTo(extractTo, extractSession);
 	}
 
-	private static void forceDeleteIfExists(final ExtractTo extractTo) throws IOException {
-		final var vlavfi = extractTo.getVlavfi();
-		if (vlavfi.exists()) {
-			FileUtils.forceDelete(vlavfi);
-		}
+	private Map<String, String> getVersion() {
+		final var version = new LinkedHashMap<String, String>();
+		version.put(NAME, environmentVersion.appVersion());
+		version.putAll(ffmpegService.getVersions());
+		version.put(environmentVersion.jvmNameVendor(), environmentVersion.jvmVersion());
+		return unmodifiableMap(version);
 	}
 
 	@Override
 	public void createProcessingSession(final ProcessFile processFile,
 										final ExportTo exportTo,
 										final File tempDir) throws IOException {
+		final var dataResult = new DataResult(processFile.getInput().getName(), getVersion());
 
-		final var version = new LinkedHashMap<String, String>();
-		version.put(NAME, environmentVersion.appVersion());
-		version.putAll(ffmpegService.getVersions());
-		version.put(environmentVersion.jvmNameVendor(), environmentVersion.jvmVersion());
-
-		final var dataResult = new DataResult(processFile.getInput().getName(), unmodifiableMap(version));
+		final var ffprobeResult = ffmpegService.getFFprobeJAXBFromFileToProcess(processFile);
+		log.info("Source file: {}", ffprobeResult);
+		dataResult.setFfprobeResult(ffprobeResult);
 
 		if (processFile.isNoMediaAnalysing() == false) {
 			log.debug("Prepare media analysing...");
 
 			final var lavfiSecondaryFile = prepareTempFile(tempDir);
-			final var ffprobeResult = ffmpegService.getFFprobeJAXBFromFileToProcess(processFile);
-			log.info("Source file: {}", ffprobeResult);
-			dataResult.setFfprobeResult(ffprobeResult);
-
 			final var maSession = ffmpegService.createMediaAnalyserSession(
 					processFile,
 					lavfiSecondaryFile,
@@ -375,46 +327,38 @@ public class AppSessionServiceImpl implements AppSessionService {
 	@Override
 	public void createOfflineProcessingSession(final ImportFrom importFrom,
 											   final ExportTo exportTo) throws IOException {
-		final var sourceName = Stream.concat(
-				Optional.ofNullable(importFrom.getLavfi())
-						.stream()
-						.flatMap(Set::stream),
-				Optional.ofNullable(importFrom.getStderr())
-						.stream())
-				.findFirst()
-				.or(() -> Optional.ofNullable(importFrom.getContainer()))
-				.or(() -> Optional.ofNullable(importFrom.getProbeHeaders()))
-				.map(File::getName)
-				.orElse("(no source)");
+		final var extractSession = impExArchiveService.loadFrom(importFrom);
+		final var extractEntries = extractSession.getEntries()
+				.collect(toUnmodifiableMap(ExtractedFileEntry::internalFileName, ExtractedFileEntry::content));
 
-		final var version = new LinkedHashMap<String, String>();
-		version.put("mediadeepa", environmentVersion.appVersion());
-		version.put(environmentVersion.jvmNameVendor(), environmentVersion.jvmVersion());
+		final var dataResult = new DataResult(
+				extractEntries.getOrDefault(SOURCENAME_TXT,
+						getBaseName(importFrom.getArchiveFile().getName())),
+				extractSession.getVersions(VERSION_XML));
 
-		final var dataResult = new DataResult(sourceName, unmodifiableMap(version));
+		log.debug("Try to load ffprobe headers");
 
-		log.debug("Try to load XML ffprobe headers: {}", importFrom.getProbeHeaders());
-		dataResult.setFfprobeResult(Optional.ofNullable(importFrom.getProbeHeaders())
-				.map(this::openFileToLineStream)
-				.map(lines -> lines.collect(joining(System.lineSeparator())))
+		dataResult.setFfprobeResult(Optional.ofNullable(extractEntries.get(FFPROBE_XML))
 				.map(probeXMLHeaders -> new FFprobeJAXB(probeXMLHeaders, w -> log.warn("XML warning: {}", w)))
 				.orElse(null));
 
-		log.debug("Try to load stdOutLines (lavfi): {}", importFrom.getLavfi());
-		final var stdOutLines = Optional.ofNullable(importFrom.getLavfi())
+		log.debug("Try to load lavfi/stdOutLines sources");
+		final var stdOutLines = extractEntries.keySet()
 				.stream()
-				.flatMap(Set::stream)
-				.flatMap(this::openFileToLineStream);
+				.filter(f -> f.startsWith(LAVFI_BASE_FILENAME))
+				.map(extractEntries::get)
+				.flatMap(String::lines);
 
-		log.debug("Try to load stdErrLines: {}", importFrom.getStderr());
-		final var stdErrLines = Optional.ofNullable(importFrom.getStderr())
+		log.debug("Try to load stdErrLines");
+		final var stdErrLines = Optional.ofNullable(extractEntries.get(STDERR_TXT))
 				.stream()
-				.flatMap(this::openFileToLineStream);
+				.flatMap(String::lines);
 
 		final var ebur128events = new ArrayList<Ebur128StrErrFilterEvent>();
 		final var rawStdErrEvents = new ArrayList<RawStdErrFilterEvent>();
 
-		log.debug("Load MediaAnalyserSession...");
+		log.debug("Load MediaAnalyserSession");
+
 		dataResult.setMediaAnalyserResult(MediaAnalyserSession.importFromOffline(
 				stdOutLines,
 				stdErrLines,
@@ -423,18 +367,10 @@ public class AppSessionServiceImpl implements AppSessionService {
 		dataResult.setEbur128events(ebur128events);
 		dataResult.setRawStdErrEvents(rawStdErrEvents);
 
-		log.debug("Try to load container: {}", importFrom.getContainer());
-		if (importFrom.getContainer() != null) {
-			final var c = importFrom.getContainer();
-			log.trace("Open container offline file: {}", c);
-
-			try (var ffprobeStdOut = new BufferedInputStream(new FileInputStream(c))) {
-				log.trace("Import container offline file...");
-				dataResult.setContainerAnalyserResult(ContainerAnalyserSession.importFromOffline(ffprobeStdOut));
-			} catch (final IOException e) {
-				throw new UncheckedIOException("Can't read file", e);
-			}
-		}
+		log.debug("Try to load container offline");
+		Optional.ofNullable(extractEntries.get(CONTAINER_XML))
+				.ifPresent(f -> dataResult.setContainerAnalyserResult(ContainerAnalyserSession
+						.importFromOffline(new ByteArrayInputStream(f.getBytes(UTF_8)))));
 
 		dataResult.setSourceDuration(dataResult.getFFprobeResult()
 				.map(FFprobeJAXB::getFormat)
@@ -471,23 +407,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't prepare temp file", e);
 		}
-	}
-
-	@Override
-	public void writeNonEmptyLines(final File file, final List<String> lines) throws IOException {
-		if (file == null || lines.isEmpty()) {
-			return;
-		}
-		FileUtils.writeLines(file, lines, false);
-	}
-
-	@Override
-	public Consumer<String> makeConsumerToList(final List<String> list, final File reference) {
-		if (reference == null) {
-			return line -> {
-			};
-		}
-		return list::add;
 	}
 
 }

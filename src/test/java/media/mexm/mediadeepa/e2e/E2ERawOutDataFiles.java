@@ -23,12 +23,7 @@ import org.apache.commons.io.FilenameUtils;
 
 public record E2ERawOutDataFiles(File mediaFile,
 								 boolean hasVideo,
-								 File outAlavfi,
-								 File outVlavfi,
-								 File outStderr,
-								 File outProbeheaders,
-								 File outProbesummary,
-								 File outContainer) {
+								 File archive) {
 
 	String getExtension() {
 		return FilenameUtils.getExtension(mediaFile().getName());
@@ -39,18 +34,7 @@ public record E2ERawOutDataFiles(File mediaFile,
 	}
 
 	boolean allOutExists() {
-		if (outAlavfi.exists() == false
-			|| outStderr.exists() == false
-			|| outProbeheaders.exists() == false
-			|| outProbesummary.exists() == false
-			|| outContainer.exists() == false) {
-			return false;
-		} else if (hasVideo == false) {
-			return true;
-		} else if (outVlavfi.exists() == false) {
-			return false;
-		}
-		return true;
+		return archive.exists();
 	}
 
 	static E2ERawOutDataFiles create(final File mediaFile) {
@@ -58,11 +42,6 @@ public record E2ERawOutDataFiles(File mediaFile,
 		return new E2ERawOutDataFiles(
 				mediaFile,
 				FileNameUtils.getExtension(mediaFile.getName()).equals("wav") == false,
-				new File(baseDirName + "-alavfi.txt"),
-				new File(baseDirName + "-vlavfi.txt"),
-				new File(baseDirName + "-stderr.txt"),
-				new File(baseDirName + "-probeheaders.xml"),
-				new File(baseDirName + "-probesummary.txt"),
-				new File(baseDirName + "-container.xml"));
+				new File(baseDirName + ".zip"));
 	}
 }

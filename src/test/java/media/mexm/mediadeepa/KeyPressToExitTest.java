@@ -23,7 +23,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -54,10 +53,6 @@ class KeyPressToExitTest {
 	void init() throws Exception {
 		source = new ByteArrayInputStream("\n".getBytes());
 		p = new TestKeyPressToExit(source);
-	}
-
-	@AfterEach
-	void end() {
 	}
 
 	@Test

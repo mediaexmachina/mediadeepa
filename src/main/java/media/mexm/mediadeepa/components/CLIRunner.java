@@ -227,35 +227,10 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 
 		@Getter
 		public static class ExtractTo {
-			@Option(names = { "--extract-alavfi" },
-					description = "Extract raw ffmpeg datas from LAVFI audio metadata filter",
-					paramLabel = "TEXT_FILE")
-			File alavfi;
-
-			@Option(names = { "--extract-vlavfi" },
-					description = "Extract raw ffmpeg datas from LAVFI video metadata filter",
-					paramLabel = "TEXT_FILE")
-			File vlavfi;
-
-			@Option(names = { "--extract-stderr" },
-					description = "Extract raw ffmpeg datas from stderr",
-					paramLabel = "TEXT_FILE")
-			File stderr;
-
-			@Option(names = { "--extract-probeheaders" },
-					description = "Extract XML ffprobe datas from container headers",
-					paramLabel = "XML_FILE")
-			File probeHeaders;
-
-			@Option(names = { "--extract-probesummary" },
-					description = "Extract simple ffprobe data summary from container headers",
-					paramLabel = "TEXT_FILE")
-			File probeSummary;
-
-			@Option(names = { "--extract-container" },
-					description = "Extract XML ffprobe datas from container analyser",
-					paramLabel = "XML_FILE")
-			File container;
+			@Option(names = { "--extract" },
+					description = "Extract all raw ffmpeg datas to a Mediadeepa archive file",
+					paramLabel = "MEDIADEEPA_FILE")
+			File archiveFile;
 		}
 
 		@ArgGroup(exclusive = false)
@@ -263,25 +238,10 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 
 		@Getter
 		public static class ImportFrom {
-			@Option(names = { "--import-lavfi" },
-					description = "Import raw ffmpeg datas from LAVFI metadata filter",
-					paramLabel = "TEXT_FILE")
-			Set<File> lavfi;
-
-			@Option(names = { "--import-stderr" },
-					description = "Import raw ffmpeg datas from stderr filter",
-					paramLabel = "TEXT_FILE")
-			File stderr;
-
-			@Option(names = { "--import-probeheaders" },
-					description = "Import XML ffprobe datas from container headers",
-					paramLabel = "XML_FILE")
-			File probeHeaders;
-
-			@Option(names = { "--import-container" },
-					description = "Import raw ffprobe datas from container analyser",
-					paramLabel = "XML_FILE")
-			File container;
+			@Option(names = { "--import" },
+					description = "Import raw ffmpeg datas from a Mediadeepa archive file",
+					paramLabel = "MEDIADEEPA_FILE")
+			File archiveFile;
 		}
 
 		@ArgGroup(exclusive = false)

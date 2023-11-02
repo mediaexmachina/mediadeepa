@@ -85,11 +85,7 @@ class E2ETableTest extends E2EUtils {
 		}
 		runApp(
 				"--temp", "target/e2e-temp",
-				"--import-lavfi", rawData.outAlavfi().getPath(),
-				"--import-lavfi", rawData.outVlavfi().getPath(),
-				"--import-stderr", rawData.outStderr().getPath(),
-				"--import-probeheaders", rawData.outProbeheaders().getPath(),
-				"--import-container", rawData.outContainer().getPath(),
+				"--import", rawData.archive().getPath(),
 				"-f", format,
 				"-e", "target/e2e-export",
 				"--export-base-filename", "mpg");

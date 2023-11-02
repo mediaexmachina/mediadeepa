@@ -39,11 +39,7 @@ class E2ECSVTest extends E2EUtils {
 		if (outputFileMediaSum.exists() == false) {
 			runApp(
 					"--temp", "target/e2e-temp",
-					"--import-lavfi", rawData.outAlavfi().getPath(),
-					"--import-lavfi", rawData.outVlavfi().getPath(),
-					"--import-stderr", rawData.outStderr().getPath(),
-					"--import-probeheaders", rawData.outProbeheaders().getPath(),
-					"--import-container", rawData.outContainer().getPath(),
+					"--import", rawData.archive().getPath(),
 					"-f", "csv",
 					"-e", "target/e2e-export",
 					"--export-base-filename", "mpg");
@@ -83,11 +79,7 @@ class E2ECSVTest extends E2EUtils {
 		if (outputFileMediaSum.exists() == false) {
 			runApp(
 					"--temp", "target/e2e-temp",
-					"--import-lavfi", rawData.outAlavfi().getPath(),
-					"--import-lavfi", rawData.outVlavfi().getPath(),
-					"--import-stderr", rawData.outStderr().getPath(),
-					"--import-probeheaders", rawData.outProbeheaders().getPath(),
-					"--import-container", rawData.outContainer().getPath(),
+					"--import", rawData.archive().getPath(),
 					"-f", "csvfr",
 					"-e", "target/e2e-export",
 					"--export-base-filename", "movfr");

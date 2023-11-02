@@ -22,26 +22,31 @@ import static java.util.stream.Collectors.toUnmodifiableMap;
 import static media.mexm.mediadeepa.e2e.E2ESpecificMediaFile.getFromMediaFile;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
-import tv.hd3g.ffprobejaxb.FFprobeJAXB;
+import media.mexm.mediadeepa.service.AppSessionServiceImpl;
 
 class E2ETextTest extends E2EUtils {
 
@@ -53,25 +58,45 @@ class E2ETextTest extends E2EUtils {
 				.filter(Objects::nonNull);
 	}
 
+	void checkZipArchive(final E2ERawOutDataFiles rawData) throws IOException {
+		final var archive = rawData.archive();
+		assertThat(archive).exists().size().isGreaterThan(1);
+
+		final var names = new HashSet<String>();
+		try (var zipIn = new ZipInputStream(new FileInputStream(archive))) {
+			ZipEntry zEntry;
+			while ((zEntry = zipIn.getNextEntry()) != null) {
+				names.add(zEntry.getName());
+			}
+		}
+		if (rawData.hasVideo()) {
+			assertEquals(Set.of(
+					AppSessionServiceImpl.VERSION_XML,
+					AppSessionServiceImpl.CONTAINER_XML,
+					AppSessionServiceImpl.FFPROBE_XML,
+					AppSessionServiceImpl.STDERR_TXT,
+					AppSessionServiceImpl.LAVFI_BASE_FILENAME + "0.txt",
+					AppSessionServiceImpl.LAVFI_BASE_FILENAME + "1.txt",
+					AppSessionServiceImpl.SUMMARY_TXT,
+					AppSessionServiceImpl.SOURCENAME_TXT), names);
+		} else {
+			assertEquals(Set.of(
+					AppSessionServiceImpl.VERSION_XML,
+					AppSessionServiceImpl.CONTAINER_XML,
+					AppSessionServiceImpl.FFPROBE_XML,
+					AppSessionServiceImpl.STDERR_TXT,
+					AppSessionServiceImpl.LAVFI_BASE_FILENAME + "0.txt",
+					AppSessionServiceImpl.SUMMARY_TXT,
+					AppSessionServiceImpl.SOURCENAME_TXT), names);
+		}
+	}
+
 	Stream<DynamicTest> applyTXT(final File mediaFile) {
 		final var rawData = E2ERawOutDataFiles.create(mediaFile);
 		final var ext = rawData.getExtension();
 		final var first = Stream.of(
 				dynamicTest(ext + " to rawTXT", () -> extractRawTXT(rawData)),
-				rawData.hasVideo()
-								   ? dynamicTest(ext + " rawTXT checkRawVlavfi",
-										   () -> checkRawVlavfi(rawData))
-								   : null,
-				dynamicTest(ext + " rawTXT checkRawAlavfi",
-						() -> checkRaw_Alavfi(rawData)),
-				dynamicTest(ext + " rawTXT checkRawStdErr",
-						() -> checkRaw_StdErr(rawData)),
-				dynamicTest(ext + " rawTXT checkRawProbeHeaders",
-						() -> checkRaw_ProbeHeaders(rawData)),
-				dynamicTest(ext + " rawTXT checkRawProbeSummary",
-						() -> checkRaw_ProbeSummary(rawData)),
-				dynamicTest(ext + " rawTXT checkRawContainer",
-						() -> checkRaw_Container(rawData)),
+				dynamicTest(ext + " check archive zip", () -> checkZipArchive(rawData)),
 				dynamicTest(ext + " rawTXT to processTXT",
 						() -> importRawTXTToProcess(rawData)),
 				dynamicTest(ext + " processTXT ebur128Summary",
@@ -185,128 +210,6 @@ class E2ETextTest extends E2EUtils {
 								assertEquals(5, lines.size());
 							}
 						})));
-	}
-
-	void checkRaw_ProbeSummary(final E2ERawOutDataFiles rawData) throws IOException {
-		final var specificMediaFile = rawData.getSpecificMediaFile();
-		final var lines = readLines(rawData.outProbesummary());
-		assertEquals(specificMediaFile.probesummary, lines);
-	}
-
-	void checkRaw_Container(final E2ERawOutDataFiles rawData) throws IOException {
-		final var specificMediaFile = rawData.getSpecificMediaFile();
-		final var lines = readLines(rawData.outContainer())
-				.stream()
-				.map(String::trim)
-				.toList();
-		if (rawData.hasVideo()) {
-			assertEqualsNbLines(1400, lines, "<packet codec_type=\"video\"");
-			assertEqualsNbLines(1400, lines, "<frame media_type=\"video\"");
-		}
-		assertEqualsNbLines(specificMediaFile.containerAudioCount, lines, "<packet codec_type=\"audio\"");
-		assertEqualsNbLines(specificMediaFile.containerAudioCount, lines, "<frame media_type=\"audio\"");
-		assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", lines.get(0));
-		assertEquals("<ffprobe>", lines.get(1));
-		assertEquals("<packets_and_frames>", lines.get(2));
-		assertEquals("</packets_and_frames>", lines.get(lines.size() - 2));
-		assertEquals("</ffprobe>", lines.get(lines.size() - 1));
-	}
-
-	void checkRaw_ProbeHeaders(final E2ERawOutDataFiles rawData) throws IOException {
-		final var specificMediaFile = rawData.getSpecificMediaFile();
-		assertTrue(rawData.outProbeheaders().exists());
-		final var xmlContent = FileUtils.readFileToString(rawData.outProbeheaders(), UTF_8);
-		final var warns = new ArrayList<String>();
-		final var f = new FFprobeJAXB(xmlContent, w -> warns.add(w));
-		assertEquals(List.of(), warns);
-
-		switch (specificMediaFile) {
-		case AVI:
-		case MKV:
-		case MOV:
-		case MPG:
-		case TS:
-			assertEquals(1, f.getVideoStreams().count());
-			assertEquals(1, f.getAudiosStreams().count());
-			break;
-		case WAV:
-			assertEquals(1, f.getAudiosStreams().count());
-			break;
-		case MXF:
-			assertEquals(1, f.getVideoStreams().count());
-			assertEquals(2, f.getAudiosStreams().count());
-			break;
-		}
-		assertEquals(specificMediaFile.formatName, f.getFormat().getFormatName());
-	}
-
-	void checkRaw_StdErr(final E2ERawOutDataFiles rawData) throws IOException {
-		final var lines = readLines(rawData.outStderr()).stream()
-				.map(String::trim)
-				.toList();
-		assertTrue(561 <= lines.stream().filter(l -> l.startsWith("[Parsed_ebur128_")).count(), "[Parsed_ebur128_");
-
-		if (rawData.hasVideo()) {
-			assertEqualsNbLines(1, lines, "[Parsed_blockdetect_");
-		}
-	}
-
-	void checkRaw_Alavfi(final E2ERawOutDataFiles rawData) throws IOException {
-		final var specificMediaFile = rawData.getSpecificMediaFile();
-
-		final var lines = readLines(rawData.outAlavfi());
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.aphasemeter.phase");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "frame:");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.astats.1.DC_offset");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.astats.1.Peak_level");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.astats.1.Flat_factor");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.astats.1.Peak_count");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount * 2, lines, "lavfi.astats.1.Noise_floor");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.astats.1.Noise_floor_count");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.astats.1.Entropy");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.astats.2.DC_offset");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.astats.2.Peak_level");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.astats.2.Flat_factor");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.astats.2.Peak_count");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount * 2, lines, "lavfi.astats.2.Noise_floor");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.astats.2.Noise_floor_count");
-		assertEqualsNbLines(specificMediaFile.alavfiFrameCount, lines, "lavfi.astats.2.Entropy");
-		assertEqualsNbLines(specificMediaFile.alavfiSilenceDetectCount, lines, "lavfi.silence_start.2=36");
-		assertEqualsNbLines(specificMediaFile.alavfiSilenceDetectCount, lines, "lavfi.silence_end.2=46");
-		assertEqualsNbLines(specificMediaFile.alavfiSilenceDetectCount, lines, "lavfi.silence_duration.2=10");
-	}
-
-	void checkRawVlavfi(final E2ERawOutDataFiles rawData) throws IOException {
-		final var lines = readLines(rawData.outVlavfi());
-		assertEqualsNbLines(1400, lines, "frame:");
-		assertEqualsNbLines(1400, lines, "lavfi.block");
-		assertEqualsNbLines(1400, lines, "lavfi.blur");
-		assertTrue(lines.stream().filter(l -> l.startsWith("lavfi.cropdetect")).count() > 1400);
-		assertEqualsNbLines(1400, lines, "lavfi.siti.si");
-		assertEqualsNbLines(1400, lines, "lavfi.siti.si");
-		assertEqualsNbLines(1, lines, "lavfi.freezedetect.freeze_start=0");
-		assertEqualsNbLines(1, lines, "lavfi.freezedetect.freeze_start=5");
-		assertEqualsNbLines(2, lines, "lavfi.freezedetect.freeze_duration=5");
-		assertEqualsNbLines(1, lines, "lavfi.freezedetect.freeze_end=5");
-		assertEqualsNbLines(1, lines, "lavfi.freezedetect.freeze_end=10");
-		assertEqualsNbLines(1, lines, "lavfi.black_start=5");
-		assertEqualsNbLines(1, lines, "lavfi.black_end=10");
-		assertEqualsNbLines(1, lines, "lavfi.black_start=20");
-		assertEqualsNbLines(1, lines, "lavfi.black_end=21");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.single.current_frame");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.single.tff");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.single.bff");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.single.progressive");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.single.undetermined");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.multiple.current_frame");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.multiple.tff");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.multiple.bff");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.multiple.progressive");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.multiple.undetermined");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.repeated.current_frame");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.repeated.neither");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.repeated.top");
-		assertEqualsNbLines(1400, lines, "lavfi.idet.repeated.bottom");
 	}
 
 	void checkProcessTXT_containerVideoFrames(final E2ERawOutDataFiles rawData) throws IOException {
@@ -619,11 +522,7 @@ class E2ETextTest extends E2EUtils {
 		if (new File("target/e2e-export", "long-mkv_ffprobe.xml").exists() == false) {
 			runApp(
 					"--temp", "target/e2e-temp",
-					"--import-lavfi", rawData.outAlavfi().getPath(),
-					"--import-lavfi", rawData.outVlavfi().getPath(),
-					"--import-stderr", rawData.outStderr().getPath(),
-					"--import-probeheaders", rawData.outProbeheaders().getPath(),
-					"--import-container", rawData.outContainer().getPath(),
+					"--import", rawData.archive().getPath(),
 					"-f", "txt",
 					"-e", "target/e2e-export",
 					"--export-base-filename", exportBaseFilename);

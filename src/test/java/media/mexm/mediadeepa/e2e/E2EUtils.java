@@ -74,12 +74,7 @@ abstract class E2EUtils {
 		}
 		runApp("-i", rawData.mediaFile().getPath(), "-c",
 				"--temp", "target/e2e-temp",
-				"--extract-alavfi", rawData.outAlavfi().getPath(),
-				"--extract-vlavfi", rawData.outVlavfi().getPath(),
-				"--extract-stderr", rawData.outStderr().getPath(),
-				"--extract-probeheaders", rawData.outProbeheaders().getPath(),
-				"--extract-probesummary", rawData.outProbesummary().getPath(),
-				"--extract-container", rawData.outContainer().getPath());
+				"--extract", rawData.archive().getPath());
 	}
 
 	static void processTXT(final File mediaFile) throws IOException {
@@ -93,27 +88,10 @@ abstract class E2EUtils {
 	static void importRawTXTToProcess(final E2ERawOutDataFiles rawData) throws IOException {
 		final var expectedFile = new File(
 				"target/e2e-export/" + rawData.getExtension() + "_media-summary.txt");
-		if (expectedFile.exists()) {
-			return;
-		}
-		if (rawData.outVlavfi().exists()) {
+		if (expectedFile.exists() == false) {
 			runApp(
 					"--temp", "target/e2e-temp",
-					"--import-lavfi", rawData.outAlavfi().getPath(),
-					"--import-lavfi", rawData.outVlavfi().getPath(),
-					"--import-stderr", rawData.outStderr().getPath(),
-					"--import-probeheaders", rawData.outProbeheaders().getPath(),
-					"--import-container", rawData.outContainer().getPath(),
-					"-f", "txt",
-					"-e", "target/e2e-export",
-					"--export-base-filename", rawData.getExtension());
-		} else {
-			runApp(
-					"--temp", "target/e2e-temp",
-					"--import-lavfi", rawData.outAlavfi().getPath(),
-					"--import-stderr", rawData.outStderr().getPath(),
-					"--import-probeheaders", rawData.outProbeheaders().getPath(),
-					"--import-container", rawData.outContainer().getPath(),
+					"--import", rawData.archive().getPath(),
 					"-f", "txt",
 					"-e", "target/e2e-export",
 					"--export-base-filename", rawData.getExtension());

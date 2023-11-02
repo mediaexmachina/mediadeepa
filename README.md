@@ -18,6 +18,7 @@ Audio/video medias and streams deep analyzer in Java with FFmpeg as back-end: ex
 [![CodeQL](https://github.com/mediaexmachina/mediadeepa/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/mediaexmachina/mediadeepa/actions/workflows/codeql-analysis.yml)
 [![Java CI with Maven](https://github.com/mediaexmachina/mediadeepa/actions/workflows/maven-package.yml/badge.svg)](https://github.com/mediaexmachina/mediadeepa/actions/workflows/maven-package.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mediaexmachina_mediadeepa&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mediaexmachina_mediadeepa)
+
 ## 🚩 About
 
 This application will run FFmpeg on a source video/audio file to apply some filters, and generate analysis raw data (mostly high verbosely text/XML streams). They are parsed and reduced/converted/drawn/summarized them to some output formats by Mediadeepa.
@@ -137,32 +138,24 @@ All available **Export formats type** are listed by `-o`, and can be accumulated
 
 Sometimes, you don't need to process data during the analysis session.
 
-So, Mediadeepa can just extract to raw text files all the gathered data from FFmpeg.
+So, Mediadeepa can just extract to raw text/xml files (zipped in one archive file) all the gathered data from FFmpeg.
 
-Use these options with this mode:
+Use this option with this mode:
 
 ```
---extract-alavfi TEXT_FILE        Extract raw FFmpeg datas from LAVFI audio metadata filter
---extract-vlavfi TEXT_FILE        Extract raw FFmpeg datas from LAVFI video metadata filter
---extract-stderr TEXT_FILE        Extract raw FFmpeg datas from stderr
---extract-probeheaders XML_FILE   Extract XML FFprobe datas from container headers
---extract-probesummary TEXT_FILE  Extract simple FFprobe data summary from container headers
---extract-container XML_FILE      Extract XML FFprobe datas from container analyser
+--extract MEDIADEEPA_FILE        Extract all raw ffmpeg datas to a Mediadeepa archive file
 ```
 
 ### 🌿 Import to export
 
-And now, how do you get process analyst with this raw files ?
+And now, how do you get process analyst with the archive file ?
 
-With the third mode: import, to load in Mediadeepa all gathered raw data files. Mediadeepa is **very tolerant** with this files, notably if they were not created by Mediadeepa (originally). **No one is mandatory.**
+With the third mode: import, to load in Mediadeepa all gathered raw data files. Mediadeepa is **very tolerant** with the zip content, notably if they were not created by Mediadeepa (originally). **No one is mandatory in zip.**
 
 Use these options with this mode:
 
 ```
---import-lavfi TEXT_FILE        Import raw FFmpeg datas from LAVFI metadata filter
---import-stderr TEXT_FILE       Import raw FFmpeg datas from stderr filter
---import-probeheaders XML_FILE  Import XML FFprobe datas from container headers
---import-container XML_FILE     Import raw FFprobe datas from container analyser
+--import MEDIADEEPA_FILE        Import raw ffmpeg datas from a Mediadeepa archive file
 -f, --format FORMAT_TYPE        Format to export datas
 -e, --export DIRECTORY          Export datas to this directory
 ```
@@ -255,7 +248,7 @@ xlsx           XLSX Spreadsheet
 sqlite         SQLite database
 xml            XML Document
 json           JSON Document
-HTML           HTML report document
+html           HTML report document
 [...]
 ```
 

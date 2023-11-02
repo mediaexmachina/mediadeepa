@@ -18,8 +18,6 @@ package media.mexm.mediadeepa.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExportTo;
@@ -51,10 +49,6 @@ public interface AppSessionService {
 	void createOfflineProcessingSession(ImportFrom importFrom, ExportTo exportTo) throws IOException;
 
 	File prepareTempFile(File tempDir);
-
-	void writeNonEmptyLines(File file, List<String> lines) throws IOException;
-
-	Consumer<String> makeConsumerToList(List<String> list, File reference);
 
 	Stream<String> openFileToLineStream(File file);
 }
