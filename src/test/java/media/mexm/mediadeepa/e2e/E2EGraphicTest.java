@@ -16,27 +16,6 @@
  */
 package media.mexm.mediadeepa.e2e;
 
-import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.IMAGE_SIZE_FULL_HEIGHT;
-import static media.mexm.mediadeepa.exportformat.graphic.DataGraphic.IMAGE_SIZE_HALF_HEIGHT;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.ABITRATE_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.A_PHASE_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.BLOCK_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.BLUR_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.CROP_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.DC_OFFSET_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.ENTROPY_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.EVENTS_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.FLATNESS_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.GOP_COUNT_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.GOP_SIZES_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.IDET_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.LUFS_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.LUFS_TPK_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.NOISE_FLOOR_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.PEAK_LEVEL_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.SITI_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.VBITRATE_SUFFIX_FILE_NAME;
-import static media.mexm.mediadeepa.exportformat.graphic.GraphicExportFormat.VFRAMEDURATION_SUFFIX_FILE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -75,53 +54,54 @@ class E2EGraphicTest extends E2EUtils {
 		}
 
 		final var tests = new LinkedHashMap<String, Executable>();
+
+		final var IMAGE_SIZE_FULL_HEIGHT = defaultAppConfig.getImageSizeFullSize();
+		final var IMAGE_SIZE_HALF_HEIGHT = defaultAppConfig.getImageSizeHalfSize();
+
 		tests.put("LUFS", checkImageGraphic(makeOutputFile(
-				MPG + LUFS_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+				MPG + defaultAppConfig.getLufsGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
 		tests.put("LUFS TPK", checkImageGraphic(makeOutputFile(
-				MPG + LUFS_TPK_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+				MPG + defaultAppConfig.getLufsTPKGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
 		tests.put("Audio phase", checkImageGraphic(makeOutputFile(
-				MPG + A_PHASE_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+				MPG + defaultAppConfig.getAPhaseGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Audio entropy", checkImageGraphic(makeOutputFile(
-				MPG + ENTROPY_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+				MPG + defaultAppConfig.getEntropyGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Audio flat-factor", checkImageGraphic(makeOutputFile(
-				MPG + FLATNESS_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+				MPG + defaultAppConfig.getFlatnessGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Audio noise-floor", checkImageGraphic(makeOutputFile(
-				MPG + NOISE_FLOOR_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+				MPG + defaultAppConfig.getNoiseFloorGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Audio peak-level", checkImageGraphic(makeOutputFile(
-				MPG + PEAK_LEVEL_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+				MPG + defaultAppConfig.getPeakLevelGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Audio DC offset", checkImageGraphic(makeOutputFile(
-				MPG + DC_OFFSET_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+				MPG + defaultAppConfig.getDcOffsetGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Video SITI", checkImageGraphic(makeOutputFile(
-				MPG + SITI_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+				MPG + defaultAppConfig.getSitiGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
 		tests.put("Video block", checkImageGraphic(makeOutputFile(
-				MPG + BLOCK_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+				MPG + defaultAppConfig.getBlockGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
 		tests.put("Video blur", checkImageGraphic(makeOutputFile(
-				MPG + BLUR_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+				MPG + defaultAppConfig.getBlurGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
 		tests.put("Video idet", checkImageGraphic(makeOutputFile(
-				MPG + IDET_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+				MPG + defaultAppConfig.getItetGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Video crop", checkImageGraphic(makeOutputFile(
-				MPG + CROP_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+				MPG + defaultAppConfig.getCropGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
 		tests.put("Events", checkImageGraphic(makeOutputFile(
-				MPG + EVENTS_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+				MPG + defaultAppConfig.getEventsGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Video bitrate", checkImageGraphic(makeOutputFile(
-				MPG + VBITRATE_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+				MPG + defaultAppConfig.getVBitrateGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
 		tests.put("Audio bitrate", checkImageGraphic(makeOutputFile(
-				MPG + ABITRATE_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+				MPG + defaultAppConfig.getABitrateGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Video frame duration", checkImageGraphic(makeOutputFile(
-				MPG + VFRAMEDURATION_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+				MPG + defaultAppConfig.getVFrameDurationGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Video GOP counts", checkImageGraphic(makeOutputFile(
-				MPG + GOP_COUNT_SUFFIX_FILE_NAME), IMAGE_SIZE_HALF_HEIGHT));
+				MPG + defaultAppConfig.getGopCountGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
 		tests.put("Video GOP sizes", checkImageGraphic(makeOutputFile(
-				MPG + GOP_SIZES_SUFFIX_FILE_NAME), IMAGE_SIZE_FULL_HEIGHT));
+				MPG + defaultAppConfig.getGopSizeGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
 		return tests.entrySet().stream()
 				.map(entry -> dynamicTest(entry.getKey(), entry.getValue()));
 	}
 
 	File makeOutputFile(final String baseFileName) throws IOException {
 		final var outputFile = new File("target/e2e-export", baseFileName);
-		if (outputFile.exists()) {
-			return outputFile;
-		}
 		runApp(
 				"--temp", "target/e2e-temp",
 				"--import", rawData.archive().getPath(),

@@ -17,10 +17,15 @@
 package media.mexm.mediadeepa.exportformat;
 
 import java.io.File;
+import java.util.Map;
+
+import media.mexm.mediadeepa.cli.ExportToCmd;
 
 public interface ExportFormat {
 
-	void exportResult(DataResult result, File exportDirectory, String baseFileName);
+	Map<String, File> exportResult(DataResult result, ExportToCmd exportToCmd);
+
+	String getFormatName();
 
 	String getFormatLongName();
 

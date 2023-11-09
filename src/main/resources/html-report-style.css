@@ -16,10 +16,11 @@
  */
 
 body {
-	font-family: "Tahoma", Sans serif;
+	font-family: "Tahoma", Sans-serif;
 }
 article {
 	margin-bottom: 2em;
+	break-inside: avoid;
 }
 
 a.backtotop {
@@ -32,10 +33,6 @@ a:link {
 
 a:visited {
 	color: blue;
-}
-
-div.entry span.unit {
-	color: #666;
 }
 
 a.backtotop {
@@ -59,6 +56,8 @@ div.entry {
 	padding-bottom: 0.3em;
 	margin-bottom: 0.3em;
 	margin-right: 0.3em;
+	display: flex;
+	flex-flow: row wrap;
 }
 
 span.key {
@@ -69,11 +68,6 @@ span.key {
 
 div.subset {
 	display: flex;
-}
-
-div.entry {
-	display: flex;
-	flex-flow: row wrap;
 }
 
 div.entry span.key {
@@ -87,10 +81,6 @@ div.entry span.value {
 
 div.entry:nth-child(even) {
 	background: #F8F8F8;
-}
-
-div.subset div.entry.stats span.key {
-	margin-bottom: 0.5rem;
 }
 
 div.entry.stats li span.key {
@@ -145,10 +135,12 @@ div.subset div.entry.stats ul.value {
 div.subset div.entry.stats span.key {
 	display: block;
 	width: inherit;
+	margin-bottom: 0.5rem;
 }
 
 div.entry span.unit {
 	padding-left: 0.3em;
+	color: #666;
 }
 
 nav ul {
@@ -163,10 +155,6 @@ nav ul li {
 	a.backtotop {
 		display: none;
 	}
-}
-
-article {
-	break-inside: avoid;
 }
 
 div.entry.event {

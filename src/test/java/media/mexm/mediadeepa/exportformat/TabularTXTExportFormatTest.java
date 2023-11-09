@@ -26,7 +26,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import media.mexm.mediadeepa.exportformat.tabular.TabularTXTExportFormat;
+import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.exportformat.components.TabularTXTExportFormat;
 import net.datafaker.Faker;
 
 class TabularTXTExportFormatTest {
@@ -34,9 +35,12 @@ class TabularTXTExportFormatTest {
 
 	TabularTXTExportFormat t;
 
+	NumberUtils numberUtils;
+
 	@BeforeEach
 	void init() {
-		t = new TabularTXTExportFormat();
+		numberUtils = new NumberUtils();
+		t = new TabularTXTExportFormat(List.of(), numberUtils);
 	}
 
 	@Test
@@ -51,8 +55,8 @@ class TabularTXTExportFormatTest {
 
 	@Test
 	void testFormatToString() {
-		assertEquals("42", t.formatToString(42f, false));
-		assertEquals("4.2", t.formatToString(4.2f, false));
+		assertEquals("42", t.formatNumberHighPrecision(42f));
+		assertEquals("4.2", t.formatNumberHighPrecision(4.2f));
 	}
 
 	@Test

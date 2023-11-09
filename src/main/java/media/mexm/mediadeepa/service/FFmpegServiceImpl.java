@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -35,10 +36,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
-import media.mexm.mediadeepa.FilterOptions;
 import media.mexm.mediadeepa.ProgressCLI;
-import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ProcessFile;
-import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ProcessFile.TypeExclusive;
+import media.mexm.mediadeepa.cli.FilterCmd;
+import media.mexm.mediadeepa.cli.ProcessFileCmd;
+import media.mexm.mediadeepa.cli.TypeExclusiveCmd;
 import tv.hd3g.fflauncher.about.FFAbout;
 import tv.hd3g.fflauncher.about.FFAboutFilter;
 import tv.hd3g.fflauncher.enums.Channel;
@@ -166,26 +167,26 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	@Override
-	public MediaAnalyserSession createMediaAnalyserSession(final ProcessFile processFile,
+	public MediaAnalyserSession createMediaAnalyserSession(final ProcessFileCmd processFileCmd,
 														   final File lavfiSecondaryVideoFile,
 														   final FFprobeJAXB ffprobeJAXB,
-														   final FilterOptions options) {
+														   final FilterCmd options) {
 		final var ma = new MediaAnalyser(ffmpegExecName, executableFinder, ffmpegAbout);
 
 		final var programDurationSec = ffprobeJAXB.getFormat().getDuration();
 		setProgress(progressSupplier.get(), programDurationSec, ma);
 
 		applyMediaAnalyserFilterChain(
-				processFile,
+				processFileCmd,
 				lavfiSecondaryVideoFile,
 				ffprobeJAXB.getFirstVideoStream().isPresent(),
 				ffprobeJAXB.getAudiosStreams().findAny().isPresent(),
 				ma,
-				Optional.ofNullable(options).orElseGet(FilterOptions::new));
+				Optional.ofNullable(options).orElseGet(FilterCmd::new));
 
-		final var session = ma.createSession(processFile.getInput());
-		session.setPgmFFDuration(processFile.getDuration());
-		session.setPgmFFStartTime(processFile.getStartTime());
+		final var session = ma.createSession(processFileCmd.getInput());
+		session.setPgmFFDuration(processFileCmd.getDuration());
+		session.setPgmFFStartTime(processFileCmd.getStartTime());
 		return session;
 	}
 
@@ -194,26 +195,26 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	@Override
-	public void applyMediaAnalyserFilterChain(final ProcessFile processFile,
+	public void applyMediaAnalyserFilterChain(final ProcessFileCmd processFileCmd,
 											  final File lavfiSecondaryVideoFile,
 											  final boolean sourceHasVideo,
 											  final boolean sourceHasAudio,
 											  final MediaAnalyser ma,
-											  final FilterOptions nullableOptions) {
+											  final FilterCmd nullableOptions) {
 		var useMtdAudio = false;
-		final var fIgnore = Optional.ofNullable(processFile.getFiltersIgnore()).orElse(Set.of());
-		final var fOnly = Optional.ofNullable(processFile.getFiltersOnly()).orElse(Set.of());
+		final var fIgnore = Optional.ofNullable(processFileCmd.getFiltersIgnore()).orElse(Set.of());
+		final var fOnly = Optional.ofNullable(processFileCmd.getFiltersOnly()).orElse(Set.of());
 
-		final var audioNo = Optional.ofNullable(processFile.getTypeExclusive())
-				.map(TypeExclusive::isAudioNo)
+		final var audioNo = Optional.ofNullable(processFileCmd.getTypeExclusiveCmd())
+				.map(TypeExclusiveCmd::isAudioNo)
 				.orElse(false)
 				.booleanValue();
-		final var videoNo = Optional.ofNullable(processFile.getTypeExclusive())
-				.map(TypeExclusive::isVideoNo)
+		final var videoNo = Optional.ofNullable(processFileCmd.getTypeExclusiveCmd())
+				.map(TypeExclusiveCmd::isVideoNo)
 				.orElse(false)
 				.booleanValue();
 
-		final var options = Optional.ofNullable(nullableOptions).orElseGet(FilterOptions::new);
+		final var options = Optional.ofNullable(nullableOptions).orElseGet(FilterCmd::new);
 		if (sourceHasAudio && audioNo == false) {
 			final var countFilter = new ArrayList<Boolean>();
 
@@ -230,7 +231,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 			}
 
 			final var ebur128 = filterSetup(new AudioFilterEbur128(), options);
-			ebur128.setPeakMode(Set.of(Peak.SAMPLE, Peak.TRUE));
+			ebur128.setPeakMode(new TreeSet<>(List.of(Peak.SAMPLE, Peak.TRUE)));
 			countFilter.add(addFilter(ma, fIgnore, fOnly, ebur128));
 
 			useMtdAudio = countFilter(countFilter);
@@ -264,14 +265,14 @@ public class FFmpegServiceImpl implements FFmpegService {
 		}
 	}
 
-	private AudioFilterEbur128 filterSetup(final AudioFilterEbur128 audioFilterEbur128, final FilterOptions options) {
+	private AudioFilterEbur128 filterSetup(final AudioFilterEbur128 audioFilterEbur128, final FilterCmd options) {
 		Optional.ofNullable(options.getEbur128Target())
 				.ifPresent(audioFilterEbur128::setTarget);
 		return audioFilterEbur128;
 	}
 
 	private VideoFilterFreezedetect filterSetup(final VideoFilterFreezedetect videoFilterFreezedetect,
-												final FilterOptions options) {
+												final FilterCmd options) {
 		Optional.ofNullable(options.getFreezedetectNoiseTolerance())
 				.ifPresent(videoFilterFreezedetect::setNoiseToleranceDb);
 		Optional.ofNullable(options.getFreezedetectDuration())
@@ -283,7 +284,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 		return videoFilterFreezedetect;
 	}
 
-	private VideoFilterIdet filterSetup(final VideoFilterIdet videoFilterIdet, final FilterOptions options) {
+	private VideoFilterIdet filterSetup(final VideoFilterIdet videoFilterIdet, final FilterCmd options) {
 		Optional.ofNullable(options.getIdetIntlThres())
 				.ifPresent(videoFilterIdet::setIntlThres);
 		Optional.ofNullable(options.getIdetProgThres())
@@ -296,7 +297,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	private VideoFilterCropdetect filterSetup(final VideoFilterCropdetect videoFilterCropdetect,
-											  final FilterOptions options) {
+											  final FilterCmd options) {
 		Optional.ofNullable(options.getCropHigh())
 				.ifPresent(videoFilterCropdetect::setHigh);
 		Optional.ofNullable(options.getCropLow())
@@ -313,7 +314,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	private VideoFilterBlurdetect filterSetup(final VideoFilterBlurdetect videoFilterBlurdetect,
-											  final FilterOptions options) {
+											  final FilterCmd options) {
 		Optional.ofNullable(options.getBlurHigh())
 				.ifPresent(videoFilterBlurdetect::setHigh);
 		Optional.ofNullable(options.getBlurLow())
@@ -332,7 +333,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	private VideoFilterBlockdetect filterSetup(final VideoFilterBlockdetect videoFilterBlockdetect,
-											   final FilterOptions options) {
+											   final FilterCmd options) {
 		Optional.ofNullable(options.getBlockPeriodMax())
 				.ifPresent(videoFilterBlockdetect::setPeriodMax);
 		Optional.ofNullable(options.getBlockPeriodMin())
@@ -343,7 +344,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	private VideoFilterBlackdetect filterSetup(final VideoFilterBlackdetect videoFilterBlackdetect,
-											   final FilterOptions options) {
+											   final FilterCmd options) {
 		Optional.ofNullable(options.getBlackPictureBlackRatioTh())
 				.ifPresent(videoFilterBlackdetect::setPictureBlackRatioTh);
 		Optional.ofNullable(options.getBlackPixelBlackTh())
@@ -358,7 +359,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	private AudioFilterAPhasemeter filterSetup(final AudioFilterAPhasemeter audioFilterAPhasemeter,
-											   final FilterOptions options) {
+											   final FilterCmd options) {
 		Optional.ofNullable(options.getAPhaseAngle())
 				.ifPresent(audioFilterAPhasemeter::setAngle);
 		Optional.ofNullable(options.getAPhaseTolerance())
@@ -373,7 +374,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	private AudioFilterSilencedetect filterSetup(final AudioFilterSilencedetect audioFilterSilencedetect,
-												 final FilterOptions options) {
+												 final FilterCmd options) {
 		Optional.ofNullable(options.getSilenceNoise())
 				.ifPresent(audioFilterSilencedetect::setNoiseDb);
 		Optional.ofNullable(options.getSilenceDuration())
@@ -449,15 +450,15 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	@Override
-	public ContainerAnalyserSession createContainerAnalyserSession(final ProcessFile processFile) {
+	public ContainerAnalyserSession createContainerAnalyserSession(final ProcessFileCmd processFileCmd) {
 		final var ca = new ContainerAnalyser(ffprobeExecName, executableFinder);
-		return ca.createSession(processFile.getInput());
+		return ca.createSession(processFileCmd.getInput());
 	}
 
 	@Override
-	public FFprobeJAXB getFFprobeJAXBFromFileToProcess(final ProcessFile processFile) {
+	public FFprobeJAXB getFFprobeJAXBFromFileToProcess(final ProcessFileCmd processFileCmd) {
 		return new ProbeMedia(executableFinder, maxExecTimeScheduler)
-				.doAnalysing(processFile.getInput());
+				.doAnalysing(processFileCmd.getInput());
 	}
 
 }

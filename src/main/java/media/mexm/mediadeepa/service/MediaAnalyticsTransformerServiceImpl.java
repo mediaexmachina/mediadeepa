@@ -16,28 +16,62 @@
  */
 package media.mexm.mediadeepa.service;
 
+import static java.util.Collections.unmodifiableMap;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExportTo;
+import lombok.extern.slf4j.Slf4j;
+import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.components.ExportFormatComparator;
 import media.mexm.mediadeepa.exportformat.DataResult;
-import media.mexm.mediadeepa.exportformat.ExportFormatManager;
+import media.mexm.mediadeepa.exportformat.ExportFormat;
 
 @Service
+@Slf4j
 public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTransformerService {
 
 	@Autowired
-	private ExportFormatManager exportFormatManager;
+	private List<ExportFormat> exportFormatList;
+	@Autowired
+	private ExportFormatComparator exportFormatComparator;
+
+	private ExportFormat getExportFormatByName(final String name) {
+		return exportFormatList.stream()
+				.filter(f -> name.equalsIgnoreCase(f.getFormatName()))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("Can't found " + name + " format"));
+	}
+
+	@Override
+	public boolean isExportFormatExists(final String name) {
+		return exportFormatList.stream()
+				.anyMatch(f -> name.equalsIgnoreCase(f.getFormatName()));
+	}
+
+	@Override
+	public Map<String, String> getExportFormatInformation() {
+		final var result = new LinkedHashMap<String, String>();
+		exportFormatList.stream()
+				.sorted(exportFormatComparator)
+				.forEach(eF -> result.put(eF.getFormatName(), eF.getFormatLongName()));
+		return unmodifiableMap(result);
+	}
 
 	@Override
 	public void exportAnalytics(final DataResult result,
-								final ExportTo exportTo) {
-		exportTo.getFormat().stream()
-				.map(exportFormatManager::getExportFormat)
-				.forEach(s -> s.exportResult(
-						result,
-						exportTo.getExport(),
-						exportTo.getBaseFileName()));
+								final ExportToCmd exportToCmd) {
+		exportToCmd.getFormat().stream()
+				.map(this::getExportFormatByName)
+				.forEach(s -> {
+					log.debug("Start export with {}/{}", s.getFormatName(), s.getFormatLongName());
+					final var producedFiles = s.exportResult(result, exportToCmd);
+					log.debug("Produced files: {}", producedFiles);
+				});
 	}
 
 }

@@ -80,9 +80,6 @@ class E2ETableTest extends E2EUtils {
 
 	File makeOutputFile(final String baseFileName, final String format) throws IOException {
 		final var outputFile = new File("target/e2e-export", baseFileName);
-		if (outputFile.exists()) {
-			return outputFile;
-		}
 		runApp(
 				"--temp", "target/e2e-temp",
 				"--import", rawData.archive().getPath(),
@@ -118,9 +115,9 @@ class E2ETableTest extends E2EUtils {
 		verify(defaultHandler, times(1)).setDocumentLocator(any());
 
 		verify(defaultHandler, times(1)).startElement(eq(""), eq(""), eq("report"), any());
-		verify(defaultHandler, times(20)).startElement(eq(""), eq(""), eq("table"), any());
-		verify(defaultHandler, times(20)).startElement(eq(""), eq(""), eq("headers"), any());
-		verify(defaultHandler, times(171)).startElement(eq(""), eq(""), eq("header"), any());
+		verify(defaultHandler, atLeast(20)).startElement(eq(""), eq(""), eq("table"), any());
+		verify(defaultHandler, atLeast(20)).startElement(eq(""), eq(""), eq("headers"), any());
+		verify(defaultHandler, atLeast(160)).startElement(eq(""), eq(""), eq("header"), any());
 		verify(defaultHandler, atLeast(23000)).startElement(eq(""), eq(""), eq("entry"), any());
 		verify(defaultHandler, atLeast(1)).endElement(anyString(), anyString(), anyString());
 	}

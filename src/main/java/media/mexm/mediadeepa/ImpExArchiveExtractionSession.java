@@ -16,32 +16,57 @@
  */
 package media.mexm.mediadeepa;
 
-import static java.util.Collections.unmodifiableMap;
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Locale.ENGLISH;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.io.FileUtils.forceMkdirParent;
 
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
-import javax.xml.namespace.QName;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
+import org.apache.commons.io.FileUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserSessionFilterContext;
+
+@Slf4j
 public class ImpExArchiveExtractionSession {
 
-	private static final String ENTRY_STR = "entry";
 	static final String NEWLINE = "\n";
+	private static final int TEN_MB = 0xFFFFFF;
+
+	private final ObjectMapper objectMapper;
 	private final LinkedHashMap<String, String> contentItems;
 
 	public ImpExArchiveExtractionSession() {
+		this(new ObjectMapper());
+		objectMapper.setLocale(ENGLISH);
+		objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+		objectMapper.configure(INDENT_OUTPUT, true);
+		objectMapper.configure(WRITE_DATES_AS_TIMESTAMPS, true);
+	}
+
+	public ImpExArchiveExtractionSession(final ObjectMapper objectMapper) {
+		this.objectMapper = Objects.requireNonNull(objectMapper, "\"objectMapper\" can't to be null");
 		contentItems = new LinkedHashMap<>();
 	}
 
@@ -70,31 +95,31 @@ public class ImpExArchiveExtractionSession {
 		contentItems.put(internalFileName, content);
 	}
 
+	public void addFilterContext(final String internalFileName, final List<MediaAnalyserSessionFilterContext> filters) {
+		try {
+			add(internalFileName, objectMapper.writeValueAsString(filters));
+		} catch (final JsonProcessingException e) {
+			throw new IllegalArgumentException("Can't produce json", e);
+		}
+	}
+
+	public List<MediaAnalyserSessionFilterContext> getFilterContext(final String internalFileName) {
+		if (contentItems.containsKey(internalFileName) == false) {
+			return List.of();
+		}
+		try {
+			return objectMapper.readValue(contentItems.get(internalFileName),
+					new TypeReference<List<MediaAnalyserSessionFilterContext>>() {});
+		} catch (final JsonProcessingException e) {
+			throw new IllegalArgumentException("Can't read from json", e);
+		}
+	}
+
 	public void addVersion(final String internalFileName, final Map<String, String> versions) {
 		try {
-			final var xml = XMLEventFactory.newInstance();
-			final var sw = new StringWriter();
-			final var writer = XMLOutputFactory.newInstance()
-					.createXMLEventWriter(sw);
-
-			writer.add(xml.createStartDocument());
-			writer.add(xml.createStartElement("", null, "map"));
-
-			final var vIterator = versions.entrySet().iterator();
-			while (vIterator.hasNext()) {
-				final var entry = vIterator.next();
-				writer.add(xml.createStartElement("", null, ENTRY_STR));
-				writer.add(xml.createAttribute("", null, "key", entry.getKey()));
-				writer.add(xml.createAttribute("", null, "value", entry.getValue()));
-				writer.add(xml.createEndElement("", null, ENTRY_STR));
-			}
-
-			writer.add(xml.createEndElement("", null, "map"));
-			writer.add(xml.createEndDocument());
-			writer.close();
-			add(internalFileName, sw.toString());
-		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw new IllegalArgumentException("Can't produce version", e);
+			add(internalFileName, objectMapper.writeValueAsString(versions));
+		} catch (final JsonProcessingException e) {
+			throw new IllegalArgumentException("Can't produce json", e);
 		}
 	}
 
@@ -102,30 +127,61 @@ public class ImpExArchiveExtractionSession {
 		if (contentItems.containsKey(internalFileName) == false) {
 			return Map.of();
 		}
-
 		try {
-			final var sr = new StringReader(contentItems.get(internalFileName));
-			final var factory = XMLInputFactory.newInstance();
-			factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.FALSE);
-			factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-			final var reader = factory.createXMLEventReader(sr);
-
-			final var versions = new LinkedHashMap<String, String>();
-
-			XMLEvent nextEvent;
-			while (reader.hasNext()) {
-				nextEvent = reader.nextEvent();
-				if (nextEvent instanceof final StartElement element
-					&& ENTRY_STR.equals(element.getName().getLocalPart())) {
-					versions.put(
-							element.getAttributeByName(new QName("key")).getValue(),
-							element.getAttributeByName(new QName("value")).getValue());
-				}
-			}
-
-			return unmodifiableMap(versions);
-		} catch (XMLStreamException | FactoryConfigurationError e) {
-			throw new IllegalArgumentException("Can't produce version", e);
+			return objectMapper.readValue(contentItems.get(internalFileName),
+					new TypeReference<Map<String, String>>() {});
+		} catch (final JsonProcessingException e) {
+			throw new IllegalArgumentException("Can't read from json", e);
 		}
 	}
+
+	public ImpExArchiveExtractionSession readFromZip(final File zipFile) throws IOException {
+		final var buffer = new byte[TEN_MB];
+
+		log.info("Open and load {} zip file", zipFile);
+		try (var zipIn = new ZipInputStream(
+				new BufferedInputStream(new FileInputStream(zipFile), TEN_MB))) {
+			ZipEntry zEntry;
+			final var sb = new StringBuilder(10_000);
+			while ((zEntry = zipIn.getNextEntry()) != null) {
+				int len;
+				sb.setLength(0);
+				while ((len = zipIn.read(buffer)) > 0) {
+					sb.append(new String(buffer, 0, len));
+				}
+				add(zEntry.getName(), sb.toString());
+			}
+		}
+		return this;
+	}
+
+	public void saveToZip(final File zipFile) throws IOException {
+		if (zipFile.exists()) {
+			log.info("Overwrite {} file", zipFile);
+			FileUtils.forceDelete(zipFile);
+		}
+
+		final var entries = getEntries().iterator();
+		if (entries.hasNext() == false) {
+			log.warn("Nothing to export in archive file...");
+			return;
+		}
+
+		log.info("Save to archive file {}", zipFile);
+		forceMkdirParent(zipFile);
+
+		try (var fileOut = new BufferedOutputStream(new FileOutputStream(zipFile), TEN_MB)) {
+			try (var zipOut = new ZipOutputStream(fileOut)) {
+				while (entries.hasNext()) {
+					final var entry = entries.next();
+					log.debug("Add to zip {} ({} chars)", entry.internalFileName(), entry.content().length());
+					zipOut.putNextEntry(new ZipEntry(entry.internalFileName()));
+					zipOut.write(entry.content().getBytes(UTF_8));
+					zipOut.closeEntry();
+				}
+				zipOut.flush();
+			}
+		}
+	}
+
 }

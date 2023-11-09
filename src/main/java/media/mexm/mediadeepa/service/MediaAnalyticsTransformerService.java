@@ -16,12 +16,18 @@
  */
 package media.mexm.mediadeepa.service;
 
-import media.mexm.mediadeepa.components.CLIRunner.AppCommand.ExportTo;
+import java.util.Map;
+
+import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.exportformat.DataResult;
 
 public interface MediaAnalyticsTransformerService {
 
-	void exportAnalytics(final DataResult result,
-						 final ExportTo exportTo);
+	void exportAnalytics(DataResult result,
+						 ExportToCmd exportToCmd);
+
+	Map<String, String> getExportFormatInformation();
+
+	boolean isExportFormatExists(String name);
 
 }

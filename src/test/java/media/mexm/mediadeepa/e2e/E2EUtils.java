@@ -32,6 +32,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.boot.SpringApplication;
 
 import media.mexm.mediadeepa.App;
+import media.mexm.mediadeepa.config.AppConfig;
 
 abstract class E2EUtils {
 
@@ -86,16 +87,12 @@ abstract class E2EUtils {
 	}
 
 	static void importRawTXTToProcess(final E2ERawOutDataFiles rawData) throws IOException {
-		final var expectedFile = new File(
-				"target/e2e-export/" + rawData.getExtension() + "_media-summary.txt");
-		if (expectedFile.exists() == false) {
-			runApp(
-					"--temp", "target/e2e-temp",
-					"--import", rawData.archive().getPath(),
-					"-f", "txt",
-					"-e", "target/e2e-export",
-					"--export-base-filename", rawData.getExtension());
-		}
+		runApp(
+				"--temp", "target/e2e-temp",
+				"--import", rawData.archive().getPath(),
+				"-f", "txt",
+				"-e", "target/e2e-export",
+				"--export-base-filename", rawData.getExtension());
 	}
 
 	static void assertEqualsNbLines(final long expected, final List<String> lines, final String what) {
@@ -157,6 +154,12 @@ abstract class E2EUtils {
 		extractRawTXT(rawData);
 		assertTrue(rawData.allOutExists());
 		return rawData;
+	}
+
+	protected final AppConfig defaultAppConfig;
+
+	protected E2EUtils() {
+		defaultAppConfig = new AppConfig();
 	}
 
 }

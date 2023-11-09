@@ -17,7 +17,6 @@
 package media.mexm.mediadeepa.e2e;
 
 import static java.util.stream.Collectors.joining;
-import static media.mexm.mediadeepa.exportformat.report.HTMLExportFormat.SUFFIX_FILE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,7 +26,9 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
-class E2EReportTest extends E2EUtils {
+import media.mexm.mediadeepa.ConstStrings;
+
+class E2EReportTest extends E2EUtils implements ConstStrings {
 
 	E2ERawOutDataFiles rawData;
 
@@ -37,7 +38,7 @@ class E2EReportTest extends E2EUtils {
 		if (rawData == null) {
 			return;
 		}
-		final var outputFile = makeOutputFile("mpg_" + SUFFIX_FILE_NAME);
+		final var outputFile = makeOutputFile("mpg_report.html");
 		assertTrue(outputFile.exists());
 		assertThat(outputFile.length()).isGreaterThan(30_000);
 		final var content = E2EUtils.readLines(outputFile);
@@ -48,35 +49,44 @@ class E2EReportTest extends E2EUtils {
 
 		final var strContent = content.stream().collect(joining(" "));
 		Stream.of(
-				"Loudness EBU-R128",
-				"Phase correlation",
-				"Signal stats",
-				"Image and motion quality",
+				ABOUT_THIS_DOCUMENT,
+				AUDIO_BITRATE,
+				AUDIO_FRAMES,
+				AUDIO_MEDIA_FILE_INFORMATION,
+				BLACK_BORDERS_CROP_DETECTION,
+				DOCUMENT_CREATION_DATE,
+				FFMPEG_FILTERS_USED_IN_THIS_MEASURE,
+				IMAGE_AND_MOTION_COMPLEXITY,
+				IMAGE_BLUR_DETECTION,
+				IMAGE_COMPRESSION_ARTIFACT_DETECTION,
+				INTERLACING_DETECTION,
+				LOUDNESS_EBU_R128,
+				MEDIADEEPA_REPORT_DOCUMENT,
+				MEDIA_CONTAINER,
+				PHASE_CORRELATION,
+				SIGNAL_STATS,
+				SPATIAL_INFORMATION,
+				STREAM_PACKETS,
+				TARGET_SOURCE,
+				TEMPORAL_INFORMATION,
+				VIDEO_BITRATE,
+				VIDEO_COMPRESSION_GROUP_OF_PICTURES,
+				VIDEO_MEDIA_FILE_INFORMATION,
+				VIDEO_FRAMES,
 				"Black frames events",
 				"Freeze (static) frames events",
-				"Interlacing detection",
-				"Black borders / crop detection",
-				"Media container",
-				"Audio media file information",
-				"Video media file information",
-				"Video frames",
-				"Video compression group-of-pictures",
-				"Audio frames",
-				"Stream packets",
-				"About this document")
+				"Event")
 				.forEach(f -> assertThat(strContent).contains(f));
 	}
 
 	File makeOutputFile(final String baseFileName) throws IOException {
 		final var outputFile = new File("target/e2e-export", baseFileName);
-		if (outputFile.exists() == false) {
-			runApp(
-					"--temp", "target/e2e-temp",
-					"--import", rawData.archive().getPath(),
-					"-f", "html",
-					"-e", "target/e2e-export",
-					"--export-base-filename", "mpg");
-		}
+		runApp(
+				"--temp", "target/e2e-temp",
+				"--import", rawData.archive().getPath(),
+				"-f", "html",
+				"-e", "target/e2e-export",
+				"--export-base-filename", "mpg");
 		return outputFile;
 	}
 

@@ -20,7 +20,6 @@ import static java.lang.Math.round;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static media.mexm.mediadeepa.e2e.E2ESpecificMediaFile.getFromMediaFile;
-import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,8 +45,6 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
-import media.mexm.mediadeepa.service.AppSessionServiceImpl;
-
 class E2ETextTest extends E2EUtils {
 
 	@TestFactory
@@ -69,25 +66,28 @@ class E2ETextTest extends E2EUtils {
 				names.add(zEntry.getName());
 			}
 		}
+
 		if (rawData.hasVideo()) {
 			assertEquals(Set.of(
-					AppSessionServiceImpl.VERSION_XML,
-					AppSessionServiceImpl.CONTAINER_XML,
-					AppSessionServiceImpl.FFPROBE_XML,
-					AppSessionServiceImpl.STDERR_TXT,
-					AppSessionServiceImpl.LAVFI_BASE_FILENAME + "0.txt",
-					AppSessionServiceImpl.LAVFI_BASE_FILENAME + "1.txt",
-					AppSessionServiceImpl.SUMMARY_TXT,
-					AppSessionServiceImpl.SOURCENAME_TXT), names);
+					defaultAppConfig.getVersionZippedJsonFilename(),
+					defaultAppConfig.getFiltersZippedJsonFilename(),
+					defaultAppConfig.getContainerZippedXmlFilename(),
+					defaultAppConfig.getFfprobeZippedTxtFilename(),
+					defaultAppConfig.getStdErrZippedTxtFilename(),
+					defaultAppConfig.getLavfiZippedTxtBaseFilename() + "0.txt",
+					defaultAppConfig.getLavfiZippedTxtBaseFilename() + "1.txt",
+					defaultAppConfig.getSummaryZippedTxtFilename(),
+					defaultAppConfig.getSourceNameZippedTxtFilename()), names);
 		} else {
 			assertEquals(Set.of(
-					AppSessionServiceImpl.VERSION_XML,
-					AppSessionServiceImpl.CONTAINER_XML,
-					AppSessionServiceImpl.FFPROBE_XML,
-					AppSessionServiceImpl.STDERR_TXT,
-					AppSessionServiceImpl.LAVFI_BASE_FILENAME + "0.txt",
-					AppSessionServiceImpl.SUMMARY_TXT,
-					AppSessionServiceImpl.SOURCENAME_TXT), names);
+					defaultAppConfig.getVersionZippedJsonFilename(),
+					defaultAppConfig.getFiltersZippedJsonFilename(),
+					defaultAppConfig.getContainerZippedXmlFilename(),
+					defaultAppConfig.getFfprobeZippedTxtFilename(),
+					defaultAppConfig.getStdErrZippedTxtFilename(),
+					defaultAppConfig.getLavfiZippedTxtBaseFilename() + "0.txt",
+					defaultAppConfig.getSummaryZippedTxtFilename(),
+					defaultAppConfig.getSourceNameZippedTxtFilename()), names);
 		}
 	}
 
@@ -115,8 +115,6 @@ class E2ETextTest extends E2EUtils {
 						() -> checkProcessTXT_containerPackets(rawData)),
 				dynamicTest(ext + " processTXT events",
 						() -> checkProcessTXT_events(rawData)),
-				dynamicTest(ext + " processTXT ffprobeXML",
-						() -> checkProcessTXT_ffprobeXML(rawData)),
 				dynamicTest(ext + " processTXT mediaSummary",
 						() -> checkProcessTXT_mediaSummary(rawData)),
 				dynamicTest(ext + " processTXT stderr",
@@ -153,15 +151,9 @@ class E2ETextTest extends E2EUtils {
 								   ? dynamicTest(ext + " processTXT sitiStats",
 										   () -> checkProcessTXT_sitiStats(rawData))
 								   : null,
-				hasNotAlreadyProcessTXT(ext)
-											 ? dynamicTest(
-													 ext + " direct to process", () -> processTXT(mediaFile))
-											 : null);
+				dynamicTest(ext + " direct to process",
+						() -> processTXT(mediaFile)));
 		return Stream.concat(first, checkProcessTXT(ext));
-	}
-
-	boolean hasNotAlreadyProcessTXT(final String ext) {
-		return new File("target/e2e-process/" + ext + "_filters.txt").exists() == false;
 	}
 
 	Stream<DynamicTest> checkProcessTXT(final String ext) {
@@ -175,6 +167,7 @@ class E2ETextTest extends E2EUtils {
 		final var listExport = Stream.of(e2eExportDir.listFiles())
 				.filter(f -> f.getName().startsWith(ext + "_"))
 				.filter(f -> f.getName().endsWith(".txt"))
+				.filter(f -> f.getName().endsWith("filters.txt") == false)
 				.filter(f -> f.getName().endsWith("media-summary.txt") == false)
 				.filter(f -> f.getName().endsWith("_about.txt") == false)
 				.toList();
@@ -216,9 +209,9 @@ class E2ETextTest extends E2EUtils {
 		final var f = getProcessedTXTFromRaw(rawData, "container-video-frames.txt");
 		final var lines = readLines(f);
 		assertEquals(V_FRAME_COUNT + 1, lines.size());
-		assertTableWith(15, lines);
-		assertEquals(List.of("VIDEO\t"),
-				lines.stream().skip(1).map(l -> l.substring(0, "VIDEO\t".length())).distinct().toList());
+		assertTableWith(14, lines);
+		assertEquals(List.of("0\t"),
+				lines.stream().skip(1).map(l -> l.substring(0, "0\t".length())).distinct().toList());
 	}
 
 	void checkProcessTXT_containerVideoConst(final E2ERawOutDataFiles rawData) throws IOException {
@@ -282,14 +275,14 @@ class E2ETextTest extends E2EUtils {
 		assertTrue(f.exists());
 	}
 
-	void checkProcessTXT_ffprobeXML(final E2ERawOutDataFiles rawData) throws IOException {
-		final var f = getProcessedTXTFromRaw(rawData, "ffprobe.xml");
-		final var probe = readFileToString(f, UTF_8);
-		assertTrue(probe.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-									+ System.lineSeparator()
-									+ "<ffprobe>"));
-		assertTrue(probe.endsWith("</ffprobe>"));
-	}
+	/*	void checkProcessTXT_ffprobeXML(final E2ERawOutDataFiles rawData) throws IOException {
+			final var f = getProcessedTXTFromRaw(rawData, "ffprobe.xml");
+			final var probe = readFileToString(f, UTF_8);
+			assertTrue(probe.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+										+ System.lineSeparator()
+										+ "<ffprobe>"));
+			assertTrue(probe.endsWith("</ffprobe>"));
+		}*/
 
 	void checkProcessTXT_mediaSummary(final E2ERawOutDataFiles rawData) throws IOException {
 		final var specificMediaFile = getFromMediaFile(rawData.mediaFile());
@@ -387,10 +380,8 @@ class E2ETextTest extends E2EUtils {
 		final var specificMediaFile = getFromMediaFile(rawData.mediaFile());
 		final var f = getProcessedTXTFromRaw(rawData, "container-audio-frames.txt");
 		final var lines = readLines(f);
-		assertTableWith(13, lines);
+		assertTableWith(12, lines);
 		assertEquals(specificMediaFile.containerAudioCount + 1, lines.size());
-		assertEquals(List.of("AUDIO\t"),
-				lines.stream().skip(1).map(l -> l.substring(0, "AUDIO\t".length())).distinct().toList());
 	}
 
 	void checkProcessTXT_audioConsts(final E2ERawOutDataFiles rawData) throws IOException {

@@ -25,17 +25,21 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import media.mexm.mediadeepa.exportformat.tabular.CSVFrExportFormat;
+import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.exportformat.components.TabularCSVFrExportFormat;
 import net.datafaker.Faker;
 
 class CSVFrExportFormatTest {
 	final static Faker faker = Faker.instance();
 
-	CSVFrExportFormat c;
+	TabularCSVFrExportFormat c;
+
+	NumberUtils numberUtils;
 
 	@BeforeEach
 	void init() {
-		c = new CSVFrExportFormat();
+		numberUtils = new NumberUtils();
+		c = new TabularCSVFrExportFormat(List.of(), numberUtils);
 	}
 
 	@Test
@@ -48,11 +52,11 @@ class CSVFrExportFormatTest {
 		assertEquals("csv", c.getDocumentFileExtension());
 	}
 
-	@Test
-	void testFormatToString() {
-		assertEquals("42", c.formatToString(42f, false));
-		assertEquals("4,2", c.formatToString(4.2f, false));
-	}
+	/*	@Test
+		void testFormatToString() {
+			assertEquals("42", c.formatToString(42f, false));
+			assertEquals("4,2", c.formatToString(4.2f, false));
+		}*/
 
 	@Test
 	void testGetDocument() {

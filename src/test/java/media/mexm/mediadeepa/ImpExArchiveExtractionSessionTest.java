@@ -17,17 +17,24 @@
 package media.mexm.mediadeepa;
 
 import static media.mexm.mediadeepa.ImpExArchiveExtractionSession.NEWLINE;
+import static org.apache.commons.io.FileUtils.forceDelete;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import media.mexm.mediadeepa.ImpExArchiveExtractionSession.ExtractedFileEntry;
 import net.datafaker.Faker;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserSessionFilterContext;
 
 class ImpExArchiveExtractionSessionTest {
 	static Faker faker = net.datafaker.Faker.instance();
@@ -39,6 +46,8 @@ class ImpExArchiveExtractionSessionTest {
 	ExtractedFileEntry efEntry;
 	List<ExtractedFileEntry> efEntries;
 	Map<String, String> versions;
+	List<MediaAnalyserSessionFilterContext> filters;
+	File zipFile;
 
 	@BeforeEach
 	void init() throws Exception {
@@ -52,10 +61,23 @@ class ImpExArchiveExtractionSessionTest {
 		versions = Map.of(
 				faker.numerify("key0-###"), faker.numerify("value0-###"),
 				faker.numerify("key1-###"), faker.numerify("value1-###"));
+		filters = List.of(new MediaAnalyserSessionFilterContext(
+				faker.numerify("type###"),
+				faker.numerify("name###"),
+				faker.numerify("setup###"),
+				faker.numerify("className###")));
+		zipFile = File.createTempFile("mediadeepa-test", ".zip");
+	}
+
+	@AfterEach
+	void ends() {
+		FileUtils.deleteQuietly(zipFile);
 	}
 
 	@Test
 	void testAddStringString() {
+		s.add(internalFileName, (String) null);
+		s.add(internalFileName, "");
 		s.add(internalFileName, content);
 		final var entries = s.getEntries().toList();
 		assertEquals(List.of(efEntry), entries);
@@ -63,6 +85,8 @@ class ImpExArchiveExtractionSessionTest {
 
 	@Test
 	void testAddStringListOfString() {
+		s.add(internalFileName, (List<String>) null);
+		s.add(internalFileName, List.of());
 		s.add(internalFileName, lines);
 		final var entries = s.getEntries().toList();
 		assertEquals(efEntries, entries);
@@ -73,20 +97,61 @@ class ImpExArchiveExtractionSessionTest {
 		assertEquals(0, s.getEntries().count());
 	}
 
+	private String checkEntryJson() {
+		final var item = s.getEntries().toList().get(0);
+		assertEquals(internalFileName, item.internalFileName());
+		return item.content();
+	}
+
 	@Test
 	void testAddVersion() {
 		s.addVersion(internalFileName, versions);
 		assertEquals(1, s.getEntries().count());
-		final var item = s.getEntries().toList().get(0);
-		assertEquals(internalFileName, item.internalFileName());
-		assertThat(item.content()).startsWith("<?xml version='1.0'?><map>");
-		assertThat(item.content()).endsWith("</map>");
+		assertThat(checkEntryJson()).startsWith("{").endsWith("}");
 	}
 
 	@Test
 	void testGetVersions() {
+		assertEquals(Map.of(), s.getVersions(internalFileName));
 		s.addVersion(internalFileName, versions);
 		assertEquals(versions, s.getVersions(internalFileName));
+	}
+
+	@Test
+	void testAddFilterContext() {
+		s.addFilterContext(internalFileName, filters);
+		assertEquals(1, s.getEntries().count());
+		assertThat(checkEntryJson()).startsWith("[").endsWith("]");
+	}
+
+	@Test
+	void testGetFilterContext() {
+		assertThat(s.getFilterContext(internalFileName)).isEmpty();
+		s.addFilterContext(internalFileName, filters);
+		final var result = s.getFilterContext(internalFileName);
+		assertEquals(filters, result);
+	}
+
+	@Test
+	void testWriteEmpty() throws IOException {
+		assertThat(zipFile).exists().size().isEqualTo(0);
+		s.saveToZip(zipFile);
+		assertThat(zipFile).doesNotExist();
+	}
+
+	@Test
+	void testReadWrite() throws IOException {
+		s.add(internalFileName, content);
+		forceDelete(zipFile);
+		s.saveToZip(zipFile);
+		assertThat(zipFile).exists().size().isGreaterThan(1);
+
+		s = new ImpExArchiveExtractionSession();
+		final var notFile = new File("");
+		assertThrows(IOException.class, () -> s.readFromZip(notFile));
+		s.readFromZip(zipFile);
+		final var entries = s.getEntries().toList();
+		assertEquals(List.of(efEntry), entries);
 	}
 
 }

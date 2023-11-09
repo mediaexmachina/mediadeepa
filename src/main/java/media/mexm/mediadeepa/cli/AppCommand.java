@@ -1,0 +1,84 @@
+/*
+ * This file is part of mediadeepa.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * Copyright (C) Media ex Machina 2023
+ *
+ */
+package media.mexm.mediadeepa.cli;
+
+import static media.mexm.mediadeepa.App.NAME;
+
+import java.io.File;
+import java.util.concurrent.Callable;
+
+import lombok.Data;
+import lombok.Setter;
+import picocli.CommandLine.ArgGroup;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+
+@Command(name = NAME,
+		 description = "Extract/process technical informations from audio/videos files/streams",
+		 version = { "Media Deep Analysis %1$s",
+					 "Copyright (C) 2022-%2$s Media ex Machina, under the GNU General Public License" },
+		 sortOptions = false,
+		 separator = " ",
+		 usageHelpAutoWidth = true,
+		 synopsisHeading = "",
+		 customSynopsis = {
+							"Base usage: mediadeepa [-hov] [--temp DIRECTORY] [-i FILE]",
+							"                       [-c] [-mn] [-an | -vn] [-f FORMAT_TYPE] [-e DIRECTORY]",
+							"                       [-fo FILTER] [-fn FILTER] [--filter-X VALUE]",
+							"                       [--extract-X FILE] [--import-X FILE]"
+		 })
+@Data
+public class AppCommand implements Callable<Integer> {
+
+	@Setter
+	private Callable<Integer> doCall;
+
+	@Option(names = { "-h", "--help" }, description = "Show the usage help", usageHelp = true)
+	private boolean help;
+
+	@Option(names = { "-v", "--version" }, description = "Show the application version")
+	private boolean version;
+
+	@Option(names = { "-o", "--options" }, description = "Show the avaliable options on this system")
+	private boolean options;
+
+	@Option(names = { "--autocomplete" }, description = "Show the autocomplete bash script for this application")
+	private boolean autocomplete;
+
+	@ArgGroup(exclusive = false)
+	private ProcessFileCmd processFileCmd;
+
+	@Option(names = { "--temp" },
+			description = "Temp dir to use in the case of the needs to export to a temp file",
+			paramLabel = "DIRECTORY")
+	private File tempDir;
+
+	@ArgGroup(exclusive = false)
+	private ExtractToCmd extractToCmd;
+
+	@ArgGroup(exclusive = false)
+	private ImportFromCmd importFromCmd;
+
+	@ArgGroup(exclusive = false)
+	private ExportToCmd exportToCmd;
+
+	@Override
+	public Integer call() throws Exception {
+		return doCall.call();
+	}
+
+}

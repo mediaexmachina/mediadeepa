@@ -36,14 +36,12 @@ class E2ECSVTest extends E2EUtils {
 		}
 
 		final var outputFileMediaSum = new File("target/e2e-export", "mpg_media-summary.csv");
-		if (outputFileMediaSum.exists() == false) {
-			runApp(
-					"--temp", "target/e2e-temp",
-					"--import", rawData.archive().getPath(),
-					"-f", "csv",
-					"-e", "target/e2e-export",
-					"--export-base-filename", "mpg");
-		}
+		runApp(
+				"--temp", "target/e2e-temp",
+				"--import", rawData.archive().getPath(),
+				"-f", "csv",
+				"-e", "target/e2e-export",
+				"--export-base-filename", "mpg");
 		var lines = readLines(outputFileMediaSum);
 		assertEquals(List.of(
 				"Type,Value",
@@ -65,7 +63,7 @@ class E2ECSVTest extends E2EUtils {
 				.filter(f -> f.getName().startsWith("mpg_")
 							 && f.getName().endsWith(".csv"))
 				.count();
-		assertEquals(20, csvCount);
+		assertEquals(21, csvCount);
 	}
 
 	@Test
@@ -75,15 +73,12 @@ class E2ECSVTest extends E2EUtils {
 			return;
 		}
 
-		final var outputFileMediaSum = new File("target/e2e-export", "movfr_media-summary.csv");
-		if (outputFileMediaSum.exists() == false) {
-			runApp(
-					"--temp", "target/e2e-temp",
-					"--import", rawData.archive().getPath(),
-					"-f", "csvfr",
-					"-e", "target/e2e-export",
-					"--export-base-filename", "movfr");
-		}
+		runApp(
+				"--temp", "target/e2e-temp",
+				"--import", rawData.archive().getPath(),
+				"-f", "csvfr",
+				"-e", "target/e2e-export",
+				"--export-base-filename", "movfr");
 
 		final var outputFileEbur128 = new File("target/e2e-export", "movfr_audio-ebur128-summary.csv");
 		final var lines = readLines(outputFileEbur128);
@@ -98,7 +93,7 @@ class E2ECSVTest extends E2EUtils {
 				.filter(f -> f.getName().startsWith("movfr_")
 							 && f.getName().endsWith(".csv"))
 				.count();
-		assertEquals(19, csvCount);
+		assertEquals(20, csvCount);
 	}
 
 }

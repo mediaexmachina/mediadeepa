@@ -16,18 +16,10 @@
  */
 package media.mexm.mediadeepa.exportformat;
 
-import static java.lang.Float.NEGATIVE_INFINITY;
-import static java.lang.Float.NaN;
-import static java.lang.Float.POSITIVE_INFINITY;
-import static media.mexm.mediadeepa.exportformat.tabular.TabularDocument.durationToString;
-import static media.mexm.mediadeepa.exportformat.tabular.TabularDocument.toList;
-import static org.apache.commons.io.FileUtils.deleteQuietly;
-import static org.apache.commons.io.FileUtils.forceMkdir;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyFloat;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.times;
@@ -42,14 +34,14 @@ import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import media.mexm.mediadeepa.exportformat.tabular.TabularDocument;
-import media.mexm.mediadeepa.exportformat.tabular.TabularDocument.ExportTo;
-import media.mexm.mediadeepa.exportformat.tabular.TabularDocumentExporter;
+import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.components.NumberUtils;
 import net.datafaker.Faker;
 
 class TabularDocumentTest {
@@ -57,6 +49,7 @@ class TabularDocumentTest {
 	final static Faker faker = Faker.instance();
 
 	TabularDocument doc;
+	ExportToCmd exportTo;
 	String fileName;
 	File exportDirectory;
 	List<String> row;
@@ -64,7 +57,6 @@ class TabularDocumentTest {
 	byte[] document;
 	String fileExt;
 	String prefixFileName;
-	ExportTo exportTo;
 	File expectedOutputFile;
 
 	@Mock
@@ -75,37 +67,31 @@ class TabularDocumentTest {
 	@BeforeEach
 	void init() throws Exception {
 		openMocks(this).close();
+		exportDirectory = new File("target/tmp-test/" + faker.numerify("exportDirectory###"));
 		fileName = faker.numerify("filename###");
 		doc = new TabularDocument(exporter, fileName);
-		exportDirectory = new File("target/tmp-test/" + faker.numerify("exportDirectory###"));
-		forceMkdir(exportDirectory.getParentFile());
 
 		row = List.of(faker.numerify("item###"));
 		head = faker.numerify("head###");
 		document = faker.random().nextRandomBytes(faker.random().nextInt(10, 100));
 		fileExt = faker.numerify("ext###");
 		prefixFileName = faker.numerify("prefix###");
-		exportTo = new ExportTo(exportDirectory, prefixFileName);
 		expectedOutputFile = new File(exportDirectory.getPath(), prefixFileName + "_" + fileName + "." + fileExt);
+
+		exportTo = new ExportToCmd();
+		exportTo.setExport(exportDirectory);
+		exportTo.setBaseFileName(prefixFileName);
 
 		when(exporter.getDocument(any(), any())).thenReturn(document);
 		when(exporter.getDocumentFileExtension()).thenReturn(fileExt);
-
-		final var formatH = TabularDocumentExporter.getENHighDecimalFormat();
-		final var formatL = TabularDocumentExporter.getENLowDecimalFormat();
-		when(exporter.formatToString(anyFloat(), anyBoolean())).thenAnswer(a -> {
-			final var value = a.getArgument(0, Float.class);
-			if (a.getArgument(1, Boolean.class)) {
-				return formatL.format(value);
-			} else {
-				return formatH.format(value);
-			}
-		});
+		when(exporter.getNumberUtils()).thenReturn(new NumberUtils());
+		when(exporter.formatNumberHighPrecision(anyFloat()))
+				.thenAnswer(d -> String.valueOf(d.getArgument(0, Float.class)));
 	}
 
 	@AfterEach
 	void ends() {
-		deleteQuietly(exportDirectory);
+		FileUtils.deleteQuietly(exportDirectory);
 		verifyNoMoreInteractions(exporter, object);
 	}
 
@@ -119,7 +105,7 @@ class TabularDocumentTest {
 	void testRowListOfString() {
 		doc.head(List.of(""));
 		doc.row(row);
-		assertEquals(expectedOutputFile, doc.exportToFile(exportTo));
+		assertEquals(expectedOutputFile, doc.exportToFile(exportTo).get());
 
 		verify(exporter, times(1)).getDocument(List.of(""), List.of(row));
 		verify(exporter, times(1)).getDocumentFileExtension();
@@ -129,7 +115,7 @@ class TabularDocumentTest {
 	void testRowListOfString_empty_noHeader() {
 		doc.row((List<String>) null);
 		doc.row(List.of());
-		assertNull(doc.exportToFile(exportTo));
+		assertTrue(doc.exportToFile(exportTo).isEmpty());
 		verify(exporter, times(1)).getDocumentFileExtension();
 	}
 
@@ -137,7 +123,7 @@ class TabularDocumentTest {
 	void testRowListOfString_noHeader() {
 		final var empty = List.of("");
 		assertThrows(IllegalArgumentException.class, () -> doc.row(empty));
-		assertNull(doc.exportToFile(exportTo));
+		assertTrue(doc.exportToFile(exportTo).isEmpty());
 		verify(exporter, times(1)).getDocumentFileExtension();
 	}
 
@@ -157,9 +143,9 @@ class TabularDocumentTest {
 				str,
 				duration,
 				flo,
-				NaN,
-				NEGATIVE_INFINITY,
-				POSITIVE_INFINITY,
+				Float.NaN,
+				Float.NEGATIVE_INFINITY,
+				Float.POSITIVE_INFINITY,
 				numb,
 				url));
 
@@ -174,24 +160,17 @@ class TabularDocumentTest {
 				String.valueOf(numb),
 				url.toString());
 
-		assertEquals(expectedOutputFile, doc.exportToFile(exportTo));
+		assertEquals(expectedOutputFile, doc.exportToFile(exportTo).get());
 
 		verify(exporter, times(1)).getDocument(head, List.of(row));
 		verify(exporter, times(1)).getDocumentFileExtension();
-		verify(exporter, atLeast(1)).formatToString(anyFloat(), anyBoolean());
-	}
-
-	@Test
-	void testToList() {
-		final var v0 = faker.numerify("item###");
-		final var v1 = faker.numerify("item###");
-		final var v2 = faker.numerify("item###");
-		assertEquals(List.of(v0, v1, v2), toList(v0, v1, null, v2));
+		verify(exporter, atLeast(1)).getNumberUtils();
+		verify(exporter, atLeast(1)).formatNumberHighPrecision(anyFloat());
 	}
 
 	@Test
 	void testExportToFile_empty() {
-		assertNull(doc.exportToFile(exportTo));
+		assertTrue(doc.exportToFile(exportTo).isEmpty());
 		verify(exporter, times(1)).getDocumentFileExtension();
 	}
 
@@ -199,22 +178,9 @@ class TabularDocumentTest {
 	void testExportToFile() {
 		doc.head(List.of(head));
 		doc.row(row);
-		assertEquals(expectedOutputFile, doc.exportToFile(exportTo));
+		assertEquals(expectedOutputFile, doc.exportToFile(exportTo).get());
 		verify(exporter, times(1)).getDocument(List.of(head), List.of(row));
 		verify(exporter, times(1)).getDocumentFileExtension();
-	}
-
-	@Test
-	void testDurationToString() {
-		assertEquals("", durationToString(null));
-		assertEquals("00:00:00", durationToString(Duration.ZERO));
-		assertEquals("00:00:00.009", durationToString(Duration.ofMillis(9)));
-		assertEquals("00:00:00.099", durationToString(Duration.ofMillis(99)));
-		assertEquals("00:00:00.999", durationToString(Duration.ofMillis(999)));
-		assertEquals("00:00:59", durationToString(Duration.ofSeconds(59)));
-		assertEquals("00:59:00", durationToString(Duration.ofMinutes(59)));
-		assertEquals("10:00:00", durationToString(Duration.ofHours(10)));
-		assertEquals("48:00:00", durationToString(Duration.ofDays(2)));
 	}
 
 }

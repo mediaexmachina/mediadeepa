@@ -23,7 +23,7 @@
         <apache.poi.version>5.2.3</apache.poi.version>
         <jfreechart.version>1.5.4</jfreechart.version>
         <prodlib.version>18.0.2</prodlib.version>
-        <medialib.version>13.0.0</medialib.version>
+        <medialib.version>14.0.1</medialib.version>
     </properties>
 
     <dependencies>
@@ -84,6 +84,10 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jfree</groupId>
