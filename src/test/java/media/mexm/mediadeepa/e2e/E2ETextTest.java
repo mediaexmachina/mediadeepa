@@ -510,7 +510,7 @@ class E2ETextTest extends E2EUtils {
 		extractRawTXT(rawData);
 		assertTrue(rawData.allOutExists());
 
-		if (new File("target/e2e-export", "long-mkv_ffprobe.xml").exists() == false) {
+		if (new File("target/e2e-export", "long-mkv_about.txt").exists() == false) {
 			runApp(
 					"--temp", "target/e2e-temp",
 					"--import", rawData.archive().getPath(),
@@ -551,7 +551,7 @@ class E2ETextTest extends E2EUtils {
 				countLinesExportDir("long-mkv_video-siti-ITU-T_P-910.txt"));
 		assertEquals(3,
 				countLinesExportDir("long-mkv_video-siti-stats-ITU-T_P-910.txt"));
-		assertTrue(countLinesExportDir("long-mkv_ffprobe.xml") > 0);
+		assertTrue(countLinesExportDir("long-mkv_about.txt") > 0);
 	}
 
 }

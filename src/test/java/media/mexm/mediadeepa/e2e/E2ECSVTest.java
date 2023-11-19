@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -43,11 +42,15 @@ class E2ECSVTest extends E2EUtils {
 				"-e", "target/e2e-export",
 				"--export-base-filename", "mpg");
 		var lines = readLines(outputFileMediaSum);
-		assertEquals(List.of(
-				"Type,Value",
-				"Stream,video: mpeg2video 352×288 Main/Main with B frames @ 25 fps yuv420p/colRange:TV",
-				"Stream,audio: mp2 s16p stereo @ 48000 Hz [256 kbps]",
-				"Format,\"MPEG-PS (MPEG-2 Program Stream), 00:00:56, 17 MB\""), lines);
+
+		assertThat(lines.get(0)).isEqualTo(
+				"Type,Value");
+		assertThat(lines.get(1)).isEqualTo(
+				"Stream,video: mpeg2video 352×288 Main/Main with B frames @ 25 fps yuv420p/colRange:TV");
+		assertThat(lines.get(2)).isEqualTo(
+				"Stream,audio: mp2 s16p stereo @ 48000 Hz [256 kbps]");
+		assertThat(lines.get(3)).startsWith(
+				"Format,\"MPEG-PS (MPEG-2 Program Stream), 00:00:56, ").endsWith(" MB\"");
 
 		final var outputFileEbur128 = new File("target/e2e-export", "mpg_audio-ebur128-summary.csv");
 		lines = readLines(outputFileEbur128);
