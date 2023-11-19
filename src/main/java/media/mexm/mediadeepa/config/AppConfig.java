@@ -42,6 +42,7 @@ public class AppConfig {
 	private String sqlLiteTableFileName = "media-datas.sqlite";
 	private String xslxTableFileName = "media-datas.xlsx";
 	private String xmlTableFileName = "media-datas.xml";
+	private String ffprobeXMLFileName = "ffprobe.xml";
 
 	private String lufsGraphicFilename = "audio-loudness.jpg";
 	private String lufsTPKGraphicFilename = "audio-loundness-truepeak.jpg";

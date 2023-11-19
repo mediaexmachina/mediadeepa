@@ -68,6 +68,8 @@ Export analysis format produce:
      - Video GOP frame size, by frame type, by GOP, by frame number.
    - Useful HTML report with file and signal stats, event detection, codecs, GOP stats...
 
+And it can export to file the FFprobe XML with media headers (container and A/V streams).
+
 ## ⚡ Getting started
 
 ### 🔩 Dependencies needed for run Mediadeepa
@@ -249,6 +251,7 @@ sqlite         SQLite database
 xml            XML Document
 json           JSON Document
 html           HTML report document
+ffprobexml     Media file headers on FFprobe XML
 [...]
 ```
 
