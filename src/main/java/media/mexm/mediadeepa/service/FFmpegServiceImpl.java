@@ -243,7 +243,12 @@ public class FFmpegServiceImpl implements FFmpegService {
 			countFilter.add(addFilter(ma, fIgnore, fOnly, filterSetup(new VideoFilterBlackdetect(), options)));
 			countFilter.add(addFilter(ma, fIgnore, fOnly, filterSetup(new VideoFilterBlockdetect(), options)));
 			countFilter.add(addFilter(ma, fIgnore, fOnly, filterSetup(new VideoFilterBlurdetect(), options)));
-			countFilter.add(addFilter(ma, fIgnore, fOnly, filterSetup(new VideoFilterCropdetect(), options)));
+
+			final var videoFilterCropdetect = new VideoFilterCropdetect();
+			videoFilterCropdetect.setSkip(0);
+			videoFilterCropdetect.setReset(1);
+			countFilter.add(addFilter(ma, fIgnore, fOnly, filterSetup(videoFilterCropdetect, options)));
+
 			countFilter.add(addFilter(ma, fIgnore, fOnly, filterSetup(new VideoFilterIdet(), options)));
 			countFilter.add(addFilter(ma, fIgnore, fOnly, new VideoFilterSiti()));
 			countFilter.add(addFilter(ma, fIgnore, fOnly, filterSetup(new VideoFilterFreezedetect(), options)));
