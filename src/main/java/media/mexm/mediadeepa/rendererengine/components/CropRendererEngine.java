@@ -122,32 +122,32 @@ public class CropRendererEngine implements
 					final var rangeAxis = RangeAxis.createFromRelativesValueSet("Pixels", 0,
 							cropReport.stream()
 									.map(LavfiMtdValue::value)
-									.flatMap(d -> Stream.of(d.x(), d.y(), d.w(), d.h())));
+									.flatMap(d -> Stream.of(d.x1(), d.y1(), d.x2(), d.y2())));
 
 					final var dataGraphic = TimedDataGraphic.create(
 							cropReport.stream().map(LavfiMtdValue::ptsTime),
 							rangeAxis);
 
 					dataGraphic.addSeries(dataGraphic.new Series(
-							"Crop X offset",
+							"Crop X1",
 							BLUE,
 							THIN_STROKE,
-							cropReport.stream().map(d -> d.value().x())));
+							cropReport.stream().map(d -> d.value().x1())));
 					dataGraphic.addSeries(dataGraphic.new Series(
-							"Crop Y offset",
+							"Crop Y1",
 							RED,
 							THICK_STROKE,
-							cropReport.stream().map(d -> d.value().y())));
+							cropReport.stream().map(d -> d.value().y1())));
 					dataGraphic.addSeries(dataGraphic.new Series(
-							"Crop width",
+							"Crop X2",
 							CYAN,
 							THIN_STROKE,
-							cropReport.stream().map(d -> d.value().w())));
+							cropReport.stream().map(d -> d.value().x2())));
 					dataGraphic.addSeries(dataGraphic.new Series(
-							"Crop height",
+							"Crop Y2",
 							ORANGE,
 							THICK_STROKE,
-							cropReport.stream().map(d -> d.value().h())));
+							cropReport.stream().map(d -> d.value().y2())));
 
 					result.getFFprobeResult()
 							.flatMap(FFprobeJAXB::getFirstVideoStream)
