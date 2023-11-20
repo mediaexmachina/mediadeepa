@@ -25,6 +25,8 @@ import static media.mexm.mediadeepa.exportformat.DataGraphic.THICK_STROKE;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
 import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.VIDEO;
 
+import java.awt.Dimension;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,13 +39,13 @@ import org.springframework.stereotype.Component;
 import media.mexm.mediadeepa.ConstStrings;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
+import media.mexm.mediadeepa.exportformat.CropEventTableReportEntry;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.GraphicArtifact;
 import media.mexm.mediadeepa.exportformat.NumericUnitValueReportEntry;
 import media.mexm.mediadeepa.exportformat.RangeAxis;
 import media.mexm.mediadeepa.exportformat.ReportDocument;
 import media.mexm.mediadeepa.exportformat.ReportSection;
-import media.mexm.mediadeepa.exportformat.SimpleKeyValueListReportEntry;
 import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
@@ -54,6 +56,7 @@ import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdCropdetect;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
@@ -181,25 +184,34 @@ public class CropRendererEngine implements
 				.filter(not(List::isEmpty))
 				.ifPresent(cropDetectReport -> {
 					final var section = new ReportSection(VIDEO, BLACK_BORDERS_CROP_DETECTION);
+					final var sourceResolution = result.getVideoResolution().orElse(new Dimension(0, 0));
+					final List<LavfiMtdValue<LavfiMtdCropdetect>> identity = new ArrayList<>();
 					final var cropEvents = cropDetectReport.stream()
-							.map(LavfiMtdValue::value)
-							.distinct()
-							.toList();
-					section.add(new NumericUnitValueReportEntry("Crop detection activity", cropEvents.size(), EVENT_S));
-					section.add(new SimpleKeyValueListReportEntry("First crop values",
-							cropEvents.stream()
-									.limit(10)
-									.map(l -> Stream.of(
-											"x1: " + l.x1(),
-											"x2: " + l.x2(),
-											"y1: " + l.y1(),
-											"y2: " + l.y2(),
-											"X: " + l.x(),
-											"Y: " + l.y(),
-											"Width: " + l.w(),
-											"Height: " + l.h()))
-									.map(l -> l.collect(Collectors.joining(", ")))
-									.toList()));
+							.sorted((l, r) -> Integer.compare(l.frame(), r.frame()))
+							/**
+							 * Remove full frames (no crop)
+							 */
+							.dropWhile(f -> sourceResolution.width == f.value().w()
+											&& sourceResolution.height == f.value().h())
+							.collect(Collectors.reducing(
+									identity,
+									List::of,
+									(actual, nextItemList) -> {
+										final var nextItem = nextItemList.get(0);
+										if (actual.isEmpty()
+											|| actual.get(actual.size() - 1).value()
+													.equals(nextItem.value()) == false) {
+											actual.add(nextItem);
+										}
+										return actual;
+									}));
+
+					section.add(new NumericUnitValueReportEntry("Crop detection activity", cropEvents.size(),
+							EVENT_S));
+					section.add(new CropEventTableReportEntry(cropEvents.stream()
+							.limit(appConfig.getMaxCropEventsReportDisplay())
+							.toList(),
+							sourceResolution));
 					document.add(section);
 				});
 	}

@@ -67,5 +67,6 @@ public class AppConfig {
 	private Dimension imageSizeFullSize = new Dimension(2000, 1200);
 	private Dimension imageSizeHalfSize = new Dimension(2000, 600);
 	private float jpegCompressionRatio = 0.95f;
+	private int maxCropEventsReportDisplay = 20;
 
 }

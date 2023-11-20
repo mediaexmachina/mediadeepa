@@ -477,10 +477,7 @@ class E2ETextTest extends E2EUtils {
 		final var f = getProcessedTXTFromRaw(rawData, "video-crop-detect.txt");
 		final var lines = readLines(f);
 		assertTableWith(11, lines);
-		/**
-		 * Crop dectect seams to skip the 2 first frames
-		 */
-		assertEquals(V_FRAME_COUNT - 1, lines.size());
+		assertEquals(V_FRAME_COUNT + 1, lines.size());
 	}
 
 	void checkProcessTXT_blurDectect(final E2ERawOutDataFiles rawData) throws IOException {

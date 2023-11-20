@@ -246,3 +246,23 @@ div.streamindex.audio {
     color: white;
     background-color: red;
 }
+
+div.cropevent {
+	display: flex;
+	flex-flow: row wrap;
+}
+
+div.cropevent span.frame {
+	width: 4rem;
+	padding-right: 0rem;
+}
+
+div.cropevent span.ptstime {
+	width: 8rem;
+	padding-right: 0rem;
+}
+
+div.cropevent span.pos {
+	width: 4rem;
+	padding-right: 0rem;
+}

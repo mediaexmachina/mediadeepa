@@ -19,14 +19,17 @@ package media.mexm.mediadeepa.exportformat;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 
+import java.awt.Dimension;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
@@ -62,7 +65,6 @@ public class DataResult {
 
 	public void setEbur128events(final List<Ebur128StrErrFilterEvent> ebur128events) {
 		this.ebur128events = unmodifiableList(requireNonNull(ebur128events));
-
 	}
 
 	public void setRawStdErrEvents(final List<RawStdErrFilterEvent> rawStdErrEvents) {
@@ -84,4 +86,37 @@ public class DataResult {
 	public Optional<ContainerAnalyserResult> getContainerAnalyserResult() {
 		return Optional.ofNullable(containerAnalyserResult);
 	}
+
+	public Optional<Dimension> getVideoResolution() {
+		return getFFprobeResult()
+				.flatMap(FFprobeJAXB::getFirstVideoStream)
+				.flatMap(v -> {
+					final var width = v.getWidth();
+					final var height = v.getHeight();
+					if (width != null && height != null && width > 0 && height > 0) {
+						return Optional.ofNullable(new Dimension(width, height));
+					}
+					return Optional.empty();
+				})
+				.or(() -> getContainerAnalyserResult()
+						.map(ContainerAnalyserResult::videoConst)
+						.flatMap(Optional::ofNullable)
+						.flatMap(videoFrameConstToDimension()))
+				.or(() -> getContainerAnalyserResult()
+						.map(ContainerAnalyserResult::olderVideoConsts)
+						.flatMap(f -> f.stream().findFirst())
+						.flatMap(videoFrameConstToDimension()));
+	}
+
+	private Function<? super FFprobeVideoFrameConst, ? extends Optional<? extends Dimension>> videoFrameConstToDimension() {
+		return v -> {
+			final var width = v.width();
+			final var height = v.height();
+			if (width > 0 && height > 0) {
+				return Optional.ofNullable(new Dimension(width, height));
+			}
+			return Optional.empty();
+		};
+	}
+
 }
