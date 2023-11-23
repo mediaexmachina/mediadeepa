@@ -26,9 +26,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.boot.SpringApplication;
 
 import media.mexm.mediadeepa.App;
@@ -62,37 +62,25 @@ abstract class E2EUtils {
 		System.setProperty("mediadeepa.disableKeyPressExit", "true");
 	}
 
-	static void runApp(final String... params) {
+	static void runApp(final Supplier<Boolean> dontExecIf, final String... params) {
+		if (dontExecIf.get()) {
+			return;
+		}
 		assertEquals(
 				0,
 				SpringApplication.exit(SpringApplication.run(App.class, params)),
 				"App exit code must return 0");
 	}
 
+	static void runApp(final String... params) {
+		runApp(() -> false, params);
+	}
+
 	static void extractRawTXT(final E2ERawOutDataFiles rawData) throws IOException {
-		if (rawData.allOutExists()) {
-			return;
-		}
-		runApp("-i", rawData.mediaFile().getPath(), "-c",
+		runApp(() -> rawData.allOutExists(),
+				"-i", rawData.mediaFile().getPath(), "-c",
 				"--temp", "target/e2e-temp",
 				"--extract", rawData.archive().getPath());
-	}
-
-	static void processTXT(final File mediaFile) throws IOException {
-		runApp("-i", mediaFile.getPath(), "-c",
-				"--temp", "target/e2e-temp",
-				"-f", "txt",
-				"-e", "target/e2e-process",
-				"--export-base-filename", FilenameUtils.getExtension(mediaFile.getName()));
-	}
-
-	static void importRawTXTToProcess(final E2ERawOutDataFiles rawData) throws IOException {
-		runApp(
-				"--temp", "target/e2e-temp",
-				"--import", rawData.archive().getPath(),
-				"-f", "txt",
-				"-e", "target/e2e-export",
-				"--export-base-filename", rawData.getExtension());
 	}
 
 	static void assertEqualsNbLines(final long expected, final List<String> lines, final String what) {
