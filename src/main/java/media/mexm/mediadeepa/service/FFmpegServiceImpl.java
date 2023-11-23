@@ -17,6 +17,7 @@
 package media.mexm.mediadeepa.service;
 
 import static java.util.stream.Collectors.toUnmodifiableMap;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import java.io.File;
 import java.net.SocketException;
@@ -59,6 +60,7 @@ import tv.hd3g.fflauncher.filtering.AudioFilterSilencedetect;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.AudioFilterVolumedetect;
 import tv.hd3g.fflauncher.filtering.Filter;
+import tv.hd3g.fflauncher.filtering.FilterSupplier;
 import tv.hd3g.fflauncher.filtering.VideoFilterBlackdetect;
 import tv.hd3g.fflauncher.filtering.VideoFilterBlockdetect;
 import tv.hd3g.fflauncher.filtering.VideoFilterBlurdetect;
@@ -106,6 +108,20 @@ public class FFmpegServiceImpl implements FFmpegService {
 			new VideoFilterMEstimate(),
 			new VideoFilterMetadata(Mode.PRINT),
 			new VideoFilterSiti());
+
+	private static final Set<String> mandatoryFilters = List.of(
+			new AudioFilterAMetadata(Mode.PRINT),
+			new AudioFilterAmerge(2),
+			new AudioFilterChannelmap(ChannelLayout.MONO, Map.of()),
+			new AudioFilterChannelsplit(ChannelLayout.MONO, List.of()),
+			new AudioFilterJoin(1, ChannelLayout.MONO, Map.of(Channel.FC, "1")),
+			new VideoFilterMEstimate(),
+			new VideoFilterMetadata(Mode.PRINT))
+			.stream()
+			.map(FilterSupplier::toFilter)
+			.map(Filter::getFilterName)
+			.distinct()
+			.collect(toUnmodifiableSet());
 
 	@Autowired
 	private ExecutableFinder executableFinder;
@@ -394,33 +410,28 @@ public class FFmpegServiceImpl implements FFmpegService {
 	private boolean addFilter(final MediaAnalyser ma,
 							  final Set<String> fIgnore,
 							  final Set<String> fOnly,
-							  final AudioFilterSupplier filter) {
+							  final FilterSupplier filter) {
+		var added = false;
 		final var filterName = filter.toFilter().getFilterName();
-		if (fOnly.isEmpty()) {
+		if (mandatoryFilters.contains(filterName)) {
+			added = true;
+		} else if (fOnly.isEmpty()) {
 			if (fIgnore.contains(filterName) == false) {
-				return ma.addOptionalFilter(filter, this::logFilterPresence);
+				added = true;
 			}
 		} else {
 			if (fOnly.contains(filterName)) {
-				return ma.addOptionalFilter(filter, this::logFilterPresence);
+				added = true;
 			}
 		}
-		return false;
-	}
+		if (added == false) {
+			return false;
+		}
 
-	private boolean addFilter(final MediaAnalyser ma,
-							  final Set<String> fIgnore,
-							  final Set<String> fOnly,
-							  final VideoFilterSupplier filter) {
-		final var filterName = filter.toFilter().getFilterName();
-		if (fOnly.isEmpty()) {
-			if (fIgnore.contains(filterName) == false) {
-				return ma.addOptionalFilter(filter, this::logFilterPresence);
-			}
-		} else {
-			if (fOnly.contains(filterName)) {
-				return ma.addOptionalFilter(filter, this::logFilterPresence);
-			}
+		if (filter instanceof final VideoFilterSupplier vfs) {
+			return ma.addOptionalFilter(vfs, this::logFilterPresence);
+		} else if (filter instanceof final AudioFilterSupplier afs) {
+			return ma.addOptionalFilter(afs, this::logFilterPresence);
 		}
 		return false;
 	}
