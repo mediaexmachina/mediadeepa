@@ -16,20 +16,19 @@
  */
 package media.mexm.mediadeepa.components;
 
+import static org.apache.commons.io.FileUtils.forceDelete;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
-import java.util.concurrent.Callable;
+import java.io.File;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,52 +36,50 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.service.AppSessionService;
-import media.mexm.mediadeepa.service.DocumentParserService;
-import net.datafaker.Faker;
-import picocli.CommandLine;
 
 @SpringBootTest
-class CLIRunnerTest {
+class CLIRunnerDocExportTest {
 
 	@Autowired
 	CLIRunner c;
 
 	@MockBean
-	CommandLine commandLine;
-	@MockBean
 	AppCommand appCommand;
 	@MockBean
 	AppSessionService appSessionService;
-	@MockBean
-	DocumentParserService documentParserService;
-	@Captor
-	ArgumentCaptor<Callable<Integer>> doCallCaptor;
-	int returnCode;
 
 	@BeforeEach
 	void init() throws Exception {
 		MockitoAnnotations.openMocks(this).close();
-		returnCode = Faker.instance().random().nextInt();
-		when(appSessionService.runCli()).thenReturn(returnCode);
-		when(commandLine.execute(any())).thenReturn(returnCode);
+		reset(appCommand, appSessionService);
+	}
+
+	@BeforeAll
+	@AfterAll
+	static void all() {
+		System.getProperties().remove("exportdocumentation.manpage");
 	}
 
 	@AfterEach
 	void ends() {
-		verifyNoMoreInteractions(commandLine, appCommand, appSessionService, documentParserService);
+		verifyNoMoreInteractions(appCommand, appSessionService);
 	}
 
 	@Test
-	void testRun() throws Exception {
-		verify(commandLine, times(1)).setParameterExceptionHandler(any());
-		verify(appCommand, times(1)).setDoCall(doCallCaptor.capture());
-		assertEquals(returnCode, doCallCaptor.getValue().call());
-		verify(appSessionService, times(1)).runCli();
-		verify(commandLine, times(1)).execute(any());
+	void testRun_makeMan() throws Exception {
+		final var tempMan = File.createTempFile("mediadeepa-test", ".man");
+		forceDelete(tempMan);
+		System.setProperty("exportdocumentation.manpage", tempMan.getPath());
+		c.run();
 
-		/**
-		 * Spring Boot test limitation: startup is before BeforeEach
-		 */
+		assertThat(tempMan)
+				.exists()
+				.size()
+				.isGreaterThan(10)
+				.returnToFile()
+				.content()
+				.contains("ffmpeg", "mediadeepa", "\\-\\-export");
+		forceDelete(tempMan);
 		assertEquals(0, c.getExitCode());
 	}
 

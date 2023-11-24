@@ -24,6 +24,7 @@
         <jfreechart.version>1.5.4</jfreechart.version>
         <prodlib.version>18.0.2</prodlib.version>
         <medialib.version>14.0.1</medialib.version>
+        <commonmark.version>0.21.0</commonmark.version>
     </properties>
 
     <dependencies>
@@ -31,6 +32,11 @@
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
             <version>${picocli.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>${commonmark.version}</version>
         </dependency>
         <dependency>
             <groupId>tv.hd3g</groupId>

@@ -25,21 +25,25 @@ import lombok.Data;
 import lombok.Setter;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.ExitCode;
 import picocli.CommandLine.Option;
 
 @Command(name = NAME,
 		 description = "Extract/process technical informations from audio/videos files/streams",
-		 version = { "Media Deep Analysis %1$s",
-					 "Copyright (C) 2022-%2$s Media ex Machina, under the GNU General Public License" },
+		 version = { "Mediadeepa %1$s",
+					 "Copyright (C) 2022-%2$s Media ex Machina, under the GNU General Public License." },
 		 sortOptions = false,
 		 separator = " ",
 		 usageHelpAutoWidth = true,
-		 synopsisHeading = "",
+		 synopsisHeading = "Base usage: ",
+		 exitCodeListHeading = "Exit codes:%n",
+		 exitCodeList = { ExitCode.OK + ":Ok/done",
+						  ExitCode.USAGE + ":Error" },
 		 customSynopsis = {
-							"Base usage: mediadeepa [-hov] [--temp DIRECTORY] [-i FILE]",
-							"                       [-c] [-mn] [-an | -vn] [-f FORMAT_TYPE] [-e DIRECTORY]",
-							"                       [-fo FILTER] [-fn FILTER] [--filter-X VALUE]",
-							"                       [--extract-X FILE] [--import-X FILE]"
+							"mediadeepa [-hov] [--temp DIRECTORY] [-i FILE]",
+							"           [-c] [-mn] [-an | -vn] [-f FORMAT_TYPE] [-e DIRECTORY]",
+							"           [-fo FILTER] [-fn FILTER] [--filter-X VALUE]",
+							"           [--extract-X FILE] [--import-X FILE]"
 		 })
 @Data
 public class AppCommand implements Callable<Integer> {
@@ -56,10 +60,12 @@ public class AppCommand implements Callable<Integer> {
 	@Option(names = { "-o", "--options" }, description = "Show the avaliable options on this system")
 	private boolean options;
 
-	@Option(names = { "--autocomplete" }, description = "Show the autocomplete bash script for this application")
+	@Option(names = { "--autocomplete" },
+			description = "Show the autocomplete bash script for this application",
+			hidden = true)
 	private boolean autocomplete;
 
-	@ArgGroup(exclusive = false)
+	@ArgGroup(exclusive = false, heading = "Process file")
 	private ProcessFileCmd processFileCmd;
 
 	@Option(names = { "--temp" },
@@ -67,13 +73,13 @@ public class AppCommand implements Callable<Integer> {
 			paramLabel = "DIRECTORY")
 	private File tempDir;
 
-	@ArgGroup(exclusive = false)
+	@ArgGroup(exclusive = false, heading = "Extract to archive")
 	private ExtractToCmd extractToCmd;
 
-	@ArgGroup(exclusive = false)
+	@ArgGroup(exclusive = false, heading = "Import from archive")
 	private ImportFromCmd importFromCmd;
 
-	@ArgGroup(exclusive = false)
+	@ArgGroup(exclusive = false, heading = "Export to generated files")
 	private ExportToCmd exportToCmd;
 
 	@Override

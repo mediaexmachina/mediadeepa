@@ -54,7 +54,7 @@ class E2ECmdUtilsTest extends E2EUtils {
 	@ValueSource(strings = { "-v", "--version" })
 	void testShowVersion(final String param, final CapturedOutput output) {
 		runApp(param);
-		assertThat(output.getOut()).startsWith("Media Deep Analysis");
+		assertThat(output.getOut()).startsWith("Mediadeepa");
 		assertThat(output.getOut()).contains("Media ex Machina", "Copyright", "GNU");
 		assertThat(output.getErr()).isEmpty();
 	}

@@ -20,6 +20,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -99,6 +101,16 @@ public class Setup {
 	@Bean
 	AppCommand getAppCommand() {
 		return new AppCommand();
+	}
+
+	@Bean
+	Parser getMarkdownParser() {
+		return Parser.builder().build();
+	}
+
+	@Bean
+	HtmlRenderer getHtmlRenderer() {
+		return HtmlRenderer.builder().build();
 	}
 
 }

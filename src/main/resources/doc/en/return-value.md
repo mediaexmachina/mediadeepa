@@ -1,0 +1,1 @@
+The application can produce several files, but return mostly processing status and log messages.
