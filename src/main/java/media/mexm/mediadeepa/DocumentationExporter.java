@@ -94,7 +94,9 @@ public class DocumentationExporter {
 					.filter(not(allOptionsNested::contains))
 					.sorted(SPEC_COMPARATOR));
 
-			groups.forEach(group -> manPage.printGroupOptions(Optional.ofNullable(group.heading()),
+			groups.forEach(group -> manPage.printGroupOptions(
+					Optional.ofNullable(group.heading())
+							.map(h -> h.replace("%n", "")),
 					group.options().stream()
 							.sorted(SPEC_COMPARATOR)));
 

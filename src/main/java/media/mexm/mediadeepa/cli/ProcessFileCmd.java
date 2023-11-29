@@ -61,14 +61,14 @@ public class ProcessFileCmd {
 			paramLabel = "FILTER")
 	private Set<String> filtersIgnore;
 
-	@ArgGroup(exclusive = true, heading = "Media type exclusive")
+	@ArgGroup(exclusive = true, heading = "Media type exclusive%n")
 	private TypeExclusiveCmd typeExclusiveCmd;
 
 	@Option(names = { "-mn", "--media-no" },
 			description = "Disable media analysing (ffmpeg)")
 	private boolean noMediaAnalysing;
 
-	@ArgGroup(exclusive = false, heading = "Internal filters parameters")
+	@ArgGroup(exclusive = false, heading = "Internal filters parameters%n")
 	private FilterCmd filterCmd;
 
 }
