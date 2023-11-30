@@ -37,6 +37,8 @@ import tv.hd3g.commons.version.EnvironmentVersion;
 @Slf4j
 public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 
+	public static final int EXIT_CODE_GENERATE_DOC = 42;
+
 	@Autowired
 	private CommandLine commandLine;
 	@Autowired
@@ -82,7 +84,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		}
 
 		if (hasExportedDoc) {
-			exitCode = 0;
+			exitCode = EXIT_CODE_GENERATE_DOC;
 			return;
 		}
 

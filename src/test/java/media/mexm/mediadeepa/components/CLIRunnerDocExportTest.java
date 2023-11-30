@@ -16,6 +16,7 @@
  */
 package media.mexm.mediadeepa.components;
 
+import static media.mexm.mediadeepa.components.CLIRunner.EXIT_CODE_GENERATE_DOC;
 import static org.apache.commons.io.FileUtils.forceDelete;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -80,7 +81,7 @@ class CLIRunnerDocExportTest {
 				.content()
 				.contains("ffmpeg", "mediadeepa", "\\-\\-export");
 		forceDelete(tempMan);
-		assertEquals(0, c.getExitCode());
+		assertEquals(EXIT_CODE_GENERATE_DOC, c.getExitCode());
 	}
 
 }

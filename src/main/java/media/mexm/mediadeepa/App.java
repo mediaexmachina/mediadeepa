@@ -16,6 +16,8 @@
  */
 package media.mexm.mediadeepa;
 
+import static media.mexm.mediadeepa.components.CLIRunner.EXIT_CODE_GENERATE_DOC;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -25,7 +27,11 @@ public class App {
 
 	public static void main(final String[] args) {
 		setDefaultProps();
-		System.exit(SpringApplication.exit(SpringApplication.run(App.class, args)));
+		final var exitCode = SpringApplication.exit(SpringApplication.run(App.class, args));
+		if (exitCode == EXIT_CODE_GENERATE_DOC) {
+			return;
+		}
+		System.exit(exitCode);
 	}
 
 	public static void setDefaultProps() {

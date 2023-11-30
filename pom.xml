@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -19,12 +20,14 @@
     </parent>
 
     <properties>
+        <jaxb-runtime.version>2.3.8</jaxb-runtime.version>
         <picocli.version>4.7.0</picocli.version>
         <apache.poi.version>5.2.3</apache.poi.version>
         <jfreechart.version>1.5.4</jfreechart.version>
         <prodlib.version>18.0.2</prodlib.version>
         <medialib.version>14.0.1</medialib.version>
         <commonmark.version>0.21.0</commonmark.version>
+        <exec-maven-plugin.version>3.1.1</exec-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -111,7 +114,7 @@
             <dependency>
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
-                <version>2.3.8</version>
+                <version>${jaxb-runtime.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -127,4 +130,30 @@
         <system>GitHub</system>
     </issueManagement>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>media.mexm.mediadeepa.App</mainClass>
+                    <systemProperties>
+                        <systemProperty>
+                            <key>exportdocumentation.manpage</key>
+			    <value>docs/mediadeepa-1.man</value>
+                        </systemProperty>
+                    </systemProperties>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
