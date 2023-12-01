@@ -14,7 +14,7 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa;
+package media.mexm.mediadeepa.components;
 
 import static java.lang.Integer.signum;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -31,40 +31,47 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import media.mexm.mediadeepa.ManPage;
 import media.mexm.mediadeepa.service.DocumentParserService;
+import picocli.CommandLine;
 import picocli.CommandLine.Model.ArgGroupSpec;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Model.IOrdered;
 import picocli.CommandLine.Model.OptionSpec;
+import tv.hd3g.commons.version.EnvironmentVersion;
 
 @Slf4j
+@Component
 public class DocumentationExporter {
 	private static final Comparator<IOrdered> SPEC_COMPARATOR = (o1, o2) -> signum(o1.order() - o2.order());
 
-	private final File manFile;
-	private final CommandSpec spec;
-	private final String appVersion;
-	private final DocumentParserService documentParserService;
+	@Autowired
+	private CommandLine commandLine;
+	@Autowired
+	private DocumentParserService documentParserService;
+	@Autowired
+	private EnvironmentVersion environmentVersion;
 
-	public DocumentationExporter(final File manFile,
-								 final CommandSpec spec,
-								 final String appVersion,
-								 final DocumentParserService documentParserService) {
-		this.manFile = manFile;
-		this.spec = Objects.requireNonNull(spec, "\"spec\" can't to be null").root();
-		this.appVersion = appVersion;
-		this.documentParserService = documentParserService;
+	private CommandSpec spec;
+	private String appVersion;
+
+	@PostConstruct
+	public void init() {
+		spec = commandLine.getCommandSpec().root();
+		appVersion = environmentVersion.appVersion();
 	}
 
-	public void exportManPage() throws IOException {
+	public void exportManPage(final File manFile) throws IOException {
 		FileUtils.forceMkdirParent(manFile);
 		try (final var pw = new PrintStream(manFile, UTF_8)) {
 			log.info("Save man page to {}", manFile);

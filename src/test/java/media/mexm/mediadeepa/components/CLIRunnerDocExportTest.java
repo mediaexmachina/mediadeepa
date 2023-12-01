@@ -17,10 +17,10 @@
 package media.mexm.mediadeepa.components;
 
 import static media.mexm.mediadeepa.components.CLIRunner.EXIT_CODE_GENERATE_DOC;
-import static org.apache.commons.io.FileUtils.forceDelete;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.io.File;
@@ -48,10 +48,16 @@ class CLIRunnerDocExportTest {
 	AppCommand appCommand;
 	@MockBean
 	AppSessionService appSessionService;
+	@MockBean
+	DocumentationExporter documentationExporter;
 
 	@BeforeEach
 	void init() throws Exception {
 		MockitoAnnotations.openMocks(this).close();
+
+		/**
+		 * Spring Boot test limitation: startup is before BeforeEach
+		 */
 		reset(appCommand, appSessionService);
 	}
 
@@ -63,24 +69,14 @@ class CLIRunnerDocExportTest {
 
 	@AfterEach
 	void ends() {
-		verifyNoMoreInteractions(appCommand, appSessionService);
+		verifyNoMoreInteractions(appCommand, appSessionService, documentationExporter);
 	}
 
 	@Test
 	void testRun_makeMan() throws Exception {
-		final var tempMan = File.createTempFile("mediadeepa-test", ".man");
-		forceDelete(tempMan);
-		System.setProperty("exportdocumentation.manpage", tempMan.getPath());
+		System.setProperty("exportdocumentation.manpage", "something");
 		c.run();
-
-		assertThat(tempMan)
-				.exists()
-				.size()
-				.isGreaterThan(10)
-				.returnToFile()
-				.content()
-				.contains("ffmpeg", "mediadeepa", "\\-\\-export");
-		forceDelete(tempMan);
+		verify(documentationExporter, times(1)).exportManPage(new File("something"));
 		assertEquals(EXIT_CODE_GENERATE_DOC, c.getExitCode());
 	}
 

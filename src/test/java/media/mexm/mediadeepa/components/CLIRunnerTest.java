@@ -55,6 +55,8 @@ class CLIRunnerTest {
 	AppSessionService appSessionService;
 	@MockBean
 	DocumentParserService documentParserService;
+	@MockBean
+	DocumentationExporter documentationExporter;
 	@Captor
 	ArgumentCaptor<Callable<Integer>> doCallCaptor;
 	int returnCode;
@@ -69,7 +71,12 @@ class CLIRunnerTest {
 
 	@AfterEach
 	void ends() {
-		verifyNoMoreInteractions(commandLine, appCommand, appSessionService, documentParserService);
+		verifyNoMoreInteractions(
+				commandLine,
+				appCommand,
+				appSessionService,
+				documentParserService,
+				documentationExporter);
 	}
 
 	@Test

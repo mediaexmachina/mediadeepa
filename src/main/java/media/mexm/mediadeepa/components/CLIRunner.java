@@ -25,13 +25,10 @@ import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
-import media.mexm.mediadeepa.DocumentationExporter;
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.service.AppSessionService;
-import media.mexm.mediadeepa.service.DocumentParserService;
 import picocli.CommandLine;
 import picocli.CommandLine.UnmatchedArgumentException;
-import tv.hd3g.commons.version.EnvironmentVersion;
 
 @Component
 @Slf4j
@@ -44,9 +41,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	@Autowired
 	private AppCommand appCommand;
 	@Autowired
-	private DocumentParserService documentParserService;
-	@Autowired
-	private EnvironmentVersion environmentVersion;
+	private DocumentationExporter documentationExporter;
 	@Autowired
 	private AppSessionService appSessionService;
 	private int exitCode;
@@ -74,12 +69,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		if (manPageFileName != null) {
 			final var manFile = new File(manPageFileName);
 			log.debug("Export man page to {}", manFile);
-			final var docExporter = new DocumentationExporter(
-					manFile,
-					commandLine.getCommandSpec(),
-					environmentVersion.appVersion(),
-					documentParserService);
-			docExporter.exportManPage();
+			documentationExporter.exportManPage(manFile);
 			hasExportedDoc = true;
 		}
 
