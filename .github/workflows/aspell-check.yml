@@ -1,0 +1,22 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Aspell check documentation
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Update repos
+      run: sudo apt-get update
+    - name: Install aspell
+      run: sudo apt-get install -y aspell aspell-en
+    - name: Run check script
+      run: .aspell-check/check.bash
