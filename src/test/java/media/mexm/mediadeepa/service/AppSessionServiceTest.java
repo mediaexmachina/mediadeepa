@@ -48,6 +48,7 @@ import media.mexm.mediadeepa.cli.ExtractToCmd;
 import media.mexm.mediadeepa.cli.ImportFromCmd;
 import media.mexm.mediadeepa.cli.ProcessFileCmd;
 import media.mexm.mediadeepa.components.CLIRunner;
+import media.mexm.mediadeepa.components.DocumentationExporter;
 import media.mexm.mediadeepa.config.AppConfig;
 import net.datafaker.Faker;
 import picocli.CommandLine;
@@ -90,6 +91,8 @@ class AppSessionServiceTest {
 	KeyPressToExit keyPressToExit;
 	@MockBean
 	MediaAnalyticsTransformerService mediaAnalyticsTransformerService;
+	@MockBean
+	DocumentationExporter documentationExporter;
 
 	@Mock
 	PrintWriter pw;
@@ -130,7 +133,8 @@ class AppSessionServiceTest {
 				scheduledExecutorService,
 				executableFinder,
 				keyPressToExit,
-				mediaAnalyticsTransformerService);
+				mediaAnalyticsTransformerService,
+				documentationExporter);
 	}
 
 	@Test

@@ -17,6 +17,8 @@
 package media.mexm.mediadeepa.components;
 
 import static media.mexm.mediadeepa.components.CLIRunner.EXIT_CODE_GENERATE_DOC;
+import static media.mexm.mediadeepa.components.CLIRunner.PROP_EXPORTDOCUMENTATION_MANPAGE;
+import static media.mexm.mediadeepa.components.CLIRunner.PROP_EXPORTDOCUMENTATION_README;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -25,9 +27,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.io.File;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -61,22 +61,31 @@ class CLIRunnerDocExportTest {
 		reset(appCommand, appSessionService);
 	}
 
-	@BeforeAll
-	@AfterAll
-	static void all() {
-		System.getProperties().remove("exportdocumentation.manpage");
-	}
-
 	@AfterEach
 	void ends() {
 		verifyNoMoreInteractions(appCommand, appSessionService, documentationExporter);
 	}
 
+	@AfterEach
+	@BeforeEach
+	void resetProp() {
+		System.getProperties().remove(PROP_EXPORTDOCUMENTATION_MANPAGE);
+		System.getProperties().remove(PROP_EXPORTDOCUMENTATION_README);
+	}
+
 	@Test
 	void testRun_makeMan() throws Exception {
-		System.setProperty("exportdocumentation.manpage", "something");
+		System.setProperty(PROP_EXPORTDOCUMENTATION_MANPAGE, "something");
 		c.run();
 		verify(documentationExporter, times(1)).exportManPage(new File("something"));
+		assertEquals(EXIT_CODE_GENERATE_DOC, c.getExitCode());
+	}
+
+	@Test
+	void testRun_makeMd() throws Exception {
+		System.setProperty(PROP_EXPORTDOCUMENTATION_README, "something");
+		c.run();
+		verify(documentationExporter, times(1)).exportReadmeProjectMarkdown(new File("something"));
 		assertEquals(EXIT_CODE_GENERATE_DOC, c.getExitCode());
 	}
 

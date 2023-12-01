@@ -52,4 +52,20 @@ class DocumentationExporterTest {
 		forceDelete(tempMan);
 	}
 
+	@Test
+	void testExportReadme() throws IOException {
+		final var tempReadme = File.createTempFile("mediadeepa-test", ".md");
+		forceDelete(tempReadme);
+		documentationExporter.exportReadmeProjectMarkdown(tempReadme);
+
+		assertThat(tempReadme)
+				.exists()
+				.size()
+				.isGreaterThan(10)
+				.returnToFile()
+				.content()
+				.contains("ffmpeg", "mediadeepa", "sonarcloud");
+		forceDelete(tempReadme);
+	}
+
 }

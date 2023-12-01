@@ -149,7 +149,11 @@
                     <systemProperties>
                         <systemProperty>
                             <key>exportdocumentation.manpage</key>
-			    <value>docs/mediadeepa-1.man</value>
+                            <value>docs/mediadeepa-1.man</value>
+                        </systemProperty>
+                        <systemProperty>
+                            <key>exportdocumentation.readme</key>
+                            <value>README.md</value>
                         </systemProperty>
                     </systemProperties>
                 </configuration>

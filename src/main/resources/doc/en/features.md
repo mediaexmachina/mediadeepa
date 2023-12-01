@@ -42,6 +42,12 @@ Export analysis format produce:
 And it can export to file the FFprobe XML with media headers (container and A/V streams).
 
 This application can run on three different modes:
- - Process to export: this is the classical mode. Mediadeepa will drive FFmpeg to produce analysis data from your source file, and export the result a the end.
- - Process to extract: sometimes, you don't need to process data during the analysis session. So, Mediadeepa can just extract to raw text/xml files (zipped in one archive file) all the gathered data from FFmpeg.
- - Import to export: to load in Mediadeepa all gathered raw data files. Mediadeepa is **very tolerant** with the zip content, notably if they were not created by Mediadeepa (originally). **No one is mandatory in zip.**
+ - **Process to export**: this is the classical mode. Mediadeepa will drive FFmpeg to produce analysis data from your source file, and export the result a the end.
+ - **Process to extract**: sometimes, you don't need to process data during the analysis session. So, Mediadeepa can just extract to raw text/xml files (zipped in one archive file) all the gathered data from FFmpeg.
+ - **Import to export**: to load in Mediadeepa all gathered raw data files. Mediadeepa is **very tolerant** with the zip content, notably if they were not created by Mediadeepa (originally). **No one is mandatory in zip.**
+
+Known limitations for Mediadeepa:
+
+ - It only support the first video, and the first founded audio stream of a file.
+ - Audio mono and stereo only.
+ - Some process take (long) time to do, like SITI and container analyzing, caused by poor FFmpeg/FFprobe performances with **this** filters.

@@ -36,6 +36,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.CLIRunner;
+import media.mexm.mediadeepa.components.DocumentationExporter;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.components.DemoExportFormat;
 import net.datafaker.Faker;
@@ -51,6 +52,8 @@ class MediaAnalyticsTransformerServiceTest {
 
 	@MockBean
 	CLIRunner cliRunner;
+	@MockBean
+	DocumentationExporter documentationExporter;
 	@Mock
 	DataResult dataResult;
 
@@ -71,7 +74,7 @@ class MediaAnalyticsTransformerServiceTest {
 
 	@AfterEach
 	void ends() {
-		verifyNoMoreInteractions(dataResult);
+		verifyNoMoreInteractions(dataResult, documentationExporter);
 	}
 
 	@Test

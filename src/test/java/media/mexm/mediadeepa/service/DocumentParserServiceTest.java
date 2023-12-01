@@ -31,6 +31,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import media.mexm.mediadeepa.components.CLIRunner;
+import media.mexm.mediadeepa.components.DocumentationExporter;
 
 @SpringBootTest
 class DocumentParserServiceTest {
@@ -39,6 +40,8 @@ class DocumentParserServiceTest {
 	CLIRunner cliRunner;
 	@Autowired
 	DocumentParserService documentParserService;
+	@MockBean
+	DocumentationExporter documentationExporter;
 
 	@Test
 	void testMarkdownParse() {

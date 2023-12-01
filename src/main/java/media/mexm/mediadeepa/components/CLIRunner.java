@@ -34,6 +34,10 @@ import picocli.CommandLine.UnmatchedArgumentException;
 @Slf4j
 public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 
+	public static final String PROP_EXPORTDOCUMENTATION_README = "exportdocumentation.readme";
+
+	public static final String PROP_EXPORTDOCUMENTATION_MANPAGE = "exportdocumentation.manpage";
+
 	public static final int EXIT_CODE_GENERATE_DOC = 42;
 
 	@Autowired
@@ -65,11 +69,15 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		});
 
 		var hasExportedDoc = false;
-		final var manPageFileName = System.getProperty("exportdocumentation.manpage");
+		final var manPageFileName = System.getProperty(PROP_EXPORTDOCUMENTATION_MANPAGE);
 		if (manPageFileName != null) {
-			final var manFile = new File(manPageFileName);
-			log.debug("Export man page to {}", manFile);
-			documentationExporter.exportManPage(manFile);
+			documentationExporter.exportManPage(new File(manPageFileName));
+			hasExportedDoc = true;
+		}
+
+		final var readmeFileName = System.getProperty(PROP_EXPORTDOCUMENTATION_README);
+		if (readmeFileName != null) {
+			documentationExporter.exportReadmeProjectMarkdown(new File(readmeFileName));
 			hasExportedDoc = true;
 		}
 
