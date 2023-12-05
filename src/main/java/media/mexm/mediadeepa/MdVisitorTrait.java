@@ -14,23 +14,33 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa;
 
-import java.io.File;
-import java.util.Map;
+import org.commonmark.node.Node;
+import org.commonmark.node.Visitor;
 
-import media.mexm.mediadeepa.cli.ExportToCmd;
+interface MdVisitorTrait extends Visitor {
 
-public interface ExportFormat {
+	default void next(final Node node) {
+		if (node == null) {
+			return;
+		}
+		final var next = node.getNext();
+		if (next == null) {
+			return;
+		}
+		next.accept(this);
+	}
 
-	Map<String, File> exportResult(DataResult result, ExportToCmd exportToCmd);
-
-	String getFormatName();
-
-	String getFormatLongName();
-
-	default String getFormatDescription() {
-		return "";
+	default void firstChild(final Node node) {
+		if (node == null) {
+			return;
+		}
+		final var firstChild = node.getFirstChild();
+		if (firstChild == null) {
+			return;
+		}
+		firstChild.accept(this);
 	}
 
 }

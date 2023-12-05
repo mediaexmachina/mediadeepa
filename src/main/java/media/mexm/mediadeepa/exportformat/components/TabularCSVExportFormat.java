@@ -57,6 +57,11 @@ public class TabularCSVExportFormat extends TabularTXTExportFormat {
 	}
 
 	@Override
+	public String getFormatDescription() {
+		return "comma separated, \"`.`\" decimal separator";
+	}
+
+	@Override
 	public byte[] getDocument(final List<String> header, final List<List<String>> lines) {
 		final var writer = new StringWriter();
 		final var csvWriter = prepareCSVWriter(new CSVWriterBuilder(writer)).build();

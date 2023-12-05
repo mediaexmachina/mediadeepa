@@ -35,12 +35,14 @@ public class DemoExportFormat implements ExportFormat {
 
 	String formatName;
 	String formatLongName;
+	String formatDescr;
 	Map<String, File> exportResult;
 	List<DataResult> capturedResults;
 
 	public DemoExportFormat() {
 		formatLongName = faker.numerify("formatLongName###");
 		formatName = faker.numerify("formatName###");
+		formatDescr = faker.numerify("formatDescr###");
 		exportResult = new HashMap<>(Map.of(
 				faker.numerify("resultKey###"),
 				new File(faker.numerify("resultValue###"))));
@@ -61,6 +63,11 @@ public class DemoExportFormat implements ExportFormat {
 	@Override
 	public String getFormatLongName() {
 		return formatLongName;
+	}
+
+	@Override
+	public String getFormatDescription() {
+		return formatDescr;
 	}
 
 	public List<DataResult> getCapturedResults() {

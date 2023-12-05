@@ -45,6 +45,11 @@ public class TabularCSVFrExportFormat extends TabularCSVExportFormat {
 	}
 
 	@Override
+	public String getFormatDescription() {
+		return "semicolon separated, \"`,`\" decimal separator";
+	}
+
+	@Override
 	public String formatNumberHighPrecision(final float value) {
 		return numberUtils.formatDecimalSimple5Fr(value);
 	}

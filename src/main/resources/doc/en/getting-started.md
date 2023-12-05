@@ -1,4 +1,4 @@
-### 🔩 Dependencies needed for run Mediadeepa
+## Dependencies needed for run Mediadeepa
 
   - Java/JRE/JDK 17+
   - FFmpeg/FFprobe v5+
@@ -7,8 +7,7 @@ Declared on OS (Windows/Linux/macOS) PATH.
 
 Download the last application release, as an executable JAR (autonomous *fat* JAR file), downloaded directly from [GitHub releases page](https://github.com/mediaexmachina/mediadeepa/releases), and build at each releases.
 
-<details>
-<summary>Or, you can build yourself this JAR, with Git and Maven.</summary>
+Or, you can build yourself this JAR, with Git and Maven.
 
 Run on Linux/WSL/macOS, after setup Git and Maven:
 
@@ -19,8 +18,6 @@ mvn install -DskipTests
 ```
 
 Build jar will be founded on `target` directory as `mediadeepa-<version>.jar`
-
-</details>
 
 And simply run the application with
 

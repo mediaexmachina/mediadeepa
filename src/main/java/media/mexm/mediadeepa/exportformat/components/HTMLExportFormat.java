@@ -92,6 +92,11 @@ public class HTMLExportFormat implements ExportFormat, ConstStrings {
 		return "HTML document report";
 	}
 
+	@Override
+	public String getFormatDescription() {
+		return "with file and signal stats, event detection, codecs, GOP stats...";
+	}
+
 	private String getDocumentCSS() {
 		try {
 			return cssHTMLReportResource.getContentAsString(UTF_8);

@@ -155,6 +155,10 @@
                             <key>exportdocumentation.readme</key>
                             <value>README.md</value>
                         </systemProperty>
+                        <systemProperty>
+                            <key>exportdocumentation.website</key>
+                            <value>docs/index.html</value>
+                        </systemProperty>
                     </systemProperties>
                 </configuration>
             </plugin>

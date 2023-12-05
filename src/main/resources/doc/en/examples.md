@@ -1,4 +1,4 @@
-Process to export
+## Process to export
 
 Export to the current directory the analysis report for the file `videofile.mov`:
 
@@ -18,7 +18,9 @@ All available **Export formats type** are listed by:
 mediadeepa -o
 ```
 
-Process to extract, just:
+## Process to extract
+
+Just:
 
 ```
 mediadeepa -i videofile.mov --extract analysing-archive.zip
@@ -30,7 +32,9 @@ You can setup FFmpeg, like with import, like:
 mediadeepa -i videofile.mov -c -an --extract analysing-archive.zip
 ```
 
-To import to export, replace `-i` option by `--import`:
+## Import to export
+
+Replace `-i` option by `--import`:
 
 ```
 mediadeepa --import analysing-archive.zip -f report -f graphic -e .

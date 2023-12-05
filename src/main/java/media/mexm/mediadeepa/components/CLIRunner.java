@@ -35,8 +35,8 @@ import picocli.CommandLine.UnmatchedArgumentException;
 public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 
 	public static final String PROP_EXPORTDOCUMENTATION_README = "exportdocumentation.readme";
-
 	public static final String PROP_EXPORTDOCUMENTATION_MANPAGE = "exportdocumentation.manpage";
+	public static final String PROP_EXPORTDOCUMENTATION_WEBSITE = "exportdocumentation.website";
 
 	public static final int EXIT_CODE_GENERATE_DOC = 42;
 
@@ -78,6 +78,12 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		final var readmeFileName = System.getProperty(PROP_EXPORTDOCUMENTATION_README);
 		if (readmeFileName != null) {
 			documentationExporter.exportReadmeProjectMarkdown(new File(readmeFileName));
+			hasExportedDoc = true;
+		}
+
+		final var websiteFileName = System.getProperty(PROP_EXPORTDOCUMENTATION_WEBSITE);
+		if (websiteFileName != null) {
+			documentationExporter.exportProjectPage(new File(websiteFileName));
 			hasExportedDoc = true;
 		}
 

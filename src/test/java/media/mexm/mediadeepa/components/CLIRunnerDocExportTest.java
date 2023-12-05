@@ -19,6 +19,7 @@ package media.mexm.mediadeepa.components;
 import static media.mexm.mediadeepa.components.CLIRunner.EXIT_CODE_GENERATE_DOC;
 import static media.mexm.mediadeepa.components.CLIRunner.PROP_EXPORTDOCUMENTATION_MANPAGE;
 import static media.mexm.mediadeepa.components.CLIRunner.PROP_EXPORTDOCUMENTATION_README;
+import static media.mexm.mediadeepa.components.CLIRunner.PROP_EXPORTDOCUMENTATION_WEBSITE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -71,6 +72,7 @@ class CLIRunnerDocExportTest {
 	void resetProp() {
 		System.getProperties().remove(PROP_EXPORTDOCUMENTATION_MANPAGE);
 		System.getProperties().remove(PROP_EXPORTDOCUMENTATION_README);
+		System.getProperties().remove(PROP_EXPORTDOCUMENTATION_WEBSITE);
 	}
 
 	@Test
@@ -86,6 +88,14 @@ class CLIRunnerDocExportTest {
 		System.setProperty(PROP_EXPORTDOCUMENTATION_README, "something");
 		c.run();
 		verify(documentationExporter, times(1)).exportReadmeProjectMarkdown(new File("something"));
+		assertEquals(EXIT_CODE_GENERATE_DOC, c.getExitCode());
+	}
+
+	@Test
+	void testRun_makeWebsite() throws Exception {
+		System.setProperty(PROP_EXPORTDOCUMENTATION_WEBSITE, "something");
+		c.run();
+		verify(documentationExporter, times(1)).exportProjectPage(new File("something"));
 		assertEquals(EXIT_CODE_GENERATE_DOC, c.getExitCode());
 	}
 

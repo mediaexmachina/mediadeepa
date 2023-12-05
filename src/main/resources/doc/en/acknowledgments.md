@@ -2,7 +2,7 @@ Mediadeepa would never have been possible without the help of these magnificent 
  - [FFmpeg](https://FFmpeg.org/)
  - [Spring Boot](https://spring.io/projects/spring-boot)
 
-🛠️ And the tech stack:
+And the tech stack:
   - Java 17
   - Spring Boot 3
   - Picocli 4

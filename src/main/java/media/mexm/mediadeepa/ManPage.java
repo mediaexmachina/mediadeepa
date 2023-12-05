@@ -47,7 +47,6 @@ import org.commonmark.node.IndentedCodeBlock;
 import org.commonmark.node.Link;
 import org.commonmark.node.LinkReferenceDefinition;
 import org.commonmark.node.ListItem;
-import org.commonmark.node.Node;
 import org.commonmark.node.OrderedList;
 import org.commonmark.node.Paragraph;
 import org.commonmark.node.SoftLineBreak;
@@ -58,7 +57,7 @@ import org.commonmark.node.Visitor;
 
 import picocli.CommandLine.Model.OptionSpec;
 
-public class ManPage implements Visitor {
+public class ManPage implements Visitor, MdVisitorTrait {
 	private static final String START_UNDERLINE = "\\fI";
 	private static final String ENDS_UNDERLINE = "\\fR";
 	private static final String START_INCR = ".RS 4";
@@ -102,28 +101,6 @@ public class ManPage implements Visitor {
 				.collect(joining(" "))
 				.trim());
 		ps.println();
-	}
-
-	private void next(final Node node) {
-		if (node == null) {
-			return;
-		}
-		final var next = node.getNext();
-		if (next == null) {
-			return;
-		}
-		next.accept(this);
-	}
-
-	private void firstChild(final Node node) {
-		if (node == null) {
-			return;
-		}
-		final var firstChild = node.getFirstChild();
-		if (firstChild == null) {
-			return;
-		}
-		firstChild.accept(this);
 	}
 
 	@Override

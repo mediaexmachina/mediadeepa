@@ -68,4 +68,22 @@ class DocumentationExporterTest {
 		forceDelete(tempReadme);
 	}
 
+	@Test
+	void testExportWebpage() throws IOException {
+		final var tempWebsite = File.createTempFile("mediadeepa-test", ".html");
+		if (tempWebsite.exists()) {
+			forceDelete(tempWebsite);
+		}
+		documentationExporter.exportProjectPage(tempWebsite);
+
+		assertThat(tempWebsite)
+				.exists()
+				.size()
+				.isGreaterThan(10)
+				.returnToFile()
+				.content()
+				.contains("ffmpeg", "mediadeepa", "sonarcloud", "xlsx", "-h");
+		forceDelete(tempWebsite);
+	}
+
 }

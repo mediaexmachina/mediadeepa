@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -59,6 +60,22 @@ public class GraphicExportFormat implements ExportFormat {
 	@Override
 	public String getFormatLongName() {
 		return "Graphical representation of data";
+	}
+
+	@Override
+	public String getFormatDescription() {
+		final var result = """
+				audio Loudness (integrated, short-term, momentary, true-peak)
+				audio phase correlation (+/- 180°)
+				audio DC offset, signal entropy, flatness, noise floor, peak level, silence/mono events
+				video quality as spatial information (SI) and temporal information
+				video block/blur/black/interlacing/crop/freeze detection
+				video and audio iterate frames
+				video frame duration stability
+				video GOP (group of picture) size (number of frames by GOP, and by frame type)
+				video GOP frame size, by frame type, by GOP, by frame number
+				""";
+		return result.lines().collect(Collectors.joining(", "));
 	}
 
 }

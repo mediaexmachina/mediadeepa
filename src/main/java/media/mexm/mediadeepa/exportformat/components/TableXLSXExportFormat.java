@@ -69,6 +69,11 @@ public class TableXLSXExportFormat extends TableExportFormat {
 	}
 
 	@Override
+	public String getFormatDescription() {
+		return "simple raw data export, one tabs by export result";
+	}
+
+	@Override
 	public File save(final DataResult result, final List<Table> tables, final ExportToCmd exportToCmd) {
 		try (final var wb = new SXSSFWorkbook()) {
 			wb.setCompressTempFiles(false);
