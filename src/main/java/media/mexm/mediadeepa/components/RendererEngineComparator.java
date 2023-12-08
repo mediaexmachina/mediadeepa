@@ -22,6 +22,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
+import media.mexm.mediadeepa.exportformat.components.FFProbeXMLExportFormat;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.AConstsRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.AFramesRendererEngine;
@@ -51,6 +52,7 @@ public class RendererEngineComparator implements Comparator<ReportRendererEngine
 
 	private static final List<Class<?>> ENGINE_DISPLAY_ORDER = List.of(
 			MediaSummaryRendererEngine.class,
+			FFProbeXMLExportFormat.class,
 
 			Ebur128SummaryRendererEngine.class,
 			Ebur128RendererEngine.class,
