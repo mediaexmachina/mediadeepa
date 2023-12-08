@@ -248,11 +248,11 @@ public class AppSessionServiceImpl implements AppSessionService {
 		if (file == null) {
 			throw new ParameterException(commandLine, "You must set a file");
 		} else if (file.exists() && file.isFile() == false) {
-			throw new ParameterException(commandLine, "Can't overwrite the provided file: it's a directory",
-					new IOException(file.getPath()));
+			throw new ParameterException(commandLine, "Can't overwrite the provided file: it's a directory: "
+													  + file.getPath());
 		} else if (file.exists() && file.canWrite() == false) {
-			throw new ParameterException(commandLine, "Can't overwrite the provided file",
-					new IOException(file.getPath()));
+			throw new ParameterException(commandLine, "Can't overwrite the provided file: "
+													  + file.getPath());
 		}
 	}
 
@@ -264,11 +264,11 @@ public class AppSessionServiceImpl implements AppSessionService {
 			try {
 				FileUtils.forceMkdir(dir);
 			} catch (final IOException e) {
-				throw new ParameterException(commandLine, "Can't create the provided directory", e);
+				throw new UncheckedIOException("Can't create the provided directory", e);
 			}
 		} else if (dir.isDirectory() == false) {
-			throw new ParameterException(commandLine, "The provided directory is not a regular directory",
-					new FileNotFoundException(dir.getPath()));
+			throw new ParameterException(commandLine, "The provided directory is not a regular directory: "
+													  + dir.getPath());
 		}
 	}
 
