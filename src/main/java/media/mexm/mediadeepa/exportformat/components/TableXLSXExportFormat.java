@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.time.Duration;
 import java.util.List;
 
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
@@ -77,15 +76,7 @@ public class TableXLSXExportFormat extends TableExportFormat {
 	public File save(final DataResult result, final List<Table> tables, final ExportToCmd exportToCmd) {
 		try (final var wb = new SXSSFWorkbook()) {
 			wb.setCompressTempFiles(false);
-			final var now = System.currentTimeMillis();
-			log.debug("Start export {} tables to {} XSLX file...", tables.size(), exportToCmd.getBaseFileName());
-
 			tables.forEach(table -> makeTableOnWorkbook(exportToCmd.getBaseFileName(), wb, table));
-
-			log.debug("Export done to {} XSLX file in {} sec",
-					exportToCmd.getBaseFileName(),
-					Duration.ofMillis(System.currentTimeMillis() - now).toSeconds());
-
 			final var outputFile = exportToCmd.makeOutputFile(appConfig.getXslxTableFileName());
 			save(wb, outputFile);
 			return outputFile;
@@ -96,7 +87,6 @@ public class TableXLSXExportFormat extends TableExportFormat {
 
 	private static void save(final SXSSFWorkbook wb, final File outputFile) {
 		try (final var out = new FileOutputStream(outputFile)) {
-			log.info("Save to {}", outputFile);
 			wb.write(out);
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't export to XSLX", e);

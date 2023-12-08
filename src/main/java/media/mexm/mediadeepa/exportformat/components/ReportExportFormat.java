@@ -53,7 +53,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.ConstStrings;
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.NumberUtils;
@@ -66,7 +65,6 @@ import media.mexm.mediadeepa.exportformat.ReportSection;
 import media.mexm.mediadeepa.exportformat.SimpleKeyValueReportEntry;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 
-@Slf4j
 @Component
 public class ReportExportFormat implements ExportFormat, ConstStrings {
 
@@ -178,7 +176,6 @@ public class ReportExportFormat implements ExportFormat, ConstStrings {
 				.trim();
 		try {
 			final var outFile = exportToCmd.makeOutputFile(appConfig.getReportHtmlFileName());
-			log.info("Save to {}", outFile);
 			FileUtils.write(
 					outFile,
 					htmlDocument,

@@ -19,7 +19,6 @@ package media.mexm.mediadeepa.exportformat.components;
 import static media.mexm.mediadeepa.exportformat.components.TableSQLiteExportFormat.cleanNameToFieldName;
 
 import java.io.File;
-import java.time.Duration;
 import java.util.List;
 
 import javax.xml.stream.XMLEventFactory;
@@ -46,8 +45,8 @@ import media.mexm.mediadeepa.exportformat.TableDocument.Table.Row;
 import media.mexm.mediadeepa.exportformat.TableExportFormat;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 
-@Slf4j
 @Component
+@Slf4j
 public class TableXMLExportFormat extends TableExportFormat implements OutputStreamProvider {
 
 	private static final String REPORT = "report";
@@ -75,7 +74,6 @@ public class TableXMLExportFormat extends TableExportFormat implements OutputStr
 
 	@Override
 	public File save(final DataResult result, final List<Table> tables, final ExportToCmd exportToCmd) {
-		final var now = System.currentTimeMillis();
 		final var outputFile = exportToCmd.makeOutputFile(appConfig.getXmlTableFileName());
 		try {
 			log.debug("Start export {} tables to {}...", tables.size(), outputFile);
@@ -95,14 +93,6 @@ public class TableXMLExportFormat extends TableExportFormat implements OutputStr
 			writer.close();
 		} catch (final XMLStreamException e) {
 			throw new IllegalStateException("Can't write XML file", e);
-		}
-
-		if (log.isDebugEnabled()) {
-			log.debug("Export done to {} file in {} sec",
-					outputFile,
-					Duration.ofMillis(System.currentTimeMillis() - now).toSeconds());
-		} else {
-			log.info("Saved to {}", outputFile);
 		}
 
 		return outputFile;

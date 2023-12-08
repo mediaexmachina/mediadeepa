@@ -105,7 +105,6 @@ public class TabularDocument {
 			return Optional.empty();
 		}
 
-		log.info("Save to {}", outfile);
 		try {
 			FileUtils.writeByteArrayToFile(outfile, exporter.getDocument(header, lines));
 		} catch (final IOException e) {

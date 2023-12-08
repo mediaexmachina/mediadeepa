@@ -18,9 +18,11 @@ package media.mexm.mediadeepa.service;
 
 import static java.util.Collections.unmodifiableMap;
 
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -65,13 +67,44 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 	@Override
 	public void exportAnalytics(final DataResult result,
 								final ExportToCmd exportToCmd) {
+		log.info("Start export result files...");
 		exportToCmd.getFormat().stream()
 				.map(this::getExportFormatByName)
-				.forEach(s -> {
-					log.debug("Start export with {}/{}", s.getFormatName(), s.getFormatLongName());
-					final var producedFiles = s.exportResult(result, exportToCmd);
-					log.debug("Produced files: {}", producedFiles);
-				});
+				.forEach(s -> doExportAnalytic(result, exportToCmd, s));
+	}
+
+	private void doExportAnalytic(final DataResult result, final ExportToCmd exportToCmd, final ExportFormat s) {
+		final var now = System.currentTimeMillis();
+		log.info("Export with {} ({})...", s.getFormatLongName(), s.getFormatName());
+		final var producedFiles = s.exportResult(result, exportToCmd);
+		final var duration = (System.currentTimeMillis() - now) / 1000f;
+		if (producedFiles.isEmpty()) {
+			log.info("{} has not product files (it take to {} sec)", s.getFormatName(), duration);
+		} else if (producedFiles.size() == 1) {
+			final var key = producedFiles.entrySet()
+					.stream()
+					.map(Entry::getKey)
+					.findFirst()
+					.orElse("");
+			final var file = producedFiles.entrySet()
+					.stream()
+					.map(Entry::getValue)
+					.map(File::getPath)
+					.findFirst()
+					.orElse("");
+
+			log.info("{} has product {} file, in {} sec: {}",
+					s.getFormatName(),
+					key,
+					duration,
+					file);
+		} else {
+			log.info("{} has product {} files, in {} sec:",
+					s.getFormatName(), producedFiles.size(), duration);
+			producedFiles.entrySet()
+					.forEach(entry -> log.info("{} has product {}: {}",
+							s.getFormatName(), entry.getKey(), entry.getValue().getPath()));
+		}
 	}
 
 }

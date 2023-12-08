@@ -30,13 +30,11 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
 
-@Slf4j
 @Component
 public class FFProbeXMLExportFormat implements ExportFormat {
 
@@ -58,7 +56,6 @@ public class FFProbeXMLExportFormat implements ExportFormat {
 		return result.getFFprobeResult()
 				.map(ffprobeJABX -> {
 					final var outFile = exportToCmd.makeOutputFile(appConfig.getFfprobeXMLFileName());
-					log.info("Save FFprobe XML file to {}", outFile);
 					try {
 						FileUtils.write(
 								outFile,

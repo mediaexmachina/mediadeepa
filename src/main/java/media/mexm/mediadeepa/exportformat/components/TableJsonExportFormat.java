@@ -19,7 +19,6 @@ package media.mexm.mediadeepa.exportformat.components;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.time.Duration;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,9 +71,7 @@ public class TableJsonExportFormat extends TableExportFormat implements OutputSt
 
 	@Override
 	public File save(final DataResult result, final List<Table> tables, final ExportToCmd exportToCmd) {
-		final var now = System.currentTimeMillis();
 		final var outputFile = exportToCmd.makeOutputFile(appConfig.getJsonTableFileName());
-
 		log.debug("Start export {} tables to {}...", tables.size(), outputFile);
 
 		try (final var json = jsonFactory.createGenerator(createOutputStream(outputFile), JsonEncoding.UTF8)) {
@@ -88,14 +85,6 @@ public class TableJsonExportFormat extends TableExportFormat implements OutputSt
 			json.writeEndObject();
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't write Json file", e);
-		}
-
-		if (log.isDebugEnabled()) {
-			log.debug("Export done to {} file in {} sec",
-					outputFile,
-					Duration.ofMillis(System.currentTimeMillis() - now).toSeconds());
-		} else {
-			log.info("Saved to {}", outputFile);
 		}
 
 		return outputFile;
