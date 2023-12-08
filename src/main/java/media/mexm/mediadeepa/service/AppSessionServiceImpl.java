@@ -198,7 +198,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 			+ (importFromCmd != null ? 1 : 0)
 			+ (processFileCmd != null ? 1 : 0) > 2) {
 			throw new ParameterException(commandLine,
-					"You can't cumulate more than two options with --extract/--export/--input/--import");
+					"You can't cumulate more than two options with --input/--import/--export/--extract");
 		}
 
 		if (processFileCmd == null
@@ -206,7 +206,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 			&& exportToCmd == null
 			&& importFromCmd == null) {
 			throw new ParameterException(commandLine,
-					"You must setup options like --input --import --extract --export");
+					"You must setup options like -i/--input, --import, -e/--export and --extract");
 		}
 
 		Optional.ofNullable(processFileCmd)

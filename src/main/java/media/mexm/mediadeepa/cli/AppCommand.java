@@ -40,10 +40,10 @@ import picocli.CommandLine.Option;
 		 exitCodeList = { ExitCode.OK + ":Ok/done",
 						  ExitCode.USAGE + ":Error" },
 		 customSynopsis = {
-							"mediadeepa [-hov] [--temp DIRECTORY] [-i FILE]",
-							"           [-c] [-mn] [-an | -vn] [-f FORMAT_TYPE] [-e DIRECTORY]",
-							"           [-fo FILTER] [-fn FILTER] [--filter-X VALUE]",
-							"           [--extract-X FILE] [--import-X FILE]"
+							"mediadeepa [-hov] [--temp DIRECTORY]",
+							"           [-i FILE] [--import FILE]",
+							"           [-c] [-mn] [-an | -vn] [-fo FILTER] [-fn FILTER] [--filter-X VALUE]",
+							"           [-f FORMAT_TYPE] [-e DIRECTORY] [--extract FILE]"
 		 })
 @Data
 public class AppCommand implements Callable<Integer> {
