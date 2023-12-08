@@ -46,5 +46,6 @@ public interface FFmpegService {
 									   boolean sourceHasVideo,
 									   boolean sourceHasAudio,
 									   MediaAnalyser ma,
-									   FilterCmd options);
+									   FilterCmd options,
+									   float frameRate);
 }

@@ -16,6 +16,7 @@
  */
 package media.mexm.mediadeepa.service;
 
+import static java.lang.Math.round;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
@@ -33,6 +34,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import org.ffmpeg.ffprobe.StreamType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -192,18 +194,36 @@ public class FFmpegServiceImpl implements FFmpegService {
 		final var programDurationSec = ffprobeJAXB.getFormat().getDuration();
 		setProgress(progressSupplier.get(), programDurationSec, ma);
 
+		final var avgFrameRate = ffprobeJAXB.getFirstVideoStream()
+				.map(StreamType::getAvgFrameRate)
+				.flatMap(Optional::ofNullable)
+				.map(FFmpegServiceImpl::getAvgFrameRate)
+				.orElse(1f);
+
 		applyMediaAnalyserFilterChain(
 				processFileCmd,
 				lavfiSecondaryVideoFile,
 				ffprobeJAXB.getFirstVideoStream().isPresent(),
 				ffprobeJAXB.getAudiosStreams().findAny().isPresent(),
 				ma,
-				Optional.ofNullable(options).orElseGet(FilterCmd::new));
+				Optional.ofNullable(options).orElseGet(FilterCmd::new),
+				avgFrameRate);
 
 		final var session = ma.createSession(processFileCmd.getInput());
 		session.setPgmFFDuration(processFileCmd.getDuration());
 		session.setPgmFFStartTime(processFileCmd.getStartTime());
 		return session;
+	}
+
+	private static float getAvgFrameRate(final String avgFrameRate) {
+		final var pos = avgFrameRate.indexOf("/");
+		if (pos == -1) {
+			return 1f;
+		} else {
+			final var l = Float.valueOf(avgFrameRate.substring(0, pos));
+			final var r = Float.valueOf(avgFrameRate.substring(pos + 1));
+			return l / r;
+		}
 	}
 
 	private boolean countFilter(final List<Boolean> countFilter) {
@@ -216,7 +236,8 @@ public class FFmpegServiceImpl implements FFmpegService {
 											  final boolean sourceHasVideo,
 											  final boolean sourceHasAudio,
 											  final MediaAnalyser ma,
-											  final FilterCmd nullableOptions) {
+											  final FilterCmd nullableOptions,
+											  final float avgFrameRate) {
 		var useMtdAudio = false;
 		final var fIgnore = Optional.ofNullable(processFileCmd.getFiltersIgnore()).orElse(Set.of());
 		final var fOnly = Optional.ofNullable(processFileCmd.getFiltersOnly()).orElse(Set.of());
@@ -262,7 +283,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 
 			final var videoFilterCropdetect = new VideoFilterCropdetect();
 			videoFilterCropdetect.setSkip(0);
-			videoFilterCropdetect.setReset(1);
+			videoFilterCropdetect.setReset(round(avgFrameRate));
 			countFilter.add(addFilter(ma, fIgnore, fOnly, filterSetup(videoFilterCropdetect, options)));
 
 			countFilter.add(addFilter(ma, fIgnore, fOnly, filterSetup(new VideoFilterIdet(), options)));
