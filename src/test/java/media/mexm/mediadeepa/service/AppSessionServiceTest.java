@@ -29,6 +29,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
@@ -235,7 +236,7 @@ class AppSessionServiceTest {
 
 		final var dirFile = new File("../../../../../../../../../../../../../../../../../../../../../?dirnotexists");
 		assertFalse(dirFile.exists());
-		assertThrows(ParameterException.class,
+		assertThrows(UncheckedIOException.class,
 				() -> appSessionService.validateOutputDir(dirFile));
 
 		final var regularFile = processFileCmd.getInput();

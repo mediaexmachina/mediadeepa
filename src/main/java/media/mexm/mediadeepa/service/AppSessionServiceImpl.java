@@ -167,7 +167,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 			createOfflineProcessingSession();
 		} else {
 			cleanTempDir(appCommand.getTempDir());
-			throw new IllegalArgumentException("Nothing to do");
+			throw new ParameterException(commandLine, "Nothing to do");
 		}
 
 		cleanTempDir(appCommand.getTempDir());
