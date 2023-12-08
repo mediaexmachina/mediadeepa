@@ -25,7 +25,7 @@
         <apache.poi.version>5.2.3</apache.poi.version>
         <jfreechart.version>1.5.4</jfreechart.version>
         <prodlib.version>18.0.2</prodlib.version>
-        <medialib.version>14.0.1</medialib.version>
+        <medialib.version>14.0.2</medialib.version>
         <commonmark.version>0.21.0</commonmark.version>
         <exec-maven-plugin.version>3.1.1</exec-maven-plugin.version>
     </properties>
