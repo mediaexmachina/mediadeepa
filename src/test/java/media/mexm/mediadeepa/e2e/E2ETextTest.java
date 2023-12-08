@@ -531,7 +531,7 @@ class E2ETextTest extends E2EUtils {
 				countLinesExportDir("long-mkv_video-block-detect.txt"));
 		assertEquals(360001,
 				countLinesExportDir("long-mkv_video-blur-detect.txt"));
-		assertEquals(359999,
+		assertEquals(360001,
 				countLinesExportDir("long-mkv_video-crop-detect.txt"));
 		assertEquals(360001,
 				countLinesExportDir("long-mkv_video-interlace-detect.txt"));
