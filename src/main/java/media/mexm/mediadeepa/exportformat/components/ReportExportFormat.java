@@ -68,7 +68,7 @@ import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 
 @Slf4j
 @Component
-public class HTMLExportFormat implements ExportFormat, ConstStrings {
+public class ReportExportFormat implements ExportFormat, ConstStrings {
 
 	@Autowired
 	private List<ReportRendererEngine> engines;
@@ -84,7 +84,7 @@ public class HTMLExportFormat implements ExportFormat, ConstStrings {
 
 	@Override
 	public String getFormatName() {
-		return "html";
+		return "report";
 	}
 
 	@Override

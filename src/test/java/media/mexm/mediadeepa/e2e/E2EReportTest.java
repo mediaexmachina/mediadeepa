@@ -84,7 +84,7 @@ class E2EReportTest extends E2EUtils implements ConstStrings {
 		runApp(
 				"--temp", "target/e2e-temp",
 				"--import", rawData.archive().getPath(),
-				"-f", "html",
+				"-f", "report",
 				"-e", "target/e2e-export",
 				"--export-base-filename", "mpg");
 		return outputFile;
