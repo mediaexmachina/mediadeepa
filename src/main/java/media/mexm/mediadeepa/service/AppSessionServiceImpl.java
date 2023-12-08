@@ -146,10 +146,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		verifyOptions();
 
-		if (disableKeyPressExit == false) {
-			keyPressToExit.start();
-		}
-
 		final var processFileCmd = appCommand.getProcessFileCmd();
 		final var exportToCmd = appCommand.getExportToCmd();
 		final var extractToCmd = appCommand.getExtractToCmd();
@@ -157,21 +153,30 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		if (processFileCmd != null && extractToCmd != null) {
 			log.info("Prepare extraction session from media file: {}", processFileCmd.getInput());
+			startKeyPressExit();
 			createExtractionSession();
 		} else if (processFileCmd != null && exportToCmd != null) {
 			log.info("Prepare processing session from media file: {} to {}",
 					processFileCmd.getInput(), exportToCmd.getExport());
+			startKeyPressExit();
 			createProcessingSession();
 		} else if (importFromCmd != null && exportToCmd != null) {
 			log.info("Prepare processing session from offline ffmpeg/ffprobe exports");
+			startKeyPressExit();
 			createOfflineProcessingSession();
 		} else {
 			cleanTempDir(appCommand.getTempDir());
-			throw new ParameterException(commandLine, "Nothing to do");
+			throw new ParameterException(commandLine, "Nothing to do!");
 		}
 
 		cleanTempDir(appCommand.getTempDir());
 		return 0;
+	}
+
+	private void startKeyPressExit() {
+		if (disableKeyPressExit == false) {
+			keyPressToExit.start();
+		}
 	}
 
 	private void cleanTempDir(final File tempDir) throws IOException {
