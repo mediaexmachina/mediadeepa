@@ -128,7 +128,7 @@ public class PacketsRendererEngine implements
 							sumList,
 							(list, packet) -> {
 								final var position = (int) Math.round(Math.ceil(packet.dtsTime()));
-								if (position > list.size()) {
+								if (position >= list.size()) {
 									final var map = new EnumMap<FFprobeCodecType, Integer>(FFprobeCodecType.class);
 									map.put(packet.codecType(), packet.size());
 									list.add(map);
