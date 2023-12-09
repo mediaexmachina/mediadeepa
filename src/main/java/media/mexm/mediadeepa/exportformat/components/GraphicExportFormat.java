@@ -16,19 +16,20 @@
  */
 package media.mexm.mediadeepa.exportformat.components;
 
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
@@ -36,20 +37,20 @@ import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 @Component
 public class GraphicExportFormat implements ExportFormat {
 
-	private final List<GraphicRendererEngine> engines;
-
-	public GraphicExportFormat(@Autowired final List<GraphicRendererEngine> engines) {
-		this.engines = Objects.requireNonNull(engines, "\"engines\" can't to be null");
-	}
+	@Autowired
+	private List<GraphicRendererEngine> engines;
+	@Autowired
+	private AppConfig appConfig;
 
 	@Override
 	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
 		return engines.stream()
 				.map(engine -> engine.toGraphic(result))
 				.flatMap(List::stream)
+				.map(f -> f.save(exportToCmd, appConfig))
 				.collect(toUnmodifiableMap(
-						f -> getBaseName(f.getFileName()),
-						f -> f.save(exportToCmd)));
+						f -> getBaseName(f.getName()),
+						identity()));
 	}
 
 	@Override

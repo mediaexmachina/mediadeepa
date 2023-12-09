@@ -58,56 +58,86 @@ class E2EGraphicTest extends E2EUtils {
 		final var IMAGE_SIZE_FULL_HEIGHT = defaultAppConfig.getImageSizeFullSize();
 		final var IMAGE_SIZE_HALF_HEIGHT = defaultAppConfig.getImageSizeHalfSize();
 
-		tests.put("LUFS", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getLufsGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
-		tests.put("LUFS TPK", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getLufsTPKGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
-		tests.put("Audio phase", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getAPhaseGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
-		tests.put("Audio entropy", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getEntropyGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
-		tests.put("Audio flat-factor", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getFlatnessGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
-		tests.put("Audio noise-floor", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getNoiseFloorGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
-		tests.put("Audio peak-level", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getPeakLevelGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
-		tests.put("Audio DC offset", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getDcOffsetGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
-		tests.put("Video SITI", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getSitiGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
-		tests.put("Video block", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getBlockGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
-		tests.put("Video blur", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getBlurGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
-		tests.put("Video idet", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getItetGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
-		tests.put("Video crop", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getCropGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
-		tests.put("Events", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getEventsGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
-		tests.put("Video bitrate", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getVBitrateGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
-		tests.put("Audio bitrate", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getABitrateGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
-		tests.put("Video frame duration", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getVFrameDurationGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
-		tests.put("Video GOP counts", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getGopCountGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
-		tests.put("Video GOP sizes", checkImageGraphic(makeOutputFile(
-				MPG + defaultAppConfig.getGopSizeGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+		doAllTests(tests, IMAGE_SIZE_FULL_HEIGHT, IMAGE_SIZE_HALF_HEIGHT, false);
+		doAllTests(tests, IMAGE_SIZE_FULL_HEIGHT, IMAGE_SIZE_HALF_HEIGHT, true);
 		return tests.entrySet().stream()
 				.map(entry -> dynamicTest(entry.getKey(), entry.getValue()));
 	}
 
-	File makeOutputFile(final String baseFileName) throws IOException {
+	private void doAllTests(final LinkedHashMap<String, Executable> tests,
+							final Dimension IMAGE_SIZE_FULL_HEIGHT,
+							final Dimension IMAGE_SIZE_HALF_HEIGHT,
+							final boolean jpg) throws IOException {
+		final var testName = jpg ? " JPEG" : " PNG";
+
+		tests.put("LUFS" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getLufsGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("LUFS TPK" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getLufsTPKGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("Audio phase" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getAPhaseGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Audio entropy" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getEntropyGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Audio flat-factor" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getFlatnessGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Audio noise-floor" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getNoiseFloorGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Audio peak-level" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getPeakLevelGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Audio DC offset" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getDcOffsetGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Video SITI" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getSitiGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("Video block" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getBlockGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("Video blur" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getBlurGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("Video idet" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getItetGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Video crop" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getCropGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("Events" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getEventsGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Video bitrate" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getVBitrateGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+		tests.put("Audio bitrate" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getABitrateGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Video frame duration" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getVFrameDurationGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Video GOP counts" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getGopCountGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+		tests.put("Video GOP sizes" + testName,
+				checkImageGraphic(makeOutputFile(jpg,
+						MPG + defaultAppConfig.getGopSizeGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+	}
+
+	File makeOutputFile(final boolean jpg, final String baseFileName) throws IOException {
 		final var outputFile = new File("target/e2e-export", baseFileName);
 		runApp(
 				"--temp", "target/e2e-temp",
 				"--import", rawData.archive().getPath(),
 				"-f", "graphic",
 				"-e", "target/e2e-export",
-				"--export-base-filename", "mpg");
+				"--export-base-filename", "mpg",
+				jpg ? "--graphic-jpg" : null);
 		return outputFile;
 	}
 

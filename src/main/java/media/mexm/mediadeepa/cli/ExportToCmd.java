@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.Set;
 
 import lombok.Data;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Option;
 
 @Data
@@ -41,6 +42,9 @@ public class ExportToCmd {
 			paramLabel = "FILENAME",
 			required = false)
 	private String baseFileName;
+
+	@ArgGroup(exclusive = false, heading = "Export options%n")
+	private ExportOptions exportOptions;
 
 	public File makeOutputFile(final String suffix) {
 		if (baseFileName != null && baseFileName.isEmpty() == false) {

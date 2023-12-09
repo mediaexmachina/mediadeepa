@@ -17,6 +17,7 @@
 package media.mexm.mediadeepa.e2e;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.function.Predicate.not;
 import static org.apache.commons.compress.utils.FileNameUtils.getExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,7 +27,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.boot.SpringApplication;
@@ -62,10 +65,15 @@ abstract class E2EUtils {
 		System.setProperty("mediadeepa.disableKeyPressExit", "true");
 	}
 
-	static void runApp(final Supplier<Boolean> dontExecIf, final String... params) {
+	static void runApp(final Supplier<Boolean> dontExecIf, final String... rawParams) {
 		if (dontExecIf.get()) {
 			return;
 		}
+		final var params = Stream.of(rawParams)
+				.filter(Objects::nonNull)
+				.filter(not(String::isBlank))
+				.toArray(String[]::new);
+
 		assertEquals(
 				0,
 				SpringApplication.exit(SpringApplication.run(App.class, params)),

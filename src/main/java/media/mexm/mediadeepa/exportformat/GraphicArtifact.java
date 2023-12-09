@@ -21,36 +21,43 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import media.mexm.mediadeepa.cli.ExportOptions;
 import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.config.AppConfig;
 
-@Getter
-@AllArgsConstructor
 public class GraphicArtifact {
 
-	private final String fileName;
-	private final byte[] rawImage;
-	private static final float JPG_COMPRESSION_RATIO = 0.95f;
+	private final String fileNameWOExt;
+	@Getter
+	private final JFreeChart graphic;
+	@Getter
+	private final Dimension imageSize;
 
 	public GraphicArtifact(final String fileName,
 						   final JFreeChart graphic,
 						   final Dimension imageSize) {
-		this(fileName, getJPEG(graphic, imageSize));
+		fileNameWOExt = FilenameUtils.removeExtension(fileName);
+		this.graphic = Objects.requireNonNull(graphic, "\"graphic\" can't to be null");
+		this.imageSize = Objects.requireNonNull(imageSize, "\"imageSize\" can't to be null");
 	}
 
 	private static byte[] getJPEG(final JFreeChart graphic,
-								  final Dimension imageSize) {
+								  final Dimension imageSize,
+								  final float jpegCompressRatio) {
 		try {
 			final var b = new ByteArrayOutputStream();
 			ChartUtils.writeChartAsJPEG(
 					b,
-					JPG_COMPRESSION_RATIO,
+					jpegCompressRatio,
 					graphic,
 					imageSize.width,
 					imageSize.height);
@@ -60,7 +67,37 @@ public class GraphicArtifact {
 		}
 	}
 
-	public File save(final ExportToCmd exportToCmd) {
+	private static byte[] getPNG(final JFreeChart graphic,
+								 final Dimension imageSize) {
+		try {
+			final var b = new ByteArrayOutputStream();
+			ChartUtils.writeChartAsPNG(
+					b,
+					graphic,
+					imageSize.width,
+					imageSize.height);
+			return b.toByteArray();
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't export PNG", e);
+		}
+	}
+
+	public File save(final ExportToCmd exportToCmd, final AppConfig appConfig) {
+		final var isJpg = Optional.ofNullable(exportToCmd.getExportOptions())
+				.map(ExportOptions::isGraphicJpg)
+				.orElse(false)
+				.booleanValue();
+
+		final byte[] rawImage;
+		String fileName;
+		if (isJpg) {
+			fileName = fileNameWOExt + ".jpeg";
+			rawImage = getJPEG(graphic, imageSize, appConfig.getJpegCompressionRatio());
+		} else {
+			fileName = fileNameWOExt + ".png";
+			rawImage = getPNG(graphic, imageSize);
+		}
+
 		final var outputFile = exportToCmd.makeOutputFile(fileName);
 		try {
 			FileUtils.writeByteArrayToFile(outputFile, rawImage, false);
