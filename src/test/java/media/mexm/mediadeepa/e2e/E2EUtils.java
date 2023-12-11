@@ -36,6 +36,7 @@ import org.springframework.boot.SpringApplication;
 
 import media.mexm.mediadeepa.App;
 import media.mexm.mediadeepa.config.AppConfig;
+import media.mexm.mediadeepa.config.AppConfig.ZippedArchive;
 
 abstract class E2EUtils {
 
@@ -153,9 +154,11 @@ abstract class E2EUtils {
 	}
 
 	protected final AppConfig defaultAppConfig;
+	protected final ZippedArchive zippedTxtFileNames;
 
 	protected E2EUtils() {
 		defaultAppConfig = new AppConfig();
+		zippedTxtFileNames = defaultAppConfig.getZippedArchive();
 	}
 
 }

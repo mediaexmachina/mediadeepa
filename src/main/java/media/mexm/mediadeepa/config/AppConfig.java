@@ -28,45 +28,61 @@ import lombok.Data;
 @Data
 public class AppConfig {
 
-	private String summaryZippedTxtFilename = "summary.txt";
-	private String sourceNameZippedTxtFilename = "sourcename.txt";
-	private String versionZippedJsonFilename = "version.json";
-	private String filtersZippedJsonFilename = "filters.json";
-	private String containerZippedXmlFilename = "container.xml";
-	private String stdErrZippedTxtFilename = "stderr.txt";
-	private String lavfiZippedTxtBaseFilename = "lavfi";
-	private String ffprobeZippedTxtFilename = "ffprobe.xml";
+	private ZippedArchive zippedArchive = new ZippedArchive();
 
-	private String reportHtmlFileName = "report.html";
-	private String jsonTableFileName = "media-datas.json";
-	private String sqlLiteTableFileName = "media-datas.sqlite";
-	private String xslxTableFileName = "media-datas.xlsx";
-	private String xmlTableFileName = "media-datas.xml";
-	private String ffprobeXMLFileName = "ffprobe.xml";
+	@Data
+	public class ZippedArchive {
+		private String summaryTxt = "summary.txt";
+		private String sourceNameTxt = "sourcename.txt";
+		private String versionJson = "version.json";
+		private String filtersJson = "filters.json";
+		private String containerXml = "container.xml";
+		private String stdErrTxt = "stderr.txt";
+		private String lavfiTxtBase = "lavfi";
+		private String ffprobeTxt = "ffprobe.xml";
+	}
 
-	private String lufsGraphicFilename = "audio-loudness.png";
-	private String lufsTPKGraphicFilename = "audio-loundness-truepeak.png";
-	private String aPhaseGraphicFilename = "audio-phase.png";
-	private String dcOffsetGraphicFilename = "audio-dcoffset.png";
-	private String entropyGraphicFilename = "audio-entropy.png";
-	private String flatnessGraphicFilename = "audio-flatness.png";
-	private String noiseFloorGraphicFilename = "audio-noise-floor.png";
-	private String peakLevelGraphicFilename = "audio-peak-level.png";
-	private String sitiGraphicFilename = "video-siti.png";
-	private String blockGraphicFilename = "video-block.png";
-	private String blurGraphicFilename = "video-blur.png";
-	private String itetGraphicFilename = "video-idet.png";
-	private String cropGraphicFilename = "video-crop.png";
-	private String eventsGraphicFilename = "events.png";
-	private String vBitrateGraphicFilename = "video-bitrate.png";
-	private String aBitrateGraphicFilename = "audio-bitrate.png";
-	private String vFrameDurationGraphicFilename = "video-frame-duration.png";
-	private String gopCountGraphicFilename = "video-gop-count.png";
-	private String gopSizeGraphicFilename = "video-gop-size.png";
+	private String jsontableFileName = "media-datas.json";
+	private String sqllitetableFileName = "media-datas.sqlite";
+	private String xslxtableFileName = "media-datas.xlsx";
+	private String xmltableFileName = "media-datas.xml";
+	private String ffprobexmlFileName = "ffprobe.xml";
 
-	private Dimension imageSizeFullSize = new Dimension(2000, 1200);
-	private Dimension imageSizeHalfSize = new Dimension(2000, 600);
-	private float jpegCompressionRatio = 0.95f;
-	private int maxCropEventsReportDisplay = 20;
+	private ReportConfig reportConfig = new ReportConfig();
+
+	@Data
+	public class ReportConfig {
+		private String htmlFilename = "report.html";
+		private int maxCropEventsDisplay = 20;
+	}
+
+	private GraphicConfig graphicConfig = new GraphicConfig();
+
+	@Data
+	public class GraphicConfig {
+		private String lufsGraphicFilename = "audio-loudness.png";
+		private String lufsTPKGraphicFilename = "audio-loundness-truepeak.png";
+		private String aPhaseGraphicFilename = "audio-phase.png";
+		private String dcOffsetGraphicFilename = "audio-dcoffset.png";
+		private String entropyGraphicFilename = "audio-entropy.png";
+		private String flatnessGraphicFilename = "audio-flatness.png";
+		private String noiseFloorGraphicFilename = "audio-noise-floor.png";
+		private String peakLevelGraphicFilename = "audio-peak-level.png";
+		private String sitiGraphicFilename = "video-siti.png";
+		private String blockGraphicFilename = "video-block.png";
+		private String blurGraphicFilename = "video-blur.png";
+		private String itetGraphicFilename = "video-idet.png";
+		private String cropGraphicFilename = "video-crop.png";
+		private String eventsGraphicFilename = "events.png";
+		private String vBitrateGraphicFilename = "video-bitrate.png";
+		private String aBitrateGraphicFilename = "audio-bitrate.png";
+		private String vFrameDurationGraphicFilename = "video-frame-duration.png";
+		private String gopCountGraphicFilename = "video-gop-count.png";
+		private String gopSizeGraphicFilename = "video-gop-size.png";
+
+		private Dimension imageSizeFullSize = new Dimension(2000, 1200);
+		private Dimension imageSizeHalfSize = new Dimension(2000, 600);
+		private float jpegCompressionRatio = 0.95f;
+	}
 
 }

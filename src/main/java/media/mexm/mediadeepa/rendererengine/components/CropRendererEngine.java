@@ -168,9 +168,9 @@ public class CropRendererEngine implements
 							.ifPresent(dataGraphic::addValueMarker);
 
 					return new GraphicArtifact(
-							appConfig.getCropGraphicFilename(),
+							appConfig.getGraphicConfig().getCropGraphicFilename(),
 							dataGraphic.makeLinearAxisGraphic(numberUtils),
-							appConfig.getImageSizeFullSize());
+							appConfig.getGraphicConfig().getImageSizeFullSize());
 				})
 				.toList();
 	}
@@ -209,7 +209,7 @@ public class CropRendererEngine implements
 					section.add(new NumericUnitValueReportEntry("Crop detection activity", cropEvents.size(),
 							EVENT_S));
 					section.add(new CropEventTableReportEntry(cropEvents.stream()
-							.limit(appConfig.getMaxCropEventsReportDisplay())
+							.limit(appConfig.getReportConfig().getMaxCropEventsDisplay())
 							.toList(),
 							sourceResolution));
 					document.add(section);

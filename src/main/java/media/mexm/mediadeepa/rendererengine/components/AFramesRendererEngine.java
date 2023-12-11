@@ -178,9 +178,9 @@ public class AFramesRendererEngine implements
 
 		return List.of(
 				new GraphicArtifact(
-						appConfig.getABitrateGraphicFilename(),
+						appConfig.getGraphicConfig().getABitrateGraphicFilename(),
 						dataGraphic.addMinMaxValueMarkers().makeLinearAxisGraphic(numberUtils),
-						appConfig.getImageSizeHalfSize()));
+						appConfig.getGraphicConfig().getImageSizeHalfSize()));
 	}
 
 	@Override

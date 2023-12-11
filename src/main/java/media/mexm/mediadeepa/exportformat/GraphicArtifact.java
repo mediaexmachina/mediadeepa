@@ -92,7 +92,7 @@ public class GraphicArtifact {
 		String fileName;
 		if (isJpg) {
 			fileName = fileNameWOExt + ".jpeg";
-			rawImage = getJPEG(graphic, imageSize, appConfig.getJpegCompressionRatio());
+			rawImage = getJPEG(graphic, imageSize, appConfig.getGraphicConfig().getJpegCompressionRatio());
 		} else {
 			fileName = fileNameWOExt + ".png";
 			rawImage = getPNG(graphic, imageSize);

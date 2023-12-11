@@ -17,6 +17,7 @@
 package media.mexm.mediadeepa.components;
 
 import static java.lang.Integer.signum;
+import static java.lang.System.lineSeparator;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Optional.empty;
 import static java.util.function.Predicate.not;
@@ -41,6 +42,7 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import media.mexm.mediadeepa.ConfigurationCrawler;
 import media.mexm.mediadeepa.ManPage;
 import media.mexm.mediadeepa.ProjectPageGenerator;
 import media.mexm.mediadeepa.ReadmeMarkdownDoc;
@@ -56,6 +58,8 @@ import tv.hd3g.commons.version.EnvironmentVersion;
 @Slf4j
 @Component
 public class DocumentationExporter {
+	private static final String INTERNAL_OPTIONS_BEFORE_LIST_MD = "internal-options-before-list.md";
+	private static final String INTERNAL_OPTIONS_SEE_ALSO_MD = "internal-options-see-also.md";
 	private static final String AUTO_GENERATED_DOCS_MD = "auto-generated-docs.md";
 	private static final String ROAD_MAP_MD = "road-map.md";
 	private static final String OPTIONS_AFTER_LIST_MD = "options-after-list.md";
@@ -87,6 +91,8 @@ public class DocumentationExporter {
 	private List<ExportFormat> exportFormatList;
 	@Autowired
 	private ExportFormatComparator exportFormatComparator;
+	@Autowired
+	private ConfigurationCrawler configurationCrawler;
 
 	private CommandSpec spec;
 	private String appVersion;
@@ -135,6 +141,8 @@ public class DocumentationExporter {
 
 			manPage.startSection("SEE ALSO");
 			documentParserService.markdownParse(documentParserService.getDocContent(SEE_ALSO_MD)).accept(manPage);
+			documentParserService.markdownParse(documentParserService.getDocContent(INTERNAL_OPTIONS_SEE_ALSO_MD))
+					.accept(manPage);
 
 			manPage.startSection("EXIT STATUS");
 			manPage.addExitReturnCodes(spec.usageMessage().exitCodeList());
@@ -188,6 +196,8 @@ public class DocumentationExporter {
 				documentParserService.getDocContent(EXAMPLES_MD));
 		doc.addContent(
 				documentParserService.getDocContent(SEE_ALSO_MD));
+		doc.addContent(
+				documentParserService.getDocContent(INTERNAL_OPTIONS_SEE_ALSO_MD));
 
 		doc.addSection("📕 Documentation, contributing and support", 2,
 				documentParserService.getDocContent(PROJECT_MD));
@@ -249,6 +259,16 @@ public class DocumentationExporter {
 						.sorted(SPEC_COMPARATOR)));
 
 		ppg.addStaticMdContent(OPTIONS_AFTER_LIST_MD);
+		ppg.addStaticMdContent(INTERNAL_OPTIONS_BEFORE_LIST_MD);
+
+		final var rootPrefix = configurationCrawler.getRootPrefix();
+		final var internalOptions = configurationCrawler.parse().stream()
+				.map(ce -> ce.getFullKey(rootPrefix) + "=" + ce.getDefaultValue() + "    # " + ce.getType())
+				.collect(joining(
+						lineSeparator(),
+						"```" + lineSeparator(),
+						lineSeparator() + "```"));
+		ppg.addMdContent(internalOptions);
 
 		ppg.addMdContent("## Application return");
 		ppg.addStaticMdContent(RETURN_VALUE_MD);

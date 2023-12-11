@@ -181,9 +181,9 @@ public class VFramesRendererEngine implements
 
 		return List.of(
 				new GraphicArtifact(
-						appConfig.getVBitrateGraphicFilename(),
+						appConfig.getGraphicConfig().getVBitrateGraphicFilename(),
 						dataGraphic.addMinMaxValueMarkers().makeLinearAxisGraphic(numberUtils),
-						appConfig.getImageSizeFullSize()));
+						appConfig.getGraphicConfig().getImageSizeFullSize()));
 	}
 
 	@Override

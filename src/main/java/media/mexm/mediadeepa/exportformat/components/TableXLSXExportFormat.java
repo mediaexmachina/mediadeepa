@@ -77,7 +77,7 @@ public class TableXLSXExportFormat extends TableExportFormat {
 		try (final var wb = new SXSSFWorkbook()) {
 			wb.setCompressTempFiles(false);
 			tables.forEach(table -> makeTableOnWorkbook(exportToCmd.getBaseFileName(), wb, table));
-			final var outputFile = exportToCmd.makeOutputFile(appConfig.getXslxTableFileName());
+			final var outputFile = exportToCmd.makeOutputFile(appConfig.getXslxtableFileName());
 			save(wb, outputFile);
 			return outputFile;
 		} catch (final IOException e) {

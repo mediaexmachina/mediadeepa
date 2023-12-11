@@ -182,9 +182,9 @@ public class EventsRendererEngine implements
 				AUDIO_MONO, YELLOW, THIN_STROKE, dataGraphic);
 
 		return List.of(new GraphicArtifact(
-				appConfig.getEventsGraphicFilename(),
+				appConfig.getGraphicConfig().getEventsGraphicFilename(),
 				dataGraphic.makeLinearAxisGraphic(numberUtils),
-				appConfig.getImageSizeHalfSize()));
+				appConfig.getGraphicConfig().getImageSizeHalfSize()));
 	}
 
 	@Override

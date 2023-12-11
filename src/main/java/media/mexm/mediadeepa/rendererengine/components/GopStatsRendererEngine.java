@@ -161,13 +161,13 @@ public class GopStatsRendererEngine implements
 
 		return List.of(
 				new GraphicArtifact(
-						appConfig.getGopCountGraphicFilename(),
+						appConfig.getGraphicConfig().getGopCountGraphicFilename(),
 						gopWidthDataGraphic.makeLinearAxisGraphic(numberUtils),
-						appConfig.getImageSizeHalfSize()),
+						appConfig.getGraphicConfig().getImageSizeHalfSize()),
 				new GraphicArtifact(
-						appConfig.getGopSizeGraphicFilename(),
+						appConfig.getGraphicConfig().getGopSizeGraphicFilename(),
 						gopSizeDataGraphic.makeLinearAxisGraphic(numberUtils),
-						appConfig.getImageSizeFullSize()));
+						appConfig.getGraphicConfig().getImageSizeFullSize()));
 
 	}
 

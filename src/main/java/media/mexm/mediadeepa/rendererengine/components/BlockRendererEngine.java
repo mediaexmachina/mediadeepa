@@ -112,10 +112,10 @@ public class BlockRendererEngine implements
 							blockReport.stream().map(LavfiMtdValue::value)));
 
 					return new GraphicArtifact(
-							appConfig.getBlockGraphicFilename(),
+							appConfig.getGraphicConfig().getBlockGraphicFilename(),
 							dataGraphic.addMinMaxValueMarkers()
 									.makeLinearAxisGraphic(numberUtils),
-							appConfig.getImageSizeFullSize());
+							appConfig.getGraphicConfig().getImageSizeFullSize());
 				})
 				.toList();
 	}

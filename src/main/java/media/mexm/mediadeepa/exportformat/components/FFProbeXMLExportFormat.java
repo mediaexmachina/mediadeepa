@@ -55,7 +55,7 @@ public class FFProbeXMLExportFormat implements ExportFormat {
 	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
 		return result.getFFprobeResult()
 				.map(ffprobeJABX -> {
-					final var outFile = exportToCmd.makeOutputFile(appConfig.getFfprobeXMLFileName());
+					final var outFile = exportToCmd.makeOutputFile(appConfig.getFfprobexmlFileName());
 					try {
 						FileUtils.write(
 								outFile,

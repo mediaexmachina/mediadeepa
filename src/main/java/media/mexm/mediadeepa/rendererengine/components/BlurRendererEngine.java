@@ -112,10 +112,10 @@ public class BlurRendererEngine implements
 							blurReport.stream().map(LavfiMtdValue::value)));
 
 					return new GraphicArtifact(
-							appConfig.getBlurGraphicFilename(),
+							appConfig.getGraphicConfig().getBlurGraphicFilename(),
 							dataGraphic.addMinMaxValueMarkers()
 									.makeLinearAxisGraphic(numberUtils),
-							appConfig.getImageSizeFullSize());
+							appConfig.getGraphicConfig().getImageSizeFullSize());
 				})
 				.toList();
 	}

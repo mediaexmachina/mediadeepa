@@ -281,6 +281,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		final var processFileCmd = appCommand.getProcessFileCmd();
 		final var extractToCmd = appCommand.getExtractToCmd();
 		final var tempDir = appCommand.getTempDir();
+		final var zippedTxtFileNames = appConfig.getZippedArchive();
 
 		final var extractSession = new ImpExArchiveExtractionSession();
 
@@ -300,24 +301,26 @@ public class AppSessionServiceImpl implements AppSessionService {
 			maSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
 
 			if (probeResult.getXmlContent().isEmpty() == false) {
-				extractSession.add(appConfig.getFfprobeZippedTxtFilename(), probeResult.getXmlContent());
+				extractSession.add(zippedTxtFileNames.getFfprobeTxt(), probeResult.getXmlContent());
 			}
 			final var mediaS = probeResult.getMediaSummary();
-			extractSession.add(appConfig.getSummaryZippedTxtFilename(), concat(Stream.of(mediaS.format()), mediaS
-					.streams().stream()).toList());
+			extractSession.add(zippedTxtFileNames.getSummaryTxt(), concat(Stream.of(mediaS.format()),
+					mediaS
+							.streams().stream()).toList());
 
 			final var stderrList = new ArrayList<String>();
 			final var lavfiList = new ArrayList<String>();
 			maSession.extract(lavfiList::add, stderrList::add);
-			extractSession.add(appConfig.getLavfiZippedTxtBaseFilename() + "0.txt", lavfiList);
-			extractSession.add(appConfig.getStdErrZippedTxtFilename(), stderrList);
+			extractSession.add(zippedTxtFileNames.getLavfiTxtBase() + "0.txt", lavfiList);
+			extractSession.add(zippedTxtFileNames.getStdErrTxt(), stderrList);
 
 			if (lavfiSecondaryFile.exists()) {
-				extractSession.add(appConfig.getLavfiZippedTxtBaseFilename() + "1.txt",
+				extractSession.add(zippedTxtFileNames.getLavfiTxtBase() + "1.txt",
 						FileUtils.readLines(lavfiSecondaryFile, UTF_8));
 				FileUtils.deleteQuietly(lavfiSecondaryFile);
 			}
-			extractSession.addFilterContext(appConfig.getFiltersZippedJsonFilename(), maSession.getFilterContextList());
+			extractSession.addFilterContext(zippedTxtFileNames.getFiltersJson(), maSession
+					.getFilterContextList());
 		}
 
 		if (processFileCmd.isContainerAnalysing()) {
@@ -327,11 +330,13 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 			final var containerListLines = new ArrayList<String>();
 			caSession.extract(containerListLines::add);
-			extractSession.add(appConfig.getContainerZippedXmlFilename(), containerListLines);
+			extractSession.add(zippedTxtFileNames.getContainerXml(),
+					containerListLines);
 		}
 
-		extractSession.add(appConfig.getSourceNameZippedTxtFilename(), processFileCmd.getInput().getName());
-		extractSession.addVersion(appConfig.getVersionZippedJsonFilename(), getVersion());
+		extractSession.add(zippedTxtFileNames.getSourceNameTxt(), processFileCmd
+				.getInput().getName());
+		extractSession.addVersion(zippedTxtFileNames.getVersionJson(), getVersion());
 		extractSession.saveToZip(extractToCmd.getArchiveFile());
 	}
 
@@ -405,31 +410,33 @@ public class AppSessionServiceImpl implements AppSessionService {
 	public void createOfflineProcessingSession() throws IOException {
 		final var importFromCmd = appCommand.getImportFromCmd();
 		final var exportToCmd = appCommand.getExportToCmd();
+		final var zippedTxtFileNames = appConfig.getZippedArchive();
 
 		final var extractSession = new ImpExArchiveExtractionSession().readFromZip(importFromCmd.getArchiveFile());
 		final var extractEntries = extractSession.getEntries()
 				.collect(toUnmodifiableMap(ExtractedFileEntry::internalFileName, ExtractedFileEntry::content));
 
 		final var dataResult = new DataResult(
-				extractEntries.getOrDefault(appConfig.getSourceNameZippedTxtFilename(),
+				extractEntries.getOrDefault(zippedTxtFileNames.getSourceNameTxt(),
 						getBaseName(importFromCmd.getArchiveFile().getName())),
-				extractSession.getVersions(appConfig.getVersionZippedJsonFilename()));
+				extractSession.getVersions(zippedTxtFileNames.getVersionJson()));
 
 		log.debug("Try to load ffprobe headers");
 
-		dataResult.setFfprobeResult(Optional.ofNullable(extractEntries.get(appConfig.getFfprobeZippedTxtFilename()))
+		dataResult.setFfprobeResult(Optional.ofNullable(extractEntries.get(zippedTxtFileNames
+				.getFfprobeTxt()))
 				.map(probeXMLHeaders -> new FFprobeJAXB(probeXMLHeaders, w -> log.warn("XML warning: {}", w)))
 				.orElse(null));
 
 		log.debug("Try to load lavfi/stdOutLines sources");
 		final var stdOutLines = extractEntries.keySet()
 				.stream()
-				.filter(f -> f.startsWith(appConfig.getLavfiZippedTxtBaseFilename()))
+				.filter(f -> f.startsWith(zippedTxtFileNames.getLavfiTxtBase()))
 				.map(extractEntries::get)
 				.flatMap(String::lines);
 
 		log.debug("Try to load stdErrLines");
-		final var stdErrLines = Optional.ofNullable(extractEntries.get(appConfig.getStdErrZippedTxtFilename()))
+		final var stdErrLines = Optional.ofNullable(extractEntries.get(zippedTxtFileNames.getStdErrTxt()))
 				.stream()
 				.flatMap(String::lines);
 
@@ -438,7 +445,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		log.debug("Load MediaAnalyserSession");
 
-		final var filters = extractSession.getFilterContext(appConfig.getFiltersZippedJsonFilename());
+		final var filters = extractSession.getFilterContext(zippedTxtFileNames.getFiltersJson());
 		dataResult.setMediaAnalyserResult(MediaAnalyserSession.importFromOffline(
 				stdOutLines,
 				stdErrLines,
@@ -449,7 +456,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		dataResult.setRawStdErrEvents(rawStdErrEvents);
 
 		log.debug("Try to load container offline");
-		Optional.ofNullable(extractEntries.get(appConfig.getContainerZippedXmlFilename()))
+		Optional.ofNullable(extractEntries.get(zippedTxtFileNames.getContainerXml()))
 				.ifPresent(f -> dataResult.setContainerAnalyserResult(ContainerAnalyserSession
 						.importFromOffline(new ByteArrayInputStream(f.getBytes(UTF_8)))));
 

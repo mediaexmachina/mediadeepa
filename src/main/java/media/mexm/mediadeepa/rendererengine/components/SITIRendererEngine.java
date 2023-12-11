@@ -122,9 +122,9 @@ public class SITIRendererEngine implements
 									.map(LavfiMtdSiti::ti)));
 
 					return new GraphicArtifact(
-							appConfig.getSitiGraphicFilename(),
+							appConfig.getGraphicConfig().getSitiGraphicFilename(),
 							dataGraphic.addMinMaxValueMarkers().makeLinearAxisGraphic(numberUtils),
-							appConfig.getImageSizeFullSize());
+							appConfig.getGraphicConfig().getImageSizeFullSize());
 				}).stream()
 				.toList();
 	}

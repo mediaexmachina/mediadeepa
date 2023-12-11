@@ -70,7 +70,7 @@ public class TableSQLiteExportFormat extends TableExportFormat {
 
 	@Override
 	public File save(final DataResult result, final List<Table> tables, final ExportToCmd exportToCmd) {
-		final var outputFile = exportToCmd.makeOutputFile(appConfig.getSqlLiteTableFileName());
+		final var outputFile = exportToCmd.makeOutputFile(appConfig.getSqllitetableFileName());
 		final var url = "jdbc:sqlite:" + outputFile.getPath().replace('\\', '/');
 
 		final var sqliteConfig = new SQLiteConfig();

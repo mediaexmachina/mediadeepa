@@ -15,4 +15,4 @@ And the tech stack:
   - jFreechart
   - j2html
 
-See `THIRD-PARTY.txt` file for more information on licenses and the full tech stack.
+See [THIRD-PARTY.txt](https://raw.githubusercontent.com/mediaexmachina/mediadeepa/master/THIRD-PARTY.txt) file for more information on licenses and the full tech stack.

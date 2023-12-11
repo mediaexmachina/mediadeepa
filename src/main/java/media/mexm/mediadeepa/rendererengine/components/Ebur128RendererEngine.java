@@ -181,13 +181,13 @@ public class Ebur128RendererEngine implements
 
 		return List.of(
 				new GraphicArtifact(
-						appConfig.getLufsGraphicFilename(),
+						appConfig.getGraphicConfig().getLufsGraphicFilename(),
 						dataGraphicLUFS.makeLogarithmicAxisGraphic(numberUtils),
-						appConfig.getImageSizeFullSize()),
+						appConfig.getGraphicConfig().getImageSizeFullSize()),
 				new GraphicArtifact(
-						appConfig.getLufsTPKGraphicFilename(),
+						appConfig.getGraphicConfig().getLufsTPKGraphicFilename(),
 						dataGraphicTPK.makeLogarithmicAxisGraphic(numberUtils),
-						appConfig.getImageSizeFullSize()));
+						appConfig.getGraphicConfig().getImageSizeFullSize()));
 	}
 
 }

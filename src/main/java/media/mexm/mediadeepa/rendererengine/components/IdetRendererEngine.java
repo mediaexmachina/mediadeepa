@@ -204,9 +204,9 @@ public class IdetRendererEngine implements
 									.currentFrame()))));
 
 					return new GraphicArtifact(
-							appConfig.getItetGraphicFilename(),
+							appConfig.getGraphicConfig().getItetGraphicFilename(),
 							dataGraphic.makeLinearAxisGraphic(numberUtils),
-							appConfig.getImageSizeHalfSize());
+							appConfig.getGraphicConfig().getImageSizeHalfSize());
 				})
 				.toList();
 	}

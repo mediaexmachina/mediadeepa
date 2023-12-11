@@ -74,7 +74,7 @@ public class TableXMLExportFormat extends TableExportFormat implements OutputStr
 
 	@Override
 	public File save(final DataResult result, final List<Table> tables, final ExportToCmd exportToCmd) {
-		final var outputFile = exportToCmd.makeOutputFile(appConfig.getXmlTableFileName());
+		final var outputFile = exportToCmd.makeOutputFile(appConfig.getXmltableFileName());
 		try {
 			log.debug("Start export {} tables to {}...", tables.size(), outputFile);
 

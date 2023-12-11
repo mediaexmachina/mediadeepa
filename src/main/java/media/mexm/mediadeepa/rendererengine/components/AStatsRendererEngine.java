@@ -170,35 +170,35 @@ public class AStatsRendererEngine implements
 
 					return Stream.of(
 							new GraphicArtifact(
-									appConfig.getDcOffsetGraphicFilename(),
+									appConfig.getGraphicConfig().getDcOffsetGraphicFilename(),
 									prepareAStatGraphic(
 											aStatReport,
 											chCount,
 											astat -> astat.dcOffset() * 100f,
 											"Audio DC offset (%)",
 											10).makeLinearAxisGraphic(numberUtils),
-									appConfig.getImageSizeHalfSize()),
+									appConfig.getGraphicConfig().getImageSizeHalfSize()),
 
 							new GraphicArtifact(
-									appConfig.getEntropyGraphicFilename(),
+									appConfig.getGraphicConfig().getEntropyGraphicFilename(),
 									prepareAStatGraphic(
 											aStatReport,
 											chCount,
 											astat -> astat.entropy() * 100f,
 											"Audio entropy (%)",
 											10).makeLinearAxisGraphic(numberUtils),
-									appConfig.getImageSizeHalfSize()),
+									appConfig.getGraphicConfig().getImageSizeHalfSize()),
 
-							new GraphicArtifact(appConfig.getFlatnessGraphicFilename(),
+							new GraphicArtifact(appConfig.getGraphicConfig().getFlatnessGraphicFilename(),
 									prepareAStatGraphic(
 											aStatReport,
 											chCount,
 											LavfiMtdAstatsChannel::flatness,
 											"Audio flatness",
 											1).makeLinearAxisGraphic(numberUtils),
-									appConfig.getImageSizeHalfSize()),
+									appConfig.getGraphicConfig().getImageSizeHalfSize()),
 
-							new GraphicArtifact(appConfig.getNoiseFloorGraphicFilename(),
+							new GraphicArtifact(appConfig.getGraphicConfig().getNoiseFloorGraphicFilename(),
 									prepareAStatGraphic(
 											RangeAxis.createFromValueSet("Audio noise floor (dBFS)",
 													-144, 20, 0,
@@ -211,9 +211,9 @@ public class AStatsRendererEngine implements
 											chCount,
 											LavfiMtdAstatsChannel::noiseFloor)
 													.makeLogarithmicAxisGraphic(numberUtils),
-									appConfig.getImageSizeHalfSize()),
+									appConfig.getGraphicConfig().getImageSizeHalfSize()),
 
-							new GraphicArtifact(appConfig.getPeakLevelGraphicFilename(),
+							new GraphicArtifact(appConfig.getGraphicConfig().getPeakLevelGraphicFilename(),
 									prepareAStatGraphic(
 											RangeAxis.createFromValueSet("Audio audio peak level (dBFS)",
 													-96, 10, 5,
@@ -226,7 +226,7 @@ public class AStatsRendererEngine implements
 											chCount,
 											LavfiMtdAstatsChannel::peakLevel)
 													.makeLogarithmicAxisGraphic(numberUtils),
-									appConfig.getImageSizeHalfSize()));
+									appConfig.getGraphicConfig().getImageSizeHalfSize()));
 				})
 				.toList();
 	}

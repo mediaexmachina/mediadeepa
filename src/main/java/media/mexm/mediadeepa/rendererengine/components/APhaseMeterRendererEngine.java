@@ -137,9 +137,9 @@ public class APhaseMeterRendererEngine implements
 							values.stream()));
 
 					return new GraphicArtifact(
-							appConfig.getAPhaseGraphicFilename(),
+							appConfig.getGraphicConfig().getAPhaseGraphicFilename(),
 							dataGraphic.makeLinearAxisGraphic(numberUtils),
-							appConfig.getImageSizeHalfSize());
+							appConfig.getGraphicConfig().getImageSizeHalfSize());
 				})
 				.stream()
 				.toList();

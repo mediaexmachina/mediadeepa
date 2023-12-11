@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import media.mexm.mediadeepa.ConfigurationCrawler;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.ProgressCLI;
 import media.mexm.mediadeepa.cli.AppCommand;
@@ -111,6 +112,11 @@ public class Setup {
 	@Bean
 	HtmlRenderer getHtmlRenderer() {
 		return HtmlRenderer.builder().build();
+	}
+
+	@Bean
+	ConfigurationCrawler getConfigurationCrawler(final AppConfig appConfig) {
+		return new ConfigurationCrawler(appConfig);
 	}
 
 }

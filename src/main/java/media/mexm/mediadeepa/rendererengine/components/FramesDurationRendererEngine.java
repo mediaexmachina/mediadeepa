@@ -88,9 +88,9 @@ public class FramesDurationRendererEngine implements
 
 		return List.of(
 				new GraphicArtifact(
-						appConfig.getVFrameDurationGraphicFilename(),
+						appConfig.getGraphicConfig().getVFrameDurationGraphicFilename(),
 						dataGraphic.makeLinearAxisGraphic(numberUtils),
-						appConfig.getImageSizeHalfSize()));
+						appConfig.getGraphicConfig().getImageSizeHalfSize()));
 	}
 
 }

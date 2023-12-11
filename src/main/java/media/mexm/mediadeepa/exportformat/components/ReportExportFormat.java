@@ -175,7 +175,7 @@ public class ReportExportFormat implements ExportFormat, ConstStrings {
 								.render())
 				.trim();
 		try {
-			final var outFile = exportToCmd.makeOutputFile(appConfig.getReportHtmlFileName());
+			final var outFile = exportToCmd.makeOutputFile(appConfig.getReportConfig().getHtmlFilename());
 			FileUtils.write(
 					outFile,
 					htmlDocument,

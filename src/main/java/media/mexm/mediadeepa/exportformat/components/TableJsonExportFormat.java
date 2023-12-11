@@ -71,7 +71,7 @@ public class TableJsonExportFormat extends TableExportFormat implements OutputSt
 
 	@Override
 	public File save(final DataResult result, final List<Table> tables, final ExportToCmd exportToCmd) {
-		final var outputFile = exportToCmd.makeOutputFile(appConfig.getJsonTableFileName());
+		final var outputFile = exportToCmd.makeOutputFile(appConfig.getJsontableFileName());
 		log.debug("Start export {} tables to {}...", tables.size(), outputFile);
 
 		try (final var json = jsonFactory.createGenerator(createOutputStream(outputFile), JsonEncoding.UTF8)) {

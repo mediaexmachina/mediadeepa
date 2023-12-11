@@ -467,25 +467,25 @@ class E2ETextTest extends E2EUtils {
 
 			if (rawData.hasVideo()) {
 				assertEquals(Set.of(
-						defaultAppConfig.getVersionZippedJsonFilename(),
-						defaultAppConfig.getFiltersZippedJsonFilename(),
-						defaultAppConfig.getContainerZippedXmlFilename(),
-						defaultAppConfig.getFfprobeZippedTxtFilename(),
-						defaultAppConfig.getStdErrZippedTxtFilename(),
-						defaultAppConfig.getLavfiZippedTxtBaseFilename() + "0.txt",
-						defaultAppConfig.getLavfiZippedTxtBaseFilename() + "1.txt",
-						defaultAppConfig.getSummaryZippedTxtFilename(),
-						defaultAppConfig.getSourceNameZippedTxtFilename()), names);
+						zippedTxtFileNames.getVersionJson(),
+						zippedTxtFileNames.getFiltersJson(),
+						zippedTxtFileNames.getContainerXml(),
+						zippedTxtFileNames.getFfprobeTxt(),
+						zippedTxtFileNames.getStdErrTxt(),
+						zippedTxtFileNames.getLavfiTxtBase() + "0.txt",
+						zippedTxtFileNames.getLavfiTxtBase() + "1.txt",
+						zippedTxtFileNames.getSummaryTxt(),
+						zippedTxtFileNames.getSourceNameTxt()), names);
 			} else {
 				assertEquals(Set.of(
-						defaultAppConfig.getVersionZippedJsonFilename(),
-						defaultAppConfig.getFiltersZippedJsonFilename(),
-						defaultAppConfig.getContainerZippedXmlFilename(),
-						defaultAppConfig.getFfprobeZippedTxtFilename(),
-						defaultAppConfig.getStdErrZippedTxtFilename(),
-						defaultAppConfig.getLavfiZippedTxtBaseFilename() + "0.txt",
-						defaultAppConfig.getSummaryZippedTxtFilename(),
-						defaultAppConfig.getSourceNameZippedTxtFilename()), names);
+						zippedTxtFileNames.getVersionJson(),
+						zippedTxtFileNames.getFiltersJson(),
+						zippedTxtFileNames.getContainerXml(),
+						zippedTxtFileNames.getFfprobeTxt(),
+						zippedTxtFileNames.getStdErrTxt(),
+						zippedTxtFileNames.getLavfiTxtBase() + "0.txt",
+						zippedTxtFileNames.getSummaryTxt(),
+						zippedTxtFileNames.getSourceNameTxt()), names);
 			}
 		}
 	}
