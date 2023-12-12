@@ -83,19 +83,19 @@ cd mediadeepa
 mvn install -DskipTests
 ```
 
-Build jar will be founded on `target` directory as `mediadeepa-0.0.22.jar`
+Build jar will be founded on `target` directory as `mediadeepa-0.0.23.jar`
 
 And simply run the application with
 
 ```bash
-java -jar mediadeepa-0.0.22.jar
+java -jar mediadeepa-0.0.23.jar
 ```
 
 Mediadeepa contain embedded help, displayed with the `-h` parameter.
 
-You can set the command line parameters with `java -jar mediadeepa-0.0.22.jar [parameters]`.
+You can set the command line parameters with `java -jar mediadeepa-0.0.23.jar [parameters]`.
 
-> Example: `java -jar mediadeepa-0.0.22.jar -h`
+> Example: `java -jar mediadeepa-0.0.23.jar -h`
 
 <h2 id="examples">🛫 Examples</h2>
 
@@ -143,6 +143,8 @@ mediadeepa --import analysing-archive.zip -f report -f graphic -e .
 
 You can read the [FFmpeg filter documentation](https://ffmpeg.org/ffmpeg-filters.html) to know the behavior for each used filters, and the kind of returned values.
 
+The [project website](https://gh.mexm.media/) contain the full documentation regarding the internal variables to specify produced filenames, image sizes...
+
 <h2 id="documentationcontributingandsupport">📕 Documentation, contributing and support</h2>
 
 You can found some documentation:
@@ -177,5 +179,5 @@ And the tech stack:
   - jFreechart
   - j2html
 
-See `THIRD-PARTY.txt` file for more information on licenses and the full tech stack.
+See [THIRD-PARTY.txt](https://raw.githubusercontent.com/mediaexmachina/mediadeepa/master/THIRD-PARTY.txt) file for more information on licenses and the full tech stack.
 

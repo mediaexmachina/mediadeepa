@@ -2,10 +2,10 @@
 .\"     Title: mediadeepa
 .\"    Author: Media ex Machina / hdsdi3g 
 .\" Generator: mediadeepa
-.\"      Date: 12/09/2023
-.\"    Source: mediadeepa 0.0.22
+.\"      Date: 12/12/2023
+.\"    Source: mediadeepa 0.0.23
 .\"  Language: English
-.TH "MEDIADEEPA" "1" "12/09/2023" "mediadeepa 0\&.0\&.22" ""
+.TH "MEDIADEEPA" "1" "12/12/2023" "mediadeepa 0\&.0\&.23" ""
 .\" -----------------------------------------------------------------
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
@@ -468,6 +468,9 @@ Export to JPEG instead to PNG the produced graphic images
 You can read the FFmpeg filter documentation \fIhttps://ffmpeg\&.org/ffmpeg\-filters\&.html\fR to know the behavior for each used filters, and the kind of returned values\&.
 .PP
 
+The project website \fIhttps://gh\&.mexm\&.media/\fR contain the full documentation regarding the internal variables to specify produced filenames, image sizes\&.\&.\&.
+.PP
+
 .SH "EXIT STATUS"
 0
 .RS 4
@@ -507,7 +510,7 @@ Send bug reports on GitHub project page \fIhttps://github\&.com/mediaexmachina/m
 If you have any questions, feel free to reach out via any contact method listed on https://mexm\&.media \fIhttps://mexm\&.media\fR\&.
 .PP
 
-Mediadeepa 0\&.0\&.22
+Mediadeepa 0\&.0\&.23
 .PP
 Copyright (C) 2022\-2023 Media ex Machina, under the GNU General Public License\&.
 .PP
