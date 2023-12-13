@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Configuration;
 
 import media.mexm.mediadeepa.ConfigurationCrawler;
 import media.mexm.mediadeepa.KeyPressToExit;
+import media.mexm.mediadeepa.LoggerConfiguration;
 import media.mexm.mediadeepa.ProgressCLI;
 import media.mexm.mediadeepa.cli.AppCommand;
 import picocli.CommandLine;
@@ -117,6 +118,11 @@ public class Setup {
 	@Bean
 	ConfigurationCrawler getConfigurationCrawler(final AppConfig appConfig) {
 		return new ConfigurationCrawler(appConfig);
+	}
+
+	@Bean
+	LoggerConfiguration getLoggerConfiguration(final AppConfig appConfig) {
+		return new LoggerConfiguration(appConfig);
 	}
 
 }

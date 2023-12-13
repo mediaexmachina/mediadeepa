@@ -58,6 +58,7 @@ import tv.hd3g.commons.version.EnvironmentVersion;
 @Slf4j
 @Component
 public class DocumentationExporter {
+	private static final String LOGS_MD = "logs.md";
 	private static final String INTERNAL_OPTIONS_BEFORE_LIST_MD = "internal-options-before-list.md";
 	private static final String INTERNAL_OPTIONS_SEE_ALSO_MD = "internal-options-see-also.md";
 	private static final String AUTO_GENERATED_DOCS_MD = "auto-generated-docs.md";
@@ -143,6 +144,7 @@ public class DocumentationExporter {
 			documentParserService.markdownParse(documentParserService.getDocContent(SEE_ALSO_MD)).accept(manPage);
 			documentParserService.markdownParse(documentParserService.getDocContent(INTERNAL_OPTIONS_SEE_ALSO_MD))
 					.accept(manPage);
+			documentParserService.markdownParse(documentParserService.getDocContent(LOGS_MD)).accept(manPage);
 
 			manPage.startSection("EXIT STATUS");
 			manPage.addExitReturnCodes(spec.usageMessage().exitCodeList());
@@ -269,6 +271,8 @@ public class DocumentationExporter {
 						"```" + lineSeparator(),
 						lineSeparator() + "```"));
 		ppg.addMdContent(internalOptions);
+
+		ppg.addStaticMdContent(LOGS_MD);
 
 		ppg.addMdContent("## Application return");
 		ppg.addStaticMdContent(RETURN_VALUE_MD);

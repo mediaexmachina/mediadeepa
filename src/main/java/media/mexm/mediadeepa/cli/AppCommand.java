@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -46,6 +47,7 @@ import picocli.CommandLine.Option;
 							"           [-f FORMAT_TYPE] [-e DIRECTORY] [--extract FILE]"
 		 })
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class AppCommand implements Callable<Integer> {
 
 	@Setter
@@ -81,6 +83,17 @@ public class AppCommand implements Callable<Integer> {
 
 	@ArgGroup(exclusive = false, heading = "Export to generated files%n")
 	private ExportToCmd exportToCmd;
+
+	@Option(names = { "--verbose" }, description = "Verbose mode")
+	private boolean verbose;
+
+	@Option(names = { "-q", "--quiet" }, description = "Quiet mode (don't log anyting, except errors)")
+	private boolean quiet;
+
+	@Option(names = { "--log" },
+			description = "Redirect all log messages to text file",
+			paramLabel = "LOG_FILE")
+	private File logToFile;
 
 	@Override
 	public Integer call() throws Exception {

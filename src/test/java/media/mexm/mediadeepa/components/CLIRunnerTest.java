@@ -81,7 +81,7 @@ class CLIRunnerTest {
 
 	@Test
 	void testRun() throws Exception {
-		verify(commandLine, times(1)).setParameterExceptionHandler(any());
+		verify(commandLine, times(2)).setParameterExceptionHandler(any());
 		verify(appCommand, times(1)).setDoCall(doCallCaptor.capture());
 		assertEquals(returnCode, doCallCaptor.getValue().call());
 		verify(appSessionService, times(1)).runCli();

@@ -1,4 +1,4 @@
-personal_ws-1.1 en 32 
+personal_ws-1.1 en 34 
 CSV
 CodeQL
 DOCX
@@ -11,6 +11,7 @@ JDK
 JPG
 JRE
 JSON
+Logback
 MXF
 Machina
 Mediadeepa
@@ -26,6 +27,7 @@ codecs
 html
 jFreechart
 libs
+logback
 macOS
 mexm
 ooxml

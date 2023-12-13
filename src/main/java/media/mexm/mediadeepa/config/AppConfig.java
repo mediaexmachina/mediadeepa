@@ -85,4 +85,6 @@ public class AppConfig {
 		private float jpegCompressionRatio = 0.95f;
 	}
 
+	private String logtofilePattern = "%d{ISO8601} %-5level %msg%n";
+
 }
