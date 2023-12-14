@@ -83,19 +83,19 @@ cd mediadeepa
 mvn install -DskipTests
 ```
 
-Build jar will be founded on `target` directory as `mediadeepa-0.0.23.jar`
+Build jar will be founded on `target` directory as `mediadeepa-0.0.24.jar`
 
 And simply run the application with
 
 ```bash
-java -jar mediadeepa-0.0.23.jar
+java -jar mediadeepa-0.0.24.jar
 ```
 
 Mediadeepa contain embedded help, displayed with the `-h` parameter.
 
-You can set the command line parameters with `java -jar mediadeepa-0.0.23.jar [parameters]`.
+You can set the command line parameters with `java -jar mediadeepa-0.0.24.jar [parameters]`.
 
-> Example: `java -jar mediadeepa-0.0.23.jar -h`
+> Example: `java -jar mediadeepa-0.0.24.jar -h`
 
 <h2 id="examples">🛫 Examples</h2>
 
