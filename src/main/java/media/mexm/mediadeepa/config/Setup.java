@@ -31,6 +31,7 @@ import media.mexm.mediadeepa.ConfigurationCrawler;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.LoggerConfiguration;
 import media.mexm.mediadeepa.ProgressCLI;
+import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.cli.AppCommand;
 import picocli.CommandLine;
 import picocli.CommandLine.IFactory;
@@ -123,6 +124,11 @@ public class Setup {
 	@Bean
 	LoggerConfiguration getLoggerConfiguration(final AppConfig appConfig) {
 		return new LoggerConfiguration(appConfig);
+	}
+
+	@Bean
+	RunnedJavaCmdLine runnedJavaCmdLine() {
+		return new RunnedJavaCmdLine();
 	}
 
 }

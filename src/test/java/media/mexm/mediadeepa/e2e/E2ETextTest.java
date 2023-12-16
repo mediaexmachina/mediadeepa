@@ -468,6 +468,7 @@ class E2ETextTest extends E2EUtils {
 			if (rawData.hasVideo()) {
 				assertEquals(Set.of(
 						zippedTxtFileNames.getVersionJson(),
+						zippedTxtFileNames.getCommandLineJson(),
 						zippedTxtFileNames.getFiltersJson(),
 						zippedTxtFileNames.getContainerXml(),
 						zippedTxtFileNames.getFfprobeTxt(),
@@ -479,6 +480,7 @@ class E2ETextTest extends E2EUtils {
 			} else {
 				assertEquals(Set.of(
 						zippedTxtFileNames.getVersionJson(),
+						zippedTxtFileNames.getCommandLineJson(),
 						zippedTxtFileNames.getFiltersJson(),
 						zippedTxtFileNames.getContainerXml(),
 						zippedTxtFileNames.getFfprobeTxt(),

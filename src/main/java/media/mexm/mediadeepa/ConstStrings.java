@@ -286,4 +286,7 @@ public interface ConstStrings {// NOSONAR
 	String AUDIO_MEDIA_FILE_INFORMATION = "Audio media file information";
 	String FFMPEG_FILTERS_USED_IN_THIS_MEASURE = "FFmpeg filters used in this measure";
 
+	String COMMAND_LINES_USED_TO_CREATE_THIS_REPORT = "Command lines used to create this report";
+	String REPORT_CREATED_BY = "Report created by";
+	String ANALYSIS_CREATED_BY = "Analysis created by";
 }

@@ -51,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.ImpExArchiveExtractionSession;
 import media.mexm.mediadeepa.ImpExArchiveExtractionSession.ExtractedFileEntry;
 import media.mexm.mediadeepa.KeyPressToExit;
+import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -91,6 +92,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 	private ExecutableFinder executableFinder;
 	@Autowired
 	private KeyPressToExit keyPressToExit;
+	@Autowired
+	private RunnedJavaCmdLine runnedJavaCmdLine;
 	@Autowired
 	private MediaAnalyticsTransformerService mediaAnalyticsTransformerService;
 
@@ -337,6 +340,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		extractSession.add(zippedTxtFileNames.getSourceNameTxt(), processFileCmd
 				.getInput().getName());
 		extractSession.addVersion(zippedTxtFileNames.getVersionJson(), getVersion());
+		extractSession.addRunnedJavaCmdLine(zippedTxtFileNames.getCommandLineJson(), runnedJavaCmdLine);
 		extractSession.saveToZip(extractToCmd.getArchiveFile());
 	}
 
@@ -420,6 +424,9 @@ public class AppSessionServiceImpl implements AppSessionService {
 				extractEntries.getOrDefault(zippedTxtFileNames.getSourceNameTxt(),
 						getBaseName(importFromCmd.getArchiveFile().getName())),
 				extractSession.getVersions(zippedTxtFileNames.getVersionJson()));
+
+		runnedJavaCmdLine.setArchiveJavaCmdLine(
+				extractSession.getRunnedJavaCmdLine(zippedTxtFileNames.getCommandLineJson()));
 
 		log.debug("Try to load ffprobe headers");
 

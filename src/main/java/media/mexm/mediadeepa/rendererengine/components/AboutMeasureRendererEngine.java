@@ -23,10 +23,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.ConstStrings;
+import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.exportformat.DataResult;
+import media.mexm.mediadeepa.exportformat.KeyPreValueReportEntry;
 import media.mexm.mediadeepa.exportformat.ReportDocument;
 import media.mexm.mediadeepa.exportformat.ReportSection;
 import media.mexm.mediadeepa.exportformat.SimpleKeyValueReportEntry;
@@ -45,29 +48,36 @@ public class AboutMeasureRendererEngine implements
 										TabularRendererEngine,
 										ConstStrings {
 
+	@Autowired
+	private RunnedJavaCmdLine runnedJavaCmdLine;
+
 	public static final List<String> HEAD_ABOUT = List.of(TYPE, NAME, SETUP, JAVA_CLASS);
 	public static final List<String> HEAD_APP_ABOUT = List.of(TYPE, VALUE);
 
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		final var t = new TabularDocument(tabularExportFormat, "about").head(HEAD_APP_ABOUT);
-		result.getVersions().entrySet().forEach(entry -> t.row(entry.getKey(), entry.getValue()));
+		final var tAbout = new TabularDocument(tabularExportFormat, "about").head(HEAD_APP_ABOUT);
+		result.getVersions().entrySet().forEach(entry -> tAbout.row(entry.getKey(), entry.getValue()));
 
-		return Stream.concat(Stream.of(t),
-				result.getMediaAnalyserResult()
-						.map(maResult -> {
-							final var aboutMeasure = new TabularDocument(tabularExportFormat, "filters").head(
-									HEAD_ABOUT);
-							maResult.filters()
-									.forEach(f -> aboutMeasure.row(
-											f.type(),
-											f.name(),
-											f.setup(),
-											f.className()));
-							return aboutMeasure;
-						}).stream())
-				.toList();
+		runnedJavaCmdLine.makeArchiveCommandline()
+				.ifPresent(cmdLine -> tAbout.row(ANALYSIS_CREATED_BY, cmdLine));
+		tAbout.row(REPORT_CREATED_BY, runnedJavaCmdLine.makeFullExtendedCommandline());
+
+		final var oTFilters = result.getMediaAnalyserResult()
+				.map(maResult -> {
+					final var tFilters = new TabularDocument(tabularExportFormat, "filters")
+							.head(HEAD_ABOUT);
+					maResult.filters()
+							.forEach(f -> tFilters.row(
+									f.type(),
+									f.name(),
+									f.setup(),
+									f.className()));
+					return tFilters;
+				});
+
+		return Stream.concat(Stream.of(tAbout), oTFilters.stream()).toList();
 	}
 
 	@Override
@@ -85,6 +95,10 @@ public class AboutMeasureRendererEngine implements
 
 		final var t = tableDocument.createTable("About app").head(HEAD_APP_ABOUT);
 		result.getVersions().entrySet().forEach(entry -> t.addRow().addCell(entry.getKey()).addCell(entry.getValue()));
+
+		runnedJavaCmdLine.makeArchiveCommandline()
+				.ifPresent(cmdLine -> t.addRow().addCell(ANALYSIS_CREATED_BY).addCell(cmdLine));
+		t.addRow().addCell(REPORT_CREATED_BY).addCell(runnedJavaCmdLine.makeFullExtendedCommandline());
 	}
 
 	@Override
@@ -100,6 +114,13 @@ public class AboutMeasureRendererEngine implements
 							.forEach(section::add);
 					document.add(section);
 				});
+
+		final var section = new ReportSection(ABOUT, COMMAND_LINES_USED_TO_CREATE_THIS_REPORT);
+		runnedJavaCmdLine.makeArchiveCommandline()
+				.ifPresent(cmdLine -> section.add(new KeyPreValueReportEntry(ANALYSIS_CREATED_BY, cmdLine)));
+		section.add(new KeyPreValueReportEntry(REPORT_CREATED_BY,
+				runnedJavaCmdLine.makeFullExtendedCommandline()));
+		document.add(section);
 	}
 
 }

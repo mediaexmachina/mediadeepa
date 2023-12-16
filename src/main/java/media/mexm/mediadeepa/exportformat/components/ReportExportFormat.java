@@ -124,6 +124,7 @@ public class ReportExportFormat implements ExportFormat, ConstStrings {
 		final var items = version.entrySet().stream()
 				.map(entry -> new SimpleKeyValueReportEntry(entry.getKey(), entry.getValue()))
 				.toList();
+
 		final var aboutDocument = new ReportSection(ABOUT, ABOUT_THIS_DOCUMENT).add(items);
 
 		final var tocSection = nav(

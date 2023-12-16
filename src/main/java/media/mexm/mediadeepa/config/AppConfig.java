@@ -36,6 +36,7 @@ public class AppConfig {
 		private String sourceNameTxt = "sourcename.txt";
 		private String versionJson = "version.json";
 		private String filtersJson = "filters.json";
+		private String commandLineJson = "commandline.json";
 		private String containerXml = "container.xml";
 		private String stdErrTxt = "stderr.txt";
 		private String lavfiTxtBase = "lavfi";

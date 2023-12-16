@@ -17,7 +17,6 @@
 package media.mexm.mediadeepa.exportformat;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -25,23 +24,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import j2html.tags.specialized.DivTag;
-import media.mexm.mediadeepa.components.NumberUtils;
 
-class SimpleKeyValueReportEntryTest extends BaseReportEntryTest {
+class KeyPreValueReportEntryTest extends BaseReportEntryTest {
 
 	String value;
-	NumberUtils numberUtils;
 
 	@BeforeEach
 	void init() throws Exception {
-		numberUtils = new NumberUtils();
 		value = faker.numerify("value###");
-		entry = new SimpleKeyValueReportEntry(key, value);
+		entry = new KeyPreValueReportEntry(key, value);
 	}
 
 	@Test
 	void testToDomContent() {
-		final var dom = entry.toDomContent(numberUtils);
+		final var dom = entry.toDomContent(null);
 		assertNotNull(dom);
 		assertThat(dom).isInstanceOf(DivTag.class);
 	}
@@ -49,13 +45,6 @@ class SimpleKeyValueReportEntryTest extends BaseReportEntryTest {
 	@Test
 	void testIsEmpty() {
 		assertFalse(entry.isEmpty());
-	}
-
-	@Test
-	void testGetFromRatio() {
-		final var entry = SimpleKeyValueReportEntry.getFromRatio(key, 10, 20,
-				numberUtils::formatDecimalFull3En);
-		assertEquals("1:2 (0.5)", entry.value());
 	}
 
 }

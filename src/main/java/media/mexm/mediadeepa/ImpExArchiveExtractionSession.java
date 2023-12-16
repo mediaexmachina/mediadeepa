@@ -51,6 +51,7 @@ import tv.hd3g.fflauncher.recipes.MediaAnalyserSessionFilterContext;
 @Slf4j
 public class ImpExArchiveExtractionSession {
 
+	private static final String CAN_T_READ_FROM_JSON = "Can't read from json";
 	static final String NEWLINE = "\n";
 	private static final int TEN_MB = 0xFFFFFF;
 
@@ -95,12 +96,16 @@ public class ImpExArchiveExtractionSession {
 		contentItems.put(internalFileName, content);
 	}
 
-	public void addFilterContext(final String internalFileName, final List<MediaAnalyserSessionFilterContext> filters) {
+	private void add(final String internalFileName, final Object item) {
 		try {
-			add(internalFileName, objectMapper.writeValueAsString(filters));
+			add(internalFileName, objectMapper.writeValueAsString(item));
 		} catch (final JsonProcessingException e) {
 			throw new IllegalArgumentException("Can't produce json", e);
 		}
+	}
+
+	public void addFilterContext(final String internalFileName, final List<MediaAnalyserSessionFilterContext> filters) {
+		add(internalFileName, filters);
 	}
 
 	public List<MediaAnalyserSessionFilterContext> getFilterContext(final String internalFileName) {
@@ -111,16 +116,12 @@ public class ImpExArchiveExtractionSession {
 			return objectMapper.readValue(contentItems.get(internalFileName),
 					new TypeReference<List<MediaAnalyserSessionFilterContext>>() {});
 		} catch (final JsonProcessingException e) {
-			throw new IllegalArgumentException("Can't read from json", e);
+			throw new IllegalArgumentException(CAN_T_READ_FROM_JSON, e);
 		}
 	}
 
 	public void addVersion(final String internalFileName, final Map<String, String> versions) {
-		try {
-			add(internalFileName, objectMapper.writeValueAsString(versions));
-		} catch (final JsonProcessingException e) {
-			throw new IllegalArgumentException("Can't produce json", e);
-		}
+		add(internalFileName, versions);
 	}
 
 	public Map<String, String> getVersions(final String internalFileName) {
@@ -131,7 +132,23 @@ public class ImpExArchiveExtractionSession {
 			return objectMapper.readValue(contentItems.get(internalFileName),
 					new TypeReference<Map<String, String>>() {});
 		} catch (final JsonProcessingException e) {
-			throw new IllegalArgumentException("Can't read from json", e);
+			throw new IllegalArgumentException(CAN_T_READ_FROM_JSON, e);
+		}
+	}
+
+	public void addRunnedJavaCmdLine(final String internalFileName, final RunnedJavaCmdLine runnedJavaCmdLine) {
+		add(internalFileName, runnedJavaCmdLine);
+	}
+
+	public RunnedJavaCmdLine getRunnedJavaCmdLine(final String internalFileName) {
+		if (contentItems.containsKey(internalFileName) == false) {
+			return new RunnedJavaCmdLine();
+		}
+		try {
+			return objectMapper.readValue(contentItems.get(internalFileName),
+					new TypeReference<RunnedJavaCmdLine>() {});
+		} catch (final JsonProcessingException e) {
+			throw new IllegalArgumentException(CAN_T_READ_FROM_JSON, e);
 		}
 	}
 

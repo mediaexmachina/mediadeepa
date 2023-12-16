@@ -51,12 +51,6 @@ class CSVExportFormatTest {
 		assertEquals("csv", c.getDocumentFileExtension());
 	}
 
-	/*	@Test
-		void testFormatToString() {
-			assertEquals("42", c.formatToString(42f, false));
-			assertEquals("4.2", c.formatToString(4.2f, false));
-		}*/
-
 	@Test
 	void testGetDocument() {
 		final var head = List.of(faker.numerify("head###"), faker.numerify("head###"), faker.numerify("head###"));

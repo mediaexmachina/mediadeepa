@@ -16,6 +16,8 @@
  */
 package media.mexm.mediadeepa.components;
 
+import static media.mexm.mediadeepa.App.NAME;
+
 import java.io.File;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.LoggerConfiguration;
+import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.service.AppSessionService;
 import picocli.CommandLine;
@@ -52,6 +55,8 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	private AppSessionService appSessionService;
 	@Autowired
 	private LoggerConfiguration loggerConfiguration;
+	@Autowired
+	private RunnedJavaCmdLine runnedJavaCmdLine;
 	private int exitCode;
 
 	@Override
@@ -100,6 +105,7 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 		}
 
 		log.debug("Start CLI application with param: {}", List.of(args));
+		runnedJavaCmdLine.setup(args, NAME);
 		appCommand.setDoCall(() -> appSessionService.runCli());
 		exitCode = commandLine.execute(args);
 	}
