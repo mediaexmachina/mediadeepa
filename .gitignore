@@ -9,6 +9,9 @@
 *.jpg
 *.webm
 
+*.deb
+*.rpm
+
 # Windows / macOS
 desktop.ini
 .DS_Store

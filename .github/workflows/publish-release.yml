@@ -46,9 +46,38 @@ jobs:
           -o new-release.json
       - name: Extract release URL reference
         run: echo "UPLOAD_URL=$(cat new-release.json | jq ".upload_url" -r | cut -d "{" -f 1)" >> $GITHUB_ENV
-      - name: Push created RPM file to release
+      - name: Push created JAR file to release
         run: |
           curl --request POST -H "Accept: application/vnd.github+json" -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -H "X-GitHub-Api-Version: 2022-11-28" --fail \
           -H "Content-Type: text/plain" \
           --data-binary "@${{ env.JAR_FILE }}" \
           ${{ env.UPLOAD_URL }}?name=${{ github.event.repository.name }}-${{ env.VERSION }}.jar
+
+      - name: Setup deps for linux-springboot-packager
+        run: sudo apt-get install -y coreutils dpkg lintian pandoc xmlstarlet rpm rpmlint
+      - name: Setup linux-springboot-packager
+        run: curl -L https://github.com/hdsdi3g/linux-springboot-packager/raw/master/get-last-release.bash | bash
+      - name: Create RPM Package
+        run: make-springboot-rpm . target
+        env:
+          SKIP_BUILD: 1
+      - name: Create DEB Package
+        run: make-springboot-deb . target
+        env:
+          SKIP_BUILD: 1
+      - name: Extract RPM file name
+        run: echo "RPM_FILE=$(find "target" -type f -name "*.rpm")" >> $GITHUB_ENV
+      - name: Extract DEB file name
+        run: echo "DEB_FILE=$(find "target" -type f -name "*.deb")" >> $GITHUB_ENV
+      - name: Push created RPM file to release
+        run: |
+          curl --request POST -H "Accept: application/vnd.github+json" -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -H "X-GitHub-Api-Version: 2022-11-28" --fail \
+          -H "Content-Type: text/plain" \
+          --data-binary "@${{ env.RPM_FILE }}" \
+          ${{ env.UPLOAD_URL }}?name=${{ github.event.repository.name }}-${{ env.VERSION }}.rpm
+      - name: Push created DEB file to release
+        run: |
+          curl --request POST -H "Accept: application/vnd.github+json" -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -H "X-GitHub-Api-Version: 2022-11-28" --fail \
+          -H "Content-Type: text/plain" \
+          --data-binary "@${{ env.DEB_FILE }}" \
+          ${{ env.UPLOAD_URL }}?name=${{ github.event.repository.name }}-${{ env.VERSION }}.deb

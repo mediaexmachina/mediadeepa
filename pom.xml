@@ -20,6 +20,7 @@
     </parent>
 
     <properties>
+        <linux-springboot-packager.kind>cli</linux-springboot-packager.kind>
         <jaxb-runtime.version>2.3.8</jaxb-runtime.version>
         <picocli.version>4.7.0</picocli.version>
         <apache.poi.version>5.2.3</apache.poi.version>
