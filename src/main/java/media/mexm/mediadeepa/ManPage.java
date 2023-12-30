@@ -78,6 +78,7 @@ public class ManPage implements Visitor, MdVisitorTrait {
 
 	private String escape(final String text) {
 		return text
+				.replace("\\", "\\\\")
 				.replace(".", "\\&.")
 				.replace("-", "\\-");
 	}
