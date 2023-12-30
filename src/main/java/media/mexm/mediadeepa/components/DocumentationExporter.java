@@ -78,6 +78,7 @@ public class DocumentationExporter {
 	private static final String FEATURES_MD = "features.md";
 	private static final String ABOUT_MD = "about.md";
 	private static final String DESCRIPTION_MD = "description.md";
+	private static final String BIN_SEARCH_MD = "bin-search.md";
 	private static final String VERSION_TAG = "<version>";
 
 	private static final Comparator<IOrdered> SPEC_COMPARATOR = (o1, o2) -> signum(o1.order() - o2.order());
@@ -145,6 +146,7 @@ public class DocumentationExporter {
 			documentParserService.markdownParse(documentParserService.getDocContent(INTERNAL_OPTIONS_SEE_ALSO_MD))
 					.accept(manPage);
 			documentParserService.markdownParse(documentParserService.getDocContent(LOGS_MD)).accept(manPage);
+			documentParserService.markdownParse(documentParserService.getDocContent(BIN_SEARCH_MD)).accept(manPage);
 
 			manPage.startSection("EXIT STATUS");
 			manPage.addExitReturnCodes(spec.usageMessage().exitCodeList());
@@ -273,6 +275,7 @@ public class DocumentationExporter {
 		ppg.addMdContent(internalOptions);
 
 		ppg.addStaticMdContent(LOGS_MD);
+		ppg.addStaticMdContent(BIN_SEARCH_MD);
 
 		ppg.addMdContent("## Application return");
 		ppg.addStaticMdContent(RETURN_VALUE_MD);

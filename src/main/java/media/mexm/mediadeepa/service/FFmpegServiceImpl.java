@@ -43,6 +43,7 @@ import media.mexm.mediadeepa.ProgressCLI;
 import media.mexm.mediadeepa.cli.FilterCmd;
 import media.mexm.mediadeepa.cli.ProcessFileCmd;
 import media.mexm.mediadeepa.cli.TypeExclusiveCmd;
+import media.mexm.mediadeepa.config.AppConfig;
 import tv.hd3g.fflauncher.about.FFAbout;
 import tv.hd3g.fflauncher.about.FFAboutFilter;
 import tv.hd3g.fflauncher.enums.Channel;
@@ -128,9 +129,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 	@Autowired
 	private ExecutableFinder executableFinder;
 	@Autowired
-	private String ffmpegExecName;
-	@Autowired
-	private String ffprobeExecName;
+	private AppConfig appConfig;
 	@Autowired
 	private FFAbout ffmpegAbout;
 	@Autowired
@@ -189,7 +188,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 														   final File lavfiSecondaryVideoFile,
 														   final FFprobeJAXB ffprobeJAXB,
 														   final FilterCmd options) {
-		final var ma = new MediaAnalyser(ffmpegExecName, executableFinder, ffmpegAbout);
+		final var ma = new MediaAnalyser(appConfig.getFfmpegExecName(), executableFinder, ffmpegAbout);
 
 		final var programDurationSec = ffprobeJAXB.getFormat().getDuration();
 		setProgress(progressSupplier.get(), programDurationSec, ma);
@@ -488,7 +487,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 
 	@Override
 	public ContainerAnalyserSession createContainerAnalyserSession(final ProcessFileCmd processFileCmd) {
-		final var ca = new ContainerAnalyser(ffprobeExecName, executableFinder);
+		final var ca = new ContainerAnalyser(appConfig.getFfprobeExecName(), executableFinder);
 		return ca.createSession(processFileCmd.getInput());
 	}
 

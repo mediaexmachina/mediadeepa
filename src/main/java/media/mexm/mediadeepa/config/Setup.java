@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -46,34 +46,22 @@ import tv.hd3g.processlauncher.cmdline.Parameters;
 @ComponentScan(basePackages = { "tv.hd3g.commons.version.mod" })
 public class Setup {
 
-	@Value("${mediadeepa.ffmpegExecName:ffmpeg}")
-	private String ffmpegExecName;
-	@Value("${mediadeepa.ffmpegExecName:ffprobe}")
-	private String ffprobeExecName;
+	@Autowired
+	private AppConfig appConfig;
 
 	@Bean
 	ExecutableFinder getExecutableFinder() {
 		return new ExecutableFinder();
 	}
 
-	@Bean(name = "ffmpegExecName")
-	String getFFmpegExecName(final ExecutableFinder executableFinder) {
-		return ffmpegExecName;
-	}
-
-	@Bean(name = "ffprobeExecName")
-	String getFFprobeExecName(final ExecutableFinder executableFinder) {
-		return ffprobeExecName;
-	}
-
 	@Bean(name = "ffmpegAbout")
 	FFAbout getFFmpegAbout(final ExecutableFinder executableFinder) {
-		return new FFmpeg(ffmpegExecName, new Parameters()).getAbout(executableFinder);
+		return new FFmpeg(appConfig.getFfmpegExecName(), new Parameters()).getAbout(executableFinder);
 	}
 
 	@Bean(name = "ffprobeAbout")
 	FFAbout getFFprobeAbout(final ExecutableFinder executableFinder) {
-		return new FFprobe(ffprobeExecName, new Parameters()).getAbout(executableFinder);
+		return new FFprobe(appConfig.getFfmpegExecName(), new Parameters()).getAbout(executableFinder);
 	}
 
 	@Bean
@@ -117,12 +105,12 @@ public class Setup {
 	}
 
 	@Bean
-	ConfigurationCrawler getConfigurationCrawler(final AppConfig appConfig) {
+	ConfigurationCrawler getConfigurationCrawler() {
 		return new ConfigurationCrawler(appConfig);
 	}
 
 	@Bean
-	LoggerConfiguration getLoggerConfiguration(final AppConfig appConfig) {
+	LoggerConfiguration getLoggerConfiguration() {
 		return new LoggerConfiguration(appConfig);
 	}
 

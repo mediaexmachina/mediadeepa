@@ -67,17 +67,11 @@ class AppSessionServiceTest {
 	AppSessionServiceImpl appSessionService;
 	@Autowired
 	AppCommand appCommand;
-
 	@Autowired
-	String ffmpegExecName;
-	@Autowired
-	String ffprobeExecName;
+	AppConfig appConfig;
 
 	@MockBean
 	CLIRunner cliRunner;
-
-	@MockBean
-	AppConfig appConfig;
 	@MockBean
 	CommandLine commandLine;
 	@MockBean
@@ -128,7 +122,6 @@ class AppSessionServiceTest {
 	@AfterEach
 	void ends() {
 		verifyNoMoreInteractions(
-				appConfig,
 				ffmpegService,
 				environmentVersion,
 				scheduledExecutorService,
@@ -156,8 +149,8 @@ class AppSessionServiceTest {
 		assertEquals(0, appSessionService.runCli());
 		verify(ffmpegService, atLeastOnce()).getVersions();
 		verify(ffmpegService, atLeastOnce()).getMtdFiltersAvaliable();
-		verify(executableFinder, atLeastOnce()).get(ffmpegExecName);
-		verify(executableFinder, atLeastOnce()).get(ffprobeExecName);
+		verify(executableFinder, atLeastOnce()).get(appConfig.getFfmpegExecName());
+		verify(executableFinder, atLeastOnce()).get(appConfig.getFfprobeExecName());
 		verify(mediaAnalyticsTransformerService, atLeastOnce()).getExportFormatInformation();
 	}
 

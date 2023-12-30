@@ -85,10 +85,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 	@Autowired
 	private ScheduledExecutorService scheduledExecutorService;
 	@Autowired
-	private String ffmpegExecName;
-	@Autowired
-	private String ffprobeExecName;
-	@Autowired
 	private ExecutableFinder executableFinder;
 	@Autowired
 	private KeyPressToExit keyPressToExit;
@@ -116,10 +112,10 @@ public class AppSessionServiceImpl implements AppSessionService {
 		if (appCommand.isOptions()) {
 			final var versions = ffmpegService.getVersions();
 			out.println("Use:");
-			out.format("%-15s%-15s\n", "ffmpeg", executableFinder.get(ffmpegExecName)); // NOSONAR S3457
+			out.format("%-15s%-15s\n", "ffmpeg", executableFinder.get(appConfig.getFfmpegExecName())); // NOSONAR S3457
 			out.format("%-15s%-15s\n", "", versions.get("ffmpeg"));// NOSONAR S3457
 			out.println("");
-			out.format("%-15s%-15s\n", "ffprobe", executableFinder.get(ffprobeExecName)); // NOSONAR S3457
+			out.format("%-15s%-15s\n", "ffprobe", executableFinder.get(appConfig.getFfprobeExecName())); // NOSONAR S3457
 			out.format("%-15s%-15s\n", "", versions.get("ffprobe"));// NOSONAR S3457
 			out.println("");
 			out.println("Detected (and usable) filters:");
