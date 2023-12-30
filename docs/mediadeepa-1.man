@@ -2,10 +2,10 @@
 .\"     Title: mediadeepa
 .\"    Author: Media ex Machina / hdsdi3g 
 .\" Generator: mediadeepa
-.\"      Date: 12/18/2023
-.\"    Source: mediadeepa 0.0.25
+.\"      Date: 12/31/2023
+.\"    Source: mediadeepa 0.0.26
 .\"  Language: English
-.TH "MEDIADEEPA" "1" "12/18/2023" "mediadeepa 0\&.0\&.25" ""
+.TH "MEDIADEEPA" "1" "12/31/2023" "mediadeepa 0\&.0\&.26" ""
 .\" -----------------------------------------------------------------
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
@@ -504,6 +504,30 @@ To inject a new logback configuration file, add in application command line:
 .RE
 .PP
 
+Search path binaries
+Mediadeepa can search on several paths to found \fBffmpeg\fR/\fBffmpeg\&.exe\fR and \fBffprobe\fR/\fBffprobe\&.exe\fR (sorted by search order):
+.PP
+.RS 4
+\- directly declared on command line by \fB\-Dexecfinder\&.searchdir=c:\\path1;c:\\path2\\subpath\fR on Windows or \fB\-Dexecfinder\&.searchdir=/path1:/path2/subpath\fR on Posix
+.PP
+\- on \fB$HOME\fR directory
+.PP
+\- on \fB$HOME/bin\fR directory, if exists
+.PP
+\- on \fB$HOME/App/bin\fR directory, if exists
+.PP
+\- on any classpath directory declared, if exists
+.PP
+\- on the global \fBPATH\fR environment variable
+.PP
+.RE
+Either on Linux/Posix and Windows\&.
+.PP
+You can inject other binary names (other than \fBffmpeg\fR/\fBffprobe\fR) with: \fBmediadeepa\&.ffmpegExecName\fR and \fBmediadeepa\&.ffprobeExecName\fR configuration keys\&. \fB\&.exe\fR on Windows will be added/removed as needed by the application\&.
+.PP
+In summary, if FFmpeg/FFprobe is runnable from anywhere on your host (\fBPATH\fR), you'll have nothing to do\&.
+.PP
+
 .SH "EXIT STATUS"
 0
 .RS 4
@@ -543,7 +567,7 @@ Send bug reports on GitHub project page \fIhttps://github\&.com/mediaexmachina/m
 If you have any questions, feel free to reach out via any contact method listed on https://mexm\&.media \fIhttps://mexm\&.media\fR\&.
 .PP
 
-Mediadeepa 0\&.0\&.25
+Mediadeepa 0\&.0\&.26
 .PP
 Copyright (C) 2022\-2023 Media ex Machina, under the GNU General Public License\&.
 .PP
