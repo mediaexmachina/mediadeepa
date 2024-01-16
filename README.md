@@ -83,19 +83,19 @@ cd mediadeepa
 mvn install -DskipTests
 ```
 
-Build jar will be founded on `target` directory as `mediadeepa-0.0.27.jar`
+Build jar will be founded on `target` directory as `mediadeepa-0.0.28.jar`
 
 And simply run the application with
 
 ```bash
-java -jar mediadeepa-0.0.27.jar
+java -jar mediadeepa-0.0.28.jar
 ```
 
 Mediadeepa contain embedded help, displayed with the `-h` parameter.
 
-You can set the command line parameters with `java -jar mediadeepa-0.0.27.jar [parameters]`.
+You can set the command line parameters with `java -jar mediadeepa-0.0.28.jar [parameters]`.
 
-> Example: `java -jar mediadeepa-0.0.27.jar -h`
+> Example: `java -jar mediadeepa-0.0.28.jar -h`
 
 <h2 id="examples">🛫 Examples</h2>
 
@@ -148,8 +148,8 @@ The [project website](https://gh.mexm.media/) contain the full documentation reg
 <h2 id="documentationcontributingandsupport">📕 Documentation, contributing and support</h2>
 
 You can found some documentation:
+ - On the Mediadeepa website [https://gh.mexm.media/mediadeepa](https://gh.mexm.media/mediadeepa)
  - On the project's README on [GitHub](https://github.com/mediaexmachina/mediadeepa).
- - On the Mediadeepa website [https://gh.mexm.media/](https://gh.mexm.media/)
  - On the Mediadeepa command line interface.
  - On the integrated app man page.
 
