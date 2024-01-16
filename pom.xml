@@ -9,7 +9,7 @@
     <version>0.0.28-SNAPSHOT</version>
 
     <name>MediaDeepA</name>
-    <url>https://github.com/mediaexmachina/mediadeepa</url>
+    <url>https://gh.mexm.media/mediadeepa</url>
     <description>Audio/video medias and streams deep analyzer in Java with FFmpeg as backend</description>
 
     <parent>

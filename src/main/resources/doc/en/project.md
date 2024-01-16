@@ -1,6 +1,6 @@
 You can found some documentation:
+ - On the Mediadeepa website [https://gh.mexm.media/mediadeepa](https://gh.mexm.media/mediadeepa)
  - On the project's README on [GitHub](https://github.com/mediaexmachina/mediadeepa).
- - On the Mediadeepa website [https://gh.mexm.media/](https://gh.mexm.media/)
  - On the Mediadeepa command line interface.
  - On the integrated app man page.
 
