@@ -26,7 +26,19 @@ body {
     body {
         margin-left: .5em;
         margin-right: .5em;
-        }
+    }
+}
+
+section {
+    display: none;
+}
+
+section:target {
+    display: block;
+}
+
+section#aboutmediadeepa {
+    display: block;
 }
 
 code {
