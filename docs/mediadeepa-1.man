@@ -2,10 +2,10 @@
 .\"     Title: mediadeepa
 .\"    Author: Media ex Machina / hdsdi3g 
 .\" Generator: mediadeepa
-.\"      Date: 12/31/2023
-.\"    Source: mediadeepa 0.0.26
+.\"      Date: 01/16/2024
+.\"    Source: mediadeepa 0.0.27
 .\"  Language: English
-.TH "MEDIADEEPA" "1" "12/31/2023" "mediadeepa 0\&.0\&.26" ""
+.TH "MEDIADEEPA" "1" "01/16/2024" "mediadeepa 0\&.0\&.27" ""
 .\" -----------------------------------------------------------------
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
@@ -567,7 +567,7 @@ Send bug reports on GitHub project page \fIhttps://github\&.com/mediaexmachina/m
 If you have any questions, feel free to reach out via any contact method listed on https://mexm\&.media \fIhttps://mexm\&.media\fR\&.
 .PP
 
-Mediadeepa 0\&.0\&.26
+Mediadeepa 0\&.0\&.27
 .PP
-Copyright (C) 2022\-2023 Media ex Machina, under the GNU General Public License\&.
+Copyright (C) 2022\-2024 Media ex Machina, under the GNU General Public License\&.
 .PP
