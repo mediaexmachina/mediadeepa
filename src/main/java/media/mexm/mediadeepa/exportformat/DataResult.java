@@ -30,11 +30,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
+import tv.hd3g.ffprobejaxb.data.FFProbeFormat;
 
 @EqualsAndHashCode
 public class DataResult {
@@ -45,7 +47,6 @@ public class DataResult {
 	private MediaAnalyserResult mediaAnalyserResult;
 	@Setter
 	private Duration sourceDuration;
-	@Setter
 	private FFprobeJAXB ffprobeResult;
 	@Setter
 	private ContainerAnalyserResult containerAnalyserResult;
@@ -91,9 +92,9 @@ public class DataResult {
 		return getFFprobeResult()
 				.flatMap(FFprobeJAXB::getFirstVideoStream)
 				.flatMap(v -> {
-					final var width = v.getWidth();
-					final var height = v.getHeight();
-					if (width != null && height != null && width > 0 && height > 0) {
+					final var width = v.width();
+					final var height = v.height();
+					if (width > 0 && height > 0) {
 						return Optional.ofNullable(new Dimension(width, height));
 					}
 					return Optional.empty();
@@ -117,6 +118,14 @@ public class DataResult {
 			}
 			return Optional.empty();
 		};
+	}
+
+	public void setFfprobeResult(final FFprobeJAXB ffprobeResult) {
+		this.ffprobeResult = ffprobeResult;
+		sourceDuration = ffprobeResult.getFormat()
+				.map(FFProbeFormat::duration)
+				.map(LavfiMtdEvent::secFloatToDuration)
+				.orElse(null);
 	}
 
 }

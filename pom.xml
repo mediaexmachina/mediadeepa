@@ -21,7 +21,7 @@
 
     <properties>
         <prodlib.version>19.0.0</prodlib.version>
-        <medialib.version>14.0.2</medialib.version>
+        <medialib.version>15.0.0</medialib.version>
 
         <linux-springboot-packager.kind>cli</linux-springboot-packager.kind>
         <jaxb-runtime.version>2.3.8</jaxb-runtime.version>

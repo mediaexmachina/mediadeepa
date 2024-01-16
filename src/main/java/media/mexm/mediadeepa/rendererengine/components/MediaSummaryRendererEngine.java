@@ -25,8 +25,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
-import org.ffmpeg.ffprobe.PacketSideDataListType;
-import org.ffmpeg.ffprobe.StreamType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +46,8 @@ import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
-import tv.hd3g.ffprobejaxb.MediaSummary;
+import tv.hd3g.ffprobejaxb.data.FFProbeStream;
+import tv.hd3g.ffprobejaxb.data.FFProbeStreamDisposition;
 
 @Component
 public class MediaSummaryRendererEngine implements
@@ -99,18 +98,23 @@ public class MediaSummaryRendererEngine implements
 							"File stream(s)", mediaSummary.streams()));
 
 					final var section = new ReportSection(CONTAINER, MEDIA_CONTAINER);
-					final var format = ffprobe.getFormat();
-					section.add(new SimpleKeyValueListReportEntry(FILE_FORMAT, List.of(
-							format.getFormatLongName(), format.getFormatName())));
 
-					section.add(new NumericUnitValueReportEntry(FILE_SIZE, format.getSize(), BYTE_S));
-					section.add(new NumericUnitValueReportEntry(CONTAINER_DECLATED_BITRATE, format.getBitRate(),
-							BYTE_S_SEC));
-					section.add(new SimpleKeyValueReportEntry(CONTAINER_START_TIME, durationToString(format
-							.getStartTime())));
-					section.add(new NumericUnitValueReportEntry(PROGRAM_COUNT, format.getNbPrograms(), PROGRAM_S));
-					section.add(new NumericUnitValueReportEntry(ALL_STREAM_COUNT, format.getNbStreams(),
-							STREAM_S));
+					ffprobe.getFormat()
+							.ifPresent(format -> {
+								section.add(new SimpleKeyValueListReportEntry(FILE_FORMAT, List.of(
+										format.formatLongName(), format.formatName())));
+
+								section.add(new NumericUnitValueReportEntry(FILE_SIZE, format.size(), BYTE_S));
+								section.add(new NumericUnitValueReportEntry(CONTAINER_DECLATED_BITRATE,
+										format.bitRate(), BYTE_S_SEC));
+								section.add(new SimpleKeyValueReportEntry(CONTAINER_START_TIME,
+										durationToString(format.startTime())));
+								section.add(new NumericUnitValueReportEntry(PROGRAM_COUNT,
+										format.nbPrograms(), PROGRAM_S));
+								section.add(new NumericUnitValueReportEntry(ALL_STREAM_COUNT,
+										format.nbStreams(), STREAM_S));
+							});
+
 					section.add(saveFFprobeStreamList(ffprobe.getStreams()));
 
 					section.add(new NumericUnitValueReportEntry(
@@ -119,107 +123,101 @@ public class MediaSummaryRendererEngine implements
 				});
 	}
 
-	private ReportEntry saveFFprobeStreamList(final List<StreamType> streams) {
+	private ReportEntry saveFFprobeStreamList(final List<FFProbeStream> streams) {
 		final var sList = new ReportEntryStreamList();
 		streams.forEach(s -> saveFFprobeStreamToReportEntries(
-				s, sList.addStream(s.getId(), s.getCodecType(), s.getIndex())));
+				s, sList.addStream(s.id(), s.codecType(), s.index())));
 		return sList;
 	}
 
-	private void saveFFprobeStreamToReportEntries(final StreamType stream, final ReportEntryStream reportEntry) {
-		reportEntry.add(CODEC_NAME, stream.getCodecLongName());
-		reportEntry.add(CODEC_INTERNAL_NAME, stream.getCodecName());
-		reportEntry.add(CODEC_TAG, stream.getCodecTag() + "/" + stream.getCodecTagString() + ")");
+	private void saveFFprobeStreamToReportEntries(final FFProbeStream stream, final ReportEntryStream reportEntry) {
+		reportEntry.add(CODEC_NAME, stream.codecLongName());
+		reportEntry.add(CODEC_INTERNAL_NAME, stream.codecName());
+		reportEntry.add(CODEC_TAG, stream.codecTag() + "/" + stream.codecTagString() + ")");
 
-		Optional.ofNullable(stream.getTag())
+		Optional.ofNullable(stream.tags())
 				.map(List::stream)
 				.stream()
 				.flatMap(identity())
-				.forEach(tag -> reportEntry.add("Tag: " + tag.getKey(), tag.getValue()));
+				.forEach(tag -> reportEntry.add("Tag: " + tag.key(), tag.value()));
 
 		reportEntry.add(DISPOSITION,
-				Optional.ofNullable(stream.getDisposition())
-						.map(MediaSummary::resumeDispositions)
+				Optional.ofNullable(stream.disposition())
+						.map(FFProbeStreamDisposition::resumeDispositions)
 						.stream()
 						.flatMap(identity()));
 
-		reportEntry.add(BITRATE_INDICATED, stream.getBitRate(), BYTE_S_SEC);
-		reportEntry.add(MAX_BITRATE_INDICATED, stream.getMaxBitRate(), BYTE_S_SEC);
-		reportEntry.add(BITS_PER_RAW_SAMPLE, stream.getBitsPerRawSample(), BIT_S);
-		if (stream.getBitsPerSample() != null && stream.getBitsPerSample() > 0) {
-			reportEntry.add(BITS_PER_SAMPLE, stream.getBitsPerSample(), BIT_S);
+		reportEntry.add(BITRATE_INDICATED, stream.bitRate(), BYTE_S_SEC);
+		reportEntry.add(MAX_BITRATE_INDICATED, stream.maxBitRate(), BYTE_S_SEC);
+		reportEntry.add(BITS_PER_RAW_SAMPLE, stream.bitsPerRawSample(), BIT_S);
+		if (stream.bitsPerSample() > 0) {
+			reportEntry.add(BITS_PER_SAMPLE, stream.bitsPerSample(), BIT_S);
 		}
-		reportEntry.add(REAL_FRAME_RATE, stream.getRFrameRate(), "0/0");
-		reportEntry.add(AVERAGE_FRAME_RATE, stream.getAvgFrameRate(), "0/0");
-		if (stream.getExtradata() != null && stream.getExtradata().isEmpty() == false) {
-			reportEntry.add(EXTRADATA, stream.getExtradata() + ", " +
-									   stream.getExtradataSize() + " " + BIT_S + " (" +
-									   stream.getExtradataHash() + ")");
+		reportEntry.add(REAL_FRAME_RATE, stream.rFrameRate(), "0/0");
+		reportEntry.add(AVERAGE_FRAME_RATE, stream.avgFrameRate(), "0/0");
+		if (stream.extradata() != null && stream.extradata().isEmpty() == false) {
+			reportEntry.add(EXTRADATA, stream.extradata() + ", " +
+									   stream.extradataSize() + " " + BIT_S + " (" +
+									   stream.extradataHash() + ")");
 		}
-		if (TRUE.equals(stream.isClosedCaptions())) {
+		if (TRUE.equals(stream.closedCaptions())) {
 			reportEntry.add(CLOSED_CAPTIONS, CAN_CONTAIN);
 		}
-		if (TRUE.equals(stream.isFilmGrain())) {
+		if (TRUE.equals(stream.filmGrain())) {
 			reportEntry.add(FILM_GRAIN, CAN_CONTAIN);
 		}
 
-		reportEntry.add(START_PTS, stream.getStartPts(), "");
-		reportEntry.add(START_TIME, durationToString(stream.getStartTime()));
-		reportEntry.add(INITIAL_PADDING, stream.getInitialPadding(), BYTE_S);
-		reportEntry.add(FRAME_COUNT, stream.getNbFrames(), FRAME_S);
-		reportEntry.add(DURATION, durationToString(stream.getDuration()), FRAME_S);
-		reportEntry.add(DURATION_TS, stream.getDurationTs(), "");
-		reportEntry.add(TIME_BASE, stream.getTimeBase());
+		reportEntry.add(START_PTS, stream.startPts(), "");
+		reportEntry.add(START_TIME, durationToString(stream.startTime()));
+		reportEntry.add(INITIAL_PADDING, stream.initialPadding(), BYTE_S);
+		reportEntry.add(FRAME_COUNT, stream.nbFrames(), FRAME_S);
+		reportEntry.add(DURATION, durationToString(stream.duration()), FRAME_S);
+		reportEntry.add(DURATION_TS, stream.durationTs(), "");
+		reportEntry.add(TIME_BASE, stream.timeBase());
 
-		reportEntry.add(WIDTH, stream.getWidth(), PIXEL_S);
-		reportEntry.add(HEIGHT, stream.getHeight(), PIXEL_S);
-		if (stream.getCodedWidth() != null && stream.getCodedWidth() > 0) {
-			reportEntry.add(CODED_WIDTH, stream.getCodedWidth(), PIXEL_S);
+		reportEntry.add(WIDTH, stream.width(), PIXEL_S);
+		reportEntry.add(HEIGHT, stream.height(), PIXEL_S);
+		if (stream.codedWidth() > 0) {
+			reportEntry.add(CODED_WIDTH, stream.codedWidth(), PIXEL_S);
 		}
-		if (stream.getCodedHeight() != null && stream.getCodedHeight() > 0) {
-			reportEntry.add(CODED_HEIGHT, stream.getCodedHeight(), PIXEL_S);
+		if (stream.codedHeight() > 0) {
+			reportEntry.add(CODED_HEIGHT, stream.codedHeight(), PIXEL_S);
 		}
 
-		Optional.ofNullable(stream.getHasBFrames())
-				.ifPresent(hasB -> reportEntry.add(HAS_B_FRAMES, hasB > 0 ? CAN_CONTAIN : "No"));
+		reportEntry.add(HAS_B_FRAMES, stream.hasBFrames() ? CAN_CONTAIN : "No");
+		reportEntry.add(SAMPLE_ASPECT_RATIO2, stream.sampleAspectRatio());
+		reportEntry.add(DISPLAY_ASPECT_RATIO, stream.displayAspectRatio());
+		reportEntry.add(PIXEL_FORMAT, stream.pixFmt());
+		reportEntry.add(CHROMA_LOCATION, stream.chromaLocation());
+		reportEntry.add(COLOR_PRIMARIES, stream.colorPrimaries());
+		reportEntry.add(COLOR_SPACE, stream.colorSpace());
+		reportEntry.add(COLOR_TRANSFERT, stream.colorTransfer());
 
-		reportEntry.add(SAMPLE_ASPECT_RATIO2, stream.getSampleAspectRatio());
-		reportEntry.add(DISPLAY_ASPECT_RATIO, stream.getDisplayAspectRatio());
-		reportEntry.add(PIXEL_FORMAT, stream.getPixFmt());
-		reportEntry.add(CHROMA_LOCATION, stream.getChromaLocation());
-		reportEntry.add(COLOR_PRIMARIES, stream.getColorPrimaries());
-		reportEntry.add(COLOR_SPACE, stream.getColorSpace());
-		reportEntry.add(COLOR_TRANSFERT, stream.getColorTransfer());
+		reportEntry.add(CODEC_PROFILE, stream.profile());
 
-		reportEntry.add(CODEC_PROFILE, stream.getProfile());
+		Optional.ofNullable(stream.level())
+				.ifPresent(c -> reportEntry.add(CODEC_LEVEL, getLevelTag(stream.codecName(), c)));
 
-		Optional.ofNullable(stream.getLevel())
-				.ifPresent(c -> reportEntry.add(CODEC_LEVEL, getLevelTag(stream.getCodecName(), c)));
+		reportEntry.add(FIELD_ORDER, stream.fieldOrder());
+		reportEntry.add(REFS, stream.refs(), "refs");
 
-		reportEntry.add(FIELD_ORDER, stream.getFieldOrder());
-		reportEntry.add(REFS, stream.getRefs(), "refs");
+		reportEntry.add(SAMPLE_FORMAT, stream.sampleFmt());
+		reportEntry.add(SAMPLE_RATE, stream.sampleRate(), HZ_SEC);
 
-		reportEntry.add(SAMPLE_FORMAT, stream.getSampleFmt());
-		reportEntry.add(SAMPLE_RATE, stream.getSampleRate(), HZ_SEC);
+		reportEntry.add(CHANNEL_COUNT, stream.channels(), CHANNEL_S);
+		reportEntry.add(CHANNEL_LAYOUT, stream.channelLayout());
 
-		reportEntry.add(CHANNEL_COUNT, stream.getChannels(), CHANNEL_S);
-		reportEntry.add(CHANNEL_LAYOUT, stream.getChannelLayout());
-
-		reportEntry.add(NB_READ_FRAMES, stream.getNbReadFrames(), FRAME_S);
-		reportEntry.add(NB_READ_PACKETS, stream.getNbReadPackets(), PACKET_S);
+		reportEntry.add(NB_READ_FRAMES, stream.nbReadFrames(), FRAME_S);
+		reportEntry.add(NB_READ_PACKETS, stream.nbReadPackets(), PACKET_S);
 
 		reportEntry.add(SIDE_DATA,
-				Optional.ofNullable(stream.getSideDataList())
-						.map(PacketSideDataListType::getSideData)
-						.map(List::stream)
-						.stream()
-						.flatMap(identity())
-						.map(f -> {
-							if (f.getSideDataSize() != null && f.getSideDataSize() > 0) {
-								return f.getSideDataType() + ": " + f.getSideDataSize() + " bytes";
-							}
-							return f.getSideDataType();
-						}));
+				stream.sideDataList().stream().map(f -> {
+					if (f.size() > 0) {
+						return f.type() + ": " + f.size() + " bytes";
+					}
+					return f.type();
+				}));
+
 	}
 
 	private String durationToString(final Float d) {

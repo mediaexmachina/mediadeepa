@@ -34,7 +34,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import org.ffmpeg.ffprobe.StreamType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -83,6 +82,8 @@ import tv.hd3g.fflauncher.recipes.MediaAnalyser;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
 import tv.hd3g.fflauncher.recipes.ProbeMedia;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
+import tv.hd3g.ffprobejaxb.data.FFProbeFormat;
+import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Service
@@ -190,11 +191,11 @@ public class FFmpegServiceImpl implements FFmpegService {
 														   final FilterCmd options) {
 		final var ma = new MediaAnalyser(appConfig.getFfmpegExecName(), executableFinder, ffmpegAbout);
 
-		final var programDurationSec = ffprobeJAXB.getFormat().getDuration();
+		final var programDurationSec = ffprobeJAXB.getFormat().map(FFProbeFormat::duration).orElse(0f);
 		setProgress(progressSupplier.get(), programDurationSec, ma);
 
 		final var avgFrameRate = ffprobeJAXB.getFirstVideoStream()
-				.map(StreamType::getAvgFrameRate)
+				.map(FFProbeStream::avgFrameRate)
 				.flatMap(Optional::ofNullable)
 				.map(FFmpegServiceImpl::getAvgFrameRate)
 				.orElse(1f);
@@ -203,7 +204,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 				processFileCmd,
 				lavfiSecondaryVideoFile,
 				ffprobeJAXB.getFirstVideoStream().isPresent(),
-				ffprobeJAXB.getAudiosStreams().findAny().isPresent(),
+				ffprobeJAXB.getAudioStreams().findAny().isPresent(),
 				ma,
 				Optional.ofNullable(options).orElseGet(FilterCmd::new),
 				avgFrameRate);

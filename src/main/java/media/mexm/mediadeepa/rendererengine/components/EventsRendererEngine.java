@@ -34,7 +34,6 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.ffmpeg.ffprobe.FormatType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -59,6 +58,7 @@ import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
+import tv.hd3g.ffprobejaxb.data.FFProbeFormat;
 
 @Component
 public class EventsRendererEngine implements
@@ -158,9 +158,10 @@ public class EventsRendererEngine implements
 				.map(MediaAnalyserResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getEventCount)
 				.orElse(0);
+
 		final var secDurationFloat = result.getFFprobeResult()
-				.map(FFprobeJAXB::getFormat)
-				.map(FormatType::getDuration)
+				.flatMap(FFprobeJAXB::getFormat)
+				.map(FFProbeFormat::duration)
 				.orElse(0f);
 		if (eventsReportCount == 0 || secDurationFloat < 1f) {
 			return List.of();

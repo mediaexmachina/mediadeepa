@@ -32,7 +32,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.ffmpeg.ffprobe.StreamType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -61,6 +60,7 @@ import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
+import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 
 @Component
 public class CropRendererEngine implements
@@ -154,14 +154,14 @@ public class CropRendererEngine implements
 
 					result.getFFprobeResult()
 							.flatMap(FFprobeJAXB::getFirstVideoStream)
-							.map(StreamType::getHeight)
+							.map(FFProbeStream::height)
 							.or(() -> result.getContainerAnalyserResult()
 									.map(ContainerAnalyserResult::videoConst)
 									.map(FFprobeVideoFrameConst::height))
 							.ifPresent(dataGraphic::addValueMarker);
 					result.getFFprobeResult()
 							.flatMap(FFprobeJAXB::getFirstVideoStream)
-							.map(StreamType::getWidth)
+							.map(FFProbeStream::width)
 							.or(() -> result.getContainerAnalyserResult()
 									.map(ContainerAnalyserResult::videoConst)
 									.map(FFprobeVideoFrameConst::width))

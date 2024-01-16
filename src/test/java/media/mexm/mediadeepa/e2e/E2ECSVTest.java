@@ -48,7 +48,7 @@ class E2ECSVTest extends E2EUtils {
 		assertThat(lines.get(1)).isEqualTo(
 				"Stream,video: mpeg2video 352×288 Main/Main with B frames @ 25 fps yuv420p/colRange:TV");
 		assertThat(lines.get(2)).isEqualTo(
-				"Stream,audio: mp2 s16p stereo @ 48000 Hz [256 kbps]");
+				"Stream,audio: mp2 stereo @ 48000 Hz [256 kbps]");
 		assertThat(lines.get(3)).startsWith(
 				"Format,\"MPEG-PS (MPEG-2 Program Stream), 00:00:56, ").endsWith(" MB\"");
 

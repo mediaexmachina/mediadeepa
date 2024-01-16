@@ -25,6 +25,7 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import java.awt.Dimension;
 import java.time.Duration;
@@ -32,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.ffmpeg.ffprobe.StreamType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,6 +47,7 @@ import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
+import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 
 class DataResultTest {
 	static Faker faker = net.datafaker.Faker.instance();
@@ -72,7 +73,7 @@ class DataResultTest {
 	@Mock
 	Map<String, String> versions;
 	@Mock
-	StreamType streamType;
+	FFProbeStream streamType;
 	@Mock
 	FFprobeVideoFrameConst ffprobeVideoFrameConst;
 
@@ -139,6 +140,7 @@ class DataResultTest {
 		dr.setFfprobeResult(ffprobeResult);
 		assertTrue(dr.getFFprobeResult().isPresent());
 		assertEquals(ffprobeResult, dr.getFFprobeResult().get());
+		verify(ffprobeResult, times(1)).getFormat();
 	}
 
 	@Test
@@ -159,15 +161,16 @@ class DataResultTest {
 		dr.setFfprobeResult(ffprobeResult);
 		when(ffprobeResult.getFirstVideoStream())
 				.thenReturn(Optional.ofNullable(streamType));
-		when(streamType.getWidth()).thenReturn(width);
-		when(streamType.getHeight()).thenReturn(height);
+		when(streamType.width()).thenReturn(width);
+		when(streamType.height()).thenReturn(height);
 
 		assertTrue(dr.getVideoResolution().isPresent());
 		assertEquals(new Dimension(width, height), dr.getVideoResolution().get());
 
 		verify(ffprobeResult, atLeast(1)).getFirstVideoStream();
-		verify(streamType, atLeast(1)).getWidth();
-		verify(streamType, atLeast(1)).getHeight();
+		verify(ffprobeResult, atLeast(1)).getFormat();
+		verify(streamType, atLeast(1)).width();
+		verify(streamType, atLeast(1)).height();
 	}
 
 	@Test
@@ -175,14 +178,15 @@ class DataResultTest {
 		dr.setFfprobeResult(ffprobeResult);
 		when(ffprobeResult.getFirstVideoStream())
 				.thenReturn(Optional.ofNullable(streamType));
-		when(streamType.getWidth()).thenReturn(0);
-		when(streamType.getHeight()).thenReturn(0);
+		when(streamType.width()).thenReturn(0);
+		when(streamType.height()).thenReturn(0);
 
 		assertFalse(dr.getVideoResolution().isPresent());
 
 		verify(ffprobeResult, atLeast(1)).getFirstVideoStream();
-		verify(streamType, atLeast(1)).getWidth();
-		verify(streamType, atLeast(1)).getHeight();
+		verify(ffprobeResult, atLeast(1)).getFormat();
+		verify(streamType, atLeast(1)).width();
+		verify(streamType, atLeast(1)).height();
 	}
 
 	@Test

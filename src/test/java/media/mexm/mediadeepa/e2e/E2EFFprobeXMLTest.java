@@ -63,9 +63,9 @@ class E2EFFprobeXMLTest extends E2EUtils implements ConstStrings {
 
 		final var xmlContent = FileUtils.readFileToString(outputFile, UTF_8);
 
-		final var ffprobeJAXB = new FFprobeJAXB(xmlContent, onWarnLog);
-		assertEquals("mpegts", ffprobeJAXB.getFormat().getFormatName());
-		assertEquals(1, ffprobeJAXB.getAudiosStreams().count());
+		final var ffprobeJAXB = FFprobeJAXB.load(xmlContent);
+		assertEquals("mpegts", ffprobeJAXB.getFormat().orElseThrow().formatName());
+		assertEquals(1, ffprobeJAXB.getAudioStreams().count());
 		assertEquals(1, ffprobeJAXB.getVideoStreams().count());
 	}
 

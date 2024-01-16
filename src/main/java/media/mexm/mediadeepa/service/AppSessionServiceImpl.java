@@ -42,7 +42,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
-import org.ffmpeg.ffprobe.FormatType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -60,7 +59,6 @@ import picocli.CommandLine;
 import picocli.CommandLine.Help;
 import picocli.CommandLine.ParameterException;
 import tv.hd3g.commons.version.EnvironmentVersion;
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
@@ -383,17 +381,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 			dataResult.setMediaAnalyserResult(maSession.process(
 					Optional.ofNullable(() -> openFileToLineStream(lavfiSecondaryFile))));
 			FileUtils.deleteQuietly(lavfiSecondaryFile);
-
-			dataResult.setSourceDuration(
-					Optional.ofNullable(ffprobeResult)
-							.map(FFprobeJAXB::getFormat)
-							.map(FormatType::getDuration)
-							.map(Optional::ofNullable)
-							.stream()
-							.flatMap(Optional::stream)
-							.map(LavfiMtdEvent::secFloatToDuration)
-							.findFirst()
-							.orElse(null));
 		}
 
 		if (processFileCmd.isContainerAnalysing()) {
@@ -426,9 +413,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		log.debug("Try to load ffprobe headers");
 
-		dataResult.setFfprobeResult(Optional.ofNullable(extractEntries.get(zippedTxtFileNames
-				.getFfprobeTxt()))
-				.map(probeXMLHeaders -> new FFprobeJAXB(probeXMLHeaders, w -> log.warn("XML warning: {}", w)))
+		dataResult.setFfprobeResult(Optional.ofNullable(extractEntries.get(zippedTxtFileNames.getFfprobeTxt()))
+				.map(FFprobeJAXB::load)
 				.orElse(null));
 
 		log.debug("Try to load lavfi/stdOutLines sources");
@@ -462,16 +448,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 		Optional.ofNullable(extractEntries.get(zippedTxtFileNames.getContainerXml()))
 				.ifPresent(f -> dataResult.setContainerAnalyserResult(ContainerAnalyserSession
 						.importFromOffline(new ByteArrayInputStream(f.getBytes(UTF_8)))));
-
-		dataResult.setSourceDuration(dataResult.getFFprobeResult()
-				.map(FFprobeJAXB::getFormat)
-				.map(FormatType::getDuration)
-				.map(Optional::ofNullable)
-				.stream()
-				.flatMap(Optional::stream)
-				.map(LavfiMtdEvent::secFloatToDuration)
-				.findFirst()
-				.orElse(null));
 
 		log.debug("Export analytics");
 		mediaAnalyticsTransformerService.exportAnalytics(dataResult, exportToCmd);
