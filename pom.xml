@@ -6,7 +6,7 @@
     <groupId>media.mexm</groupId>
     <artifactId>mediadeepa</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.28</version>
+    <version>0.0.29-SNAPSHOT</version>
 
     <name>MediaDeepA</name>
     <url>https://gh.mexm.media/mediadeepa</url>
