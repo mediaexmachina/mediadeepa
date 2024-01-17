@@ -58,6 +58,8 @@ import tv.hd3g.commons.version.EnvironmentVersion;
 @Slf4j
 @Component
 public class DocumentationExporter {
+	private static final String RELEASES_MD = "releases.md";
+	private static final String E2E_TESTS_MD = "e2e-tests.md";
 	private static final String LOGS_MD = "logs.md";
 	private static final String INTERNAL_OPTIONS_BEFORE_LIST_MD = "internal-options-before-list.md";
 	private static final String INTERNAL_OPTIONS_SEE_ALSO_MD = "internal-options-see-also.md";
@@ -205,6 +207,10 @@ public class DocumentationExporter {
 
 		doc.addSection("📕 Documentation, contributing and support", 2,
 				documentParserService.getDocContent(PROJECT_MD));
+		doc.addContent(
+				documentParserService.getDocContent(E2E_TESTS_MD));
+		doc.addContent(
+				documentParserService.getDocContent(RELEASES_MD));
 
 		doc.addSection("🌹 Acknowledgments", 2,
 				documentParserService.getDocContent(ACKNOWLEDGMENTS_MD));
@@ -285,6 +291,8 @@ public class DocumentationExporter {
 		ppg.addMdContent("# Documentation, contributing and support");
 		ppg.addStaticMdContent(PROJECT_MD);
 		ppg.addStaticMdContent(GH_ICON_LABELS_MD);
+		ppg.addStaticMdContent(E2E_TESTS_MD);
+		ppg.addStaticMdContent(RELEASES_MD);
 
 		ppg.addStaticMdContent(ROAD_MAP_MD);
 		ppg.addStaticMdContent(AUTO_GENERATED_DOCS_MD,

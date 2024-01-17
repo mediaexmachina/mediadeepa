@@ -1,4 +1,4 @@
-personal_ws-1.1 en 37 
+personal_ws-1.1 en 40 
 CSV
 CodeQL
 DOCX
@@ -26,13 +26,16 @@ XLSX
 YAML
 classpath
 codecs
+dev
 html
 jFreechart
 libs
+linux
 logback
 macOS
 mexm
 ooxml
 runnable
+springboot
 txt
 xml
