@@ -71,9 +71,37 @@ This application can run on three different modes:
 
 Declared on OS (Windows/Linux/macOS) PATH.
 
-Download the last application release, as an executable JAR (autonomous *fat* JAR file), downloaded directly from [GitHub releases page](https://github.com/mediaexmachina/mediadeepa/releases), and build at each releases.
+### Get Linux application packages
 
-Or, you can build yourself this JAR, with Git and Maven.
+Download the last application release, as a Linux RPM or DEB package, or as an executable JAR (autonomous *fat* JAR file), downloaded directly from [GitHub releases page](https://github.com/mediaexmachina/mediadeepa/releases), and build at each releases.
+
+Install/update  with 
+
+```bash
+# DEB file on Debian/Ubuntu Linux distribs
+sudo dpkg -i mediadeepa-0.0.29.deb
+
+# RPM file on RHEL/CentOS Linux distribs
+sudo rpm -U mediadeepa-0.0.29.rpm
+```
+
+Remove with `sudo dpkg -r mediadeepa` or `rpm -e mediadeepa`.
+
+After, on Linux, run `mediadeepa [parameters]`, and `man mediadeepa` for the internal doc man page.
+
+### Run simple JAR file
+
+On Windows/macOS, just run `java -jar mediadeepa-0.0.29.jar [options]`.
+
+And simply run the application with `java -jar mediadeepa-0.0.29.jar`.
+
+Mediadeepa contain embedded help, displayed with the `-h` parameter.
+
+You can set the command line parameters with `java -jar mediadeepa-0.0.29.jar [parameters]`.
+
+### Make a Java executable JAR file
+
+You can build yourself a JAR, with Git and Maven.
 
 Run on Linux/WSL/macOS, after setup Git and Maven:
 
@@ -83,19 +111,7 @@ cd mediadeepa
 mvn install -DskipTests
 ```
 
-Build jar will be founded on `target` directory as `mediadeepa-0.0.28.jar`
-
-And simply run the application with
-
-```bash
-java -jar mediadeepa-0.0.28.jar
-```
-
-Mediadeepa contain embedded help, displayed with the `-h` parameter.
-
-You can set the command line parameters with `java -jar mediadeepa-0.0.28.jar [parameters]`.
-
-> Example: `java -jar mediadeepa-0.0.28.jar -h`
+Build jar will be founded on `target` directory as `mediadeepa-0.0.29.jar`
 
 <h2 id="examples">🛫 Examples</h2>
 
@@ -159,6 +175,32 @@ Send bug reports on [GitHub project page](https://github.com/mediaexmachina/medi
  - Or just take time to test the application and report the experience.
 
 If you have any questions, feel free to reach out via any contact method listed on [https://mexm.media](https://mexm.media).
+
+## End-to-end automatic tests
+
+In the project source repository, you will found some tools to end-to-ends (e2e) automatic tests, in order to check the application behavior with real video files.
+
+> These tests are optional during the run of classical automatic tests, and only concerns dev. operations.
+
+To run classical automatic tests, just run a `mvn test`.
+
+To run e2e tests, you will need `ffmpeg` and `bash`:
+
+ - Create video tests files on `.demo-media-files` with `bash create-demo-files.bash` (approx 230MB).
+ - Optionally run `bash create-long-demo-file.bash` to create a big test video file.
+ - Next, just run `mvn test`.
+
+E2e tests take time. They will produce temp files in `target` directory (`e2e*` directories). A simple `mvn clean` wipe them, else the e2e scripts can reuse old generated files and don't loose some time.
+
+E2e tests deeply checks all produced data from the application.
+
+## Releases
+
+On each `git tag`, a GitHub *Action* will make a DEB and a RPM package on [GitHub releases](https://github.com/mediaexmachina/mediadeepa/releases).
+
+This Action use [linux-springboot-packager](https://github.com/hdsdi3g/linux-springboot-packager) to generate this files. Free feel to read this project documentation.
+
+These packages are provided "as-it", as same for Mediadeepa. They are not signed.
 
 <h2 id="acknowledgments">🌹 Acknowledgments</h2>
 
