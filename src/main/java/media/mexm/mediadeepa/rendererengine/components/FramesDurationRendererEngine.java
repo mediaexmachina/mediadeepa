@@ -18,10 +18,13 @@ package media.mexm.mediadeepa.rendererengine.components;
 
 import static java.awt.Color.BLUE;
 import static java.awt.Color.RED;
+import static java.util.function.Predicate.not;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THICK_STROKE;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -78,8 +81,24 @@ public class FramesDurationRendererEngine implements
 				.map(numberUtils::secToMs),
 				allFrames.size());
 
-		final var dataGraphic = new XYLineChartDataGraphic(RangeAxis.createAutomaticRangeAxis(
-				"Frame duration (milliseconds)"), allFrames.size());
+		final var stats = Stream.concat(
+				Arrays.stream(pktDtsTimeDerivative).boxed(),
+				Arrays.stream(bestEffortTimestampTimeDerivative).boxed())
+				.filter(not(d -> Double.isNaN(d)))
+				.filter(v -> v > 0d)
+				.mapToDouble(v -> v)
+				.summaryStatistics();
+		final var rangeValue = stats.getMax() - stats.getMin();
+		var minRange = 0d;
+		var maxRange = stats.getMax() + stats.getMax() / 2d;
+		if (rangeValue < 0.1d) {
+			minRange = stats.getMin() - rangeValue * 0.1d;
+			maxRange = stats.getMax() + rangeValue * 0.1d;
+		}
+
+		final var dataGraphic = new XYLineChartDataGraphic(
+				new RangeAxis("Frame duration (milliseconds)", minRange, maxRange),
+				allFrames.size());
 
 		dataGraphic.addSeries(new SeriesStyle("DTS video frame duration", BLUE, THIN_STROKE),
 				pktDtsTimeDerivative);
