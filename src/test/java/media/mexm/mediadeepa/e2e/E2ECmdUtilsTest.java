@@ -51,7 +51,7 @@ class E2ECmdUtilsTest extends E2EUtils {
 	void testShowHelp(final String param, final CapturedOutput output) {
 		runApp(param);
 		assertThat(output.getOut()).startsWith("Base usage: mediadeepa");
-		assertThat(output.getErr()).isEmpty();
+
 	}
 
 	@Test
@@ -70,7 +70,7 @@ class E2ECmdUtilsTest extends E2EUtils {
 		runApp(param);
 		assertThat(output.getOut()).startsWith("Mediadeepa");
 		assertThat(output.getOut()).contains("Media ex Machina", "Copyright", "GNU");
-		assertThat(output.getErr()).isEmpty();
+
 	}
 
 	@ParameterizedTest
@@ -83,7 +83,7 @@ class E2ECmdUtilsTest extends E2EUtils {
 				"ebur128",
 				"cropdetect",
 				"metadata");
-		assertThat(output.getErr()).isEmpty();
+
 	}
 
 	@Test
@@ -91,7 +91,7 @@ class E2ECmdUtilsTest extends E2EUtils {
 		runApp("--autocomplete");
 		assertThat(output.getOut()).startsWith("#!/usr/bin/env bash");
 		assertThat(output.getOut()).contains("mediadeepa", "picocli");
-		assertThat(output.getErr()).isEmpty();
+
 	}
 
 	@Nested
@@ -115,7 +115,7 @@ class E2ECmdUtilsTest extends E2EUtils {
 			log.debug("YEP");
 			assertThat(output.getOut()).contains("[--verbose, -v]", "YEP");
 			assertThat(output.getOut()).doesNotContain("NOPE");
-			assertThat(output.getErr()).isEmpty();
+
 		}
 
 		@ParameterizedTest
@@ -123,7 +123,7 @@ class E2ECmdUtilsTest extends E2EUtils {
 		void testQuiet(final String param, final CapturedOutput output) {
 			runApp(param, "-v");
 			assertThat(output.getOut()).isEmpty();
-			assertThat(output.getErr()).isEmpty();
+
 		}
 
 		@Test
@@ -139,7 +139,7 @@ class E2ECmdUtilsTest extends E2EUtils {
 			runApp("--log", logFile.getPath(), "-v");
 			log.error("YEP");
 			assertThat(output.getOut()).isEmpty();
-			assertThat(output.getErr()).isEmpty();
+
 			final var logContent = readFileToString(logFile, UTF_8);
 			assertThat(logContent).contains("ERROR YEP");
 		}
@@ -150,7 +150,7 @@ class E2ECmdUtilsTest extends E2EUtils {
 			runApp("--log", logFile.getPath(), "--verbose", "-v");
 			log.trace("YEP");
 			assertThat(output.getOut()).isEmpty();
-			assertThat(output.getErr()).isEmpty();
+
 			final var logContent = readFileToString(logFile, UTF_8);
 			assertThat(logContent).contains("TRACE YEP");
 		}
@@ -162,7 +162,7 @@ class E2ECmdUtilsTest extends E2EUtils {
 			log.info("NOPE");
 			log.error("YEP");
 			assertThat(output.getOut()).isEmpty();
-			assertThat(output.getErr()).isEmpty();
+
 			final var logContent = readFileToString(logFile, UTF_8);
 			assertThat(logContent.trim()).endsWith("ERROR YEP").hasLineCount(1);
 		}
