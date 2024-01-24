@@ -37,7 +37,7 @@ class E2ECSVTest extends E2EUtils {
 		final var outputFileMediaSum = new File("target/e2e-export", "mpg_media-summary.csv");
 		runApp(
 				"--temp", "target/e2e-temp",
-				"--import", rawData.archive().getPath(),
+				"-i", rawData.archive().getPath(),
 				"-f", "csv",
 				"-e", "target/e2e-export",
 				"--export-base-filename", "mpg");
@@ -78,7 +78,7 @@ class E2ECSVTest extends E2EUtils {
 
 		runApp(
 				"--temp", "target/e2e-temp",
-				"--import", rawData.archive().getPath(),
+				"-i", rawData.archive().getPath(),
 				"-f", "csvfr",
 				"-e", "target/e2e-export",
 				"--export-base-filename", "movfr");

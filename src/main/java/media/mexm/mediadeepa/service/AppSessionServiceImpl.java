@@ -23,11 +23,14 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Stream.concat;
 import static media.mexm.mediadeepa.App.NAME;
+import static media.mexm.mediadeepa.ImpExArchiveExtractionSession.TEN_MB;
 import static org.apache.commons.io.FileUtils.forceMkdir;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -40,6 +43,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Stream;
+import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,18 +150,18 @@ public class AppSessionServiceImpl implements AppSessionService {
 		final var processFileCmd = appCommand.getProcessFileCmd();
 		final var exportToCmd = appCommand.getExportToCmd();
 		final var extractToCmd = appCommand.getExtractToCmd();
-		final var importFromCmd = appCommand.getImportFromCmd();
+		final var isZipImport = checkIfSourceIsZIP();
 
 		if (processFileCmd != null && extractToCmd != null) {
-			log.info("Prepare extraction session from media file: {}", processFileCmd.getInput());
+			log.info("Prepare extraction session from media file: {}", appCommand.getInput());
 			startKeyPressExit();
-			createExtractionSession();
+			createExtractionSession(appCommand.getInput());
 		} else if (processFileCmd != null && exportToCmd != null) {
 			log.info("Prepare processing session from media file: {} to {}",
-					processFileCmd.getInput(), exportToCmd.getExport());
+					appCommand.getInput(), exportToCmd.getExport());
 			startKeyPressExit();
-			createProcessingSession();
-		} else if (importFromCmd != null && exportToCmd != null) {
+			createProcessingSession(appCommand.getInput());
+		} else if (isZipImport && exportToCmd != null) {
 			log.info("Prepare processing session from offline ffmpeg/ffprobe exports");
 			startKeyPressExit();
 			createOfflineProcessingSession();
@@ -187,27 +191,26 @@ public class AppSessionServiceImpl implements AppSessionService {
 	private void verifyOptions() throws ParameterException {
 		final var exportToCmd = appCommand.getExportToCmd();
 		final var extractToCmd = appCommand.getExtractToCmd();
-		final var importFromCmd = appCommand.getImportFromCmd();
 		final var processFileCmd = appCommand.getProcessFileCmd();
 
 		if ((exportToCmd != null ? 1 : 0)
 			+ (extractToCmd != null ? 1 : 0)
-			+ (importFromCmd != null ? 1 : 0)
 			+ (processFileCmd != null ? 1 : 0) > 2) {
 			throw new ParameterException(commandLine,
-					"You can't cumulate more than two options with --input/--import/--export/--extract");
+					"You can't cumulate more than two options with --input/--export/--extract");
 		}
+
+		validateInputFile(appCommand.getInput());
 
 		if (processFileCmd == null
 			&& extractToCmd == null
-			&& exportToCmd == null
-			&& importFromCmd == null) {
+			&& exportToCmd == null) {
 			throw new ParameterException(commandLine,
-					"You must setup options like -i/--input, --import, -e/--export and --extract");
+					"You must setup options like -i/--input, -e/--export and --extract");
 		}
 
 		Optional.ofNullable(processFileCmd)
-				.ifPresent(p -> validateInputFile(p.getInput()));
+				.ifPresent(p -> validateInputFile(appCommand.getInput()));
 		Optional.ofNullable(extractToCmd)
 				.ifPresent(et -> Optional.ofNullable(et.getArchiveFile())
 						.ifPresent(this::validateOutputFile));
@@ -226,10 +229,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 				}
 			}
 		});
-
-		Optional.ofNullable(importFromCmd)
-				.ifPresent(i -> Optional.ofNullable(i.getArchiveFile())
-						.ifPresent(this::validateInputFile));
 	}
 
 	@Override
@@ -274,7 +273,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		}
 	}
 
-	public void createExtractionSession() throws IOException {
+	public void createExtractionSession(final File inputFile) throws IOException {
 		final var processFileCmd = appCommand.getProcessFileCmd();
 		final var extractToCmd = appCommand.getExtractToCmd();
 		final var tempDir = appCommand.getTempDir();
@@ -286,10 +285,11 @@ public class AppSessionServiceImpl implements AppSessionService {
 			log.debug("Prepare media analysing...");
 
 			final var lavfiSecondaryFile = prepareTempFile(tempDir);
-			final var probeResult = ffmpegService.getFFprobeJAXBFromFileToProcess(processFileCmd);
+			final var probeResult = ffmpegService.getFFprobeJAXBFromFileToProcess(inputFile, processFileCmd);
 			log.info("Source file: {}", probeResult);
 
 			final var maSession = ffmpegService.createMediaAnalyserSession(
+					inputFile,
 					processFileCmd,
 					lavfiSecondaryFile,
 					probeResult,
@@ -322,7 +322,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		if (processFileCmd.isContainerAnalysing()) {
 			log.info("Start container analysing...");
-			final var caSession = ffmpegService.createContainerAnalyserSession(processFileCmd);
+			final var caSession = ffmpegService.createContainerAnalyserSession(inputFile, processFileCmd);
 			caSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
 
 			final var containerListLines = new ArrayList<String>();
@@ -331,8 +331,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 					containerListLines);
 		}
 
-		extractSession.add(zippedTxtFileNames.getSourceNameTxt(), processFileCmd
-				.getInput().getName());
+		extractSession.add(zippedTxtFileNames.getSourceNameTxt(), appCommand.getInput().getName());
 		extractSession.addVersion(zippedTxtFileNames.getVersionJson(), getVersion());
 		extractSession.addRunnedJavaCmdLine(zippedTxtFileNames.getCommandLineJson(), runnedJavaCmdLine);
 		extractSession.saveToZip(extractToCmd.getArchiveFile());
@@ -346,14 +345,14 @@ public class AppSessionServiceImpl implements AppSessionService {
 		return unmodifiableMap(version);
 	}
 
-	public void createProcessingSession() throws IOException {
+	public void createProcessingSession(final File inputFile) throws IOException {
 		final var processFileCmd = appCommand.getProcessFileCmd();
 		final var exportToCmd = appCommand.getExportToCmd();
 		final var tempDir = appCommand.getTempDir();
 
-		final var dataResult = new DataResult(processFileCmd.getInput().getName(), getVersion());
+		final var dataResult = new DataResult(appCommand.getInput().getName(), getVersion());
 
-		final var ffprobeResult = ffmpegService.getFFprobeJAXBFromFileToProcess(processFileCmd);
+		final var ffprobeResult = ffmpegService.getFFprobeJAXBFromFileToProcess(inputFile, processFileCmd);
 		log.info("Source file: {}", ffprobeResult);
 		dataResult.setFfprobeResult(ffprobeResult);
 
@@ -362,6 +361,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 			final var lavfiSecondaryFile = prepareTempFile(tempDir);
 			final var maSession = ffmpegService.createMediaAnalyserSession(
+					inputFile,
 					processFileCmd,
 					lavfiSecondaryFile,
 					ffprobeResult,
@@ -385,7 +385,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		if (processFileCmd.isContainerAnalysing()) {
 			log.info("Start container analysing...");
-			final var caSession = ffmpegService.createContainerAnalyserSession(processFileCmd);
+			final var caSession = ffmpegService.createContainerAnalyserSession(inputFile, processFileCmd);
 			caSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
 			dataResult.setContainerAnalyserResult(caSession.process());
 		}
@@ -394,18 +394,38 @@ public class AppSessionServiceImpl implements AppSessionService {
 		mediaAnalyticsTransformerService.exportAnalytics(dataResult, exportToCmd);
 	}
 
+	@Override
+	public boolean checkIfSourceIsZIP() {
+		final var zipFile = appCommand.getInput();
+		log.debug("Try to load source {} as zip zip file", zipFile);
+		try (var zipIn = new ZipInputStream(
+				new BufferedInputStream(new FileInputStream(zipFile), TEN_MB))) {
+			zipIn.getNextEntry();
+		} catch (final FileNotFoundException e) {
+			throw new UncheckedIOException("Can't found input file", e);
+		} catch (final IOException e) {
+			if (log.isTraceEnabled()) {
+				log.trace("Can't open source file {} as ZIP", zipFile, e);
+			} else {
+				log.debug("Can't open source file {} as ZIP", zipFile);
+			}
+			return false;
+		}
+		return true;
+	}
+
 	public void createOfflineProcessingSession() throws IOException {
-		final var importFromCmd = appCommand.getImportFromCmd();
+		final var archiveFile = appCommand.getInput();
 		final var exportToCmd = appCommand.getExportToCmd();
 		final var zippedTxtFileNames = appConfig.getZippedArchive();
 
-		final var extractSession = new ImpExArchiveExtractionSession().readFromZip(importFromCmd.getArchiveFile());
+		final var extractSession = new ImpExArchiveExtractionSession().readFromZip(archiveFile);
 		final var extractEntries = extractSession.getEntries()
 				.collect(toUnmodifiableMap(ExtractedFileEntry::internalFileName, ExtractedFileEntry::content));
 
 		final var dataResult = new DataResult(
 				extractEntries.getOrDefault(zippedTxtFileNames.getSourceNameTxt(),
-						getBaseName(importFromCmd.getArchiveFile().getName())),
+						getBaseName(archiveFile.getName())),
 				extractSession.getVersions(zippedTxtFileNames.getVersionJson()));
 
 		runnedJavaCmdLine.setArchiveJavaCmdLine(

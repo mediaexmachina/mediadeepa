@@ -83,7 +83,7 @@ class E2ETextTest extends E2EUtils {
 
 			runApp(
 					"--temp", "target/e2e-temp",
-					"--import", rawData.archive().getPath(),
+					"-i", rawData.archive().getPath(),
 					"-f", "txt",
 					"-e", "target/e2e-export",
 					"--export-base-filename", rawData.getExtension());
@@ -504,7 +504,7 @@ class E2ETextTest extends E2EUtils {
 
 		runApp(() -> new File("target/e2e-export", "long-mkv_about.txt").exists(),
 				"--temp", "target/e2e-temp",
-				"--import", rawData.archive().getPath(),
+				"-i", rawData.archive().getPath(),
 				"-f", "txt",
 				"-e", "target/e2e-export",
 				"--export-base-filename", exportBaseFilename);

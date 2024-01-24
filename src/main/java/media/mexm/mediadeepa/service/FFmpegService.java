@@ -32,14 +32,15 @@ public interface FFmpegService {
 
 	Map<String, String> getVersions();
 
-	MediaAnalyserSession createMediaAnalyserSession(ProcessFileCmd processFileCmd,
+	MediaAnalyserSession createMediaAnalyserSession(File inputFile,
+													ProcessFileCmd processFileCmd,
 													File lavfiSecondaryVideoFile,
 													FFprobeJAXB ffprobeJAXB,
 													FilterCmd options);
 
-	ContainerAnalyserSession createContainerAnalyserSession(ProcessFileCmd processFileCmd);
+	ContainerAnalyserSession createContainerAnalyserSession(File inputFile, ProcessFileCmd processFileCmd);
 
-	FFprobeJAXB getFFprobeJAXBFromFileToProcess(ProcessFileCmd processFileCmd);
+	FFprobeJAXB getFFprobeJAXBFromFileToProcess(File inputFile, ProcessFileCmd processFileCmd);
 
 	void applyMediaAnalyserFilterChain(ProcessFileCmd processFileCmd,
 									   File lavfiSecondaryVideoFile,

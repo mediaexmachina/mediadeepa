@@ -67,7 +67,13 @@ public class AppCommand implements Callable<Integer> {
 			hidden = true)
 	private boolean autocomplete;
 
-	@ArgGroup(exclusive = false, heading = "Process file%n")
+	@Option(names = { "-i", "--input" },
+			description = "Input (media) file to process, or raw ffmpeg datas from a Mediadeepa archive file",
+			paramLabel = "FILE")
+	private File input;
+
+	@ArgGroup(exclusive = false,
+			  heading = "Process media file options%n")
 	private ProcessFileCmd processFileCmd;
 
 	@Option(names = { "--temp" },
@@ -77,9 +83,6 @@ public class AppCommand implements Callable<Integer> {
 
 	@ArgGroup(exclusive = false, heading = "Extract to archive%n")
 	private ExtractToCmd extractToCmd;
-
-	@ArgGroup(exclusive = false, heading = "Import from archive%n")
-	private ImportFromCmd importFromCmd;
 
 	@ArgGroup(exclusive = false, heading = "Export to generated files%n")
 	private ExportToCmd exportToCmd;
