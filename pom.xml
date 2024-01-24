@@ -169,6 +169,46 @@
                     </systemProperties>
                 </configuration>
             </plugin>
-        </plugins>
+            <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <id>build-native</id>
+                        <goals>
+                            <goal>compile-no-fork</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skipNativeTests>true</skipNativeTests>
+		    <skip>${native.skip}</skip>
+		    <buildArgs>
+                        <arg>
+                            --strict-image-heap
+                            --initialize-at-build-time=org.sqlite.util.ProcessRunner
+                            -Djava.awt.headless=true
+                       </arg>
+                    </buildArgs>
+                    <sharedLibrary>false</sharedLibrary>
+                    <agent>
+                        <enabled>true</enabled>
+                        <!-- defaultMode>Standard</defaultMode -->
+                        <!-- options>
+                             <builtinCallerFilter>true</builtinCallerFilter>
+                             <builtinHeuristicFilter>true</builtinHeuristicFilter>
+                             <enableExperimentalPredefinedClasses>true</enableExperimentalPredefinedClasses>
+                             <enableExperimentalUnsafeAllocationTracing>true</enableExperimentalUnsafeAllocationTracing>
+                             <trackReflectionMetadata>true</trackReflectionMetadata>
+                        </options -->
+                    </agent>
+                    <metadataRepository>
+                        <enabled>true</enabled>
+                    </metadataRepository>
+                </configuration>
+            </plugin>
+       </plugins>
     </build>
 </project>
