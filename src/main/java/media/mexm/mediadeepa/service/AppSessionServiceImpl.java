@@ -148,6 +148,14 @@ public class AppSessionServiceImpl implements AppSessionService {
 		final var extractToCmd = appCommand.getExtractToCmd();
 		final var importFromCmd = appCommand.getImportFromCmd();
 
+		/**
+		 * TODO refactor logic
+		 * Always try to import ZIP
+		 * - if zip, ignore other process options, just follow zip operation
+		 * - else, classic process action
+		 * Never forget the next evolution: multiple inputs (zips & medias merged)
+		 */
+
 		if (processFileCmd != null && extractToCmd != null) {
 			log.info("Prepare extraction session from media file: {}", processFileCmd.getInput());
 			startKeyPressExit();
@@ -185,6 +193,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 	}
 
 	private void verifyOptions() throws ParameterException {
+		// TODO refactor logic
 		final var exportToCmd = appCommand.getExportToCmd();
 		final var extractToCmd = appCommand.getExtractToCmd();
 		final var importFromCmd = appCommand.getImportFromCmd();

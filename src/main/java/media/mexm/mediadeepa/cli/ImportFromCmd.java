@@ -22,6 +22,7 @@ import lombok.Data;
 import picocli.CommandLine.Option;
 
 @Data
+@Deprecated
 public class ImportFromCmd {
 	@Option(names = { "--import" },
 			description = "Import raw ffmpeg datas from a Mediadeepa archive file",

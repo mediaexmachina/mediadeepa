@@ -67,8 +67,8 @@ public class AppCommand implements Callable<Integer> {
 			hidden = true)
 	private boolean autocomplete;
 
-	@ArgGroup(exclusive = false, heading = "Process file%n")
-	private ProcessFileCmd processFileCmd;
+	@ArgGroup(exclusive = false, heading = "Process file and import archive%n")
+	private ProcessFileCmd processFileCmd;// TODO rename ?
 
 	@Option(names = { "--temp" },
 			description = "Temp dir to use in the case of the needs to export to a temp file",
@@ -79,6 +79,7 @@ public class AppCommand implements Callable<Integer> {
 	private ExtractToCmd extractToCmd;
 
 	@ArgGroup(exclusive = false, heading = "Import from archive%n")
+	@Deprecated
 	private ImportFromCmd importFromCmd;
 
 	@ArgGroup(exclusive = false, heading = "Export to generated files%n")
