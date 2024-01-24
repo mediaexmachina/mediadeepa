@@ -179,17 +179,25 @@
                 </executions>
                 <configuration>
                     <skipNativeTests>true</skipNativeTests>
-                    <skip>${native.skip}</skip>
+		    <skip>${native.skip}</skip>
+		    <buildArgs>
+                        <arg>
+                            --strict-image-heap
+                            --initialize-at-build-time=org.sqlite.util.ProcessRunner
+                            -Djava.awt.headless=true
+                       </arg>
+                    </buildArgs>
+                    <sharedLibrary>false</sharedLibrary>
                     <agent>
                         <enabled>true</enabled>
-                        <defaultMode>Standard</defaultMode>
-                        <options>
+                        <!-- defaultMode>Standard</defaultMode -->
+                        <!-- options>
                              <builtinCallerFilter>true</builtinCallerFilter>
                              <builtinHeuristicFilter>true</builtinHeuristicFilter>
                              <enableExperimentalPredefinedClasses>true</enableExperimentalPredefinedClasses>
                              <enableExperimentalUnsafeAllocationTracing>true</enableExperimentalUnsafeAllocationTracing>
                              <trackReflectionMetadata>true</trackReflectionMetadata>
-                        </options>
+                        </options -->
                     </agent>
                     <metadataRepository>
                         <enabled>true</enabled>
