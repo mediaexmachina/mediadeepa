@@ -46,7 +46,6 @@ import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.cli.ExtractToCmd;
-import media.mexm.mediadeepa.cli.ImportFromCmd;
 import media.mexm.mediadeepa.cli.ProcessFileCmd;
 import media.mexm.mediadeepa.components.CLIRunner;
 import media.mexm.mediadeepa.components.DocumentationExporter;
@@ -115,7 +114,7 @@ class AppSessionServiceTest {
 		when(mediaAnalyticsTransformerService.getExportFormatInformation()).thenReturn(Map.of());
 
 		processFileCmd = new ProcessFileCmd();
-		processFileCmd.setInput(File.createTempFile("mediadeepa", ".tmp"));
+		appCommand.setInput(File.createTempFile("mediadeepa", ".tmp"));
 		appCommand.setProcessFileCmd(null);
 	}
 
@@ -133,7 +132,7 @@ class AppSessionServiceTest {
 
 	@Test
 	void testRunCli_nothing() throws IOException {
-		assertThrows(ParameterException.class, () -> appSessionService.runCli());
+		assertThrows(UncheckedIOException.class, () -> appSessionService.runCli());
 	}
 
 	@Test
@@ -173,13 +172,11 @@ class AppSessionServiceTest {
 		appCommand.setProcessFileCmd(new ProcessFileCmd());
 		appCommand.setExtractToCmd(new ExtractToCmd());
 		appCommand.setExportToCmd(new ExportToCmd());
-		appCommand.setImportFromCmd(new ImportFromCmd());
 		assertThrows(ParameterException.class, () -> appSessionService.runCli());
 	}
 
 	@Test
 	void testRunCli_cantCombinateImportExtractOptions() throws IOException {
-		appCommand.setImportFromCmd(new ImportFromCmd());
 		appCommand.setExtractToCmd(new ExtractToCmd());
 		assertThrows(ParameterException.class, () -> appSessionService.runCli());
 	}
@@ -232,7 +229,7 @@ class AppSessionServiceTest {
 		assertThrows(UncheckedIOException.class,
 				() -> appSessionService.validateOutputDir(dirFile));
 
-		final var regularFile = processFileCmd.getInput();
+		final var regularFile = appCommand.getInput();
 		assertTrue(regularFile.exists());
 		assertThrows(ParameterException.class,
 				() -> appSessionService.validateOutputDir(regularFile));

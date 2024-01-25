@@ -16,7 +16,6 @@
  */
 package media.mexm.mediadeepa.cli;
 
-import java.io.File;
 import java.util.Set;
 
 import lombok.Data;
@@ -25,11 +24,6 @@ import picocli.CommandLine.Option;
 
 @Data
 public class ProcessFileCmd {
-	@Option(names = { "-i", "--input" },
-			description = "Input (media) file to process, or raw ffmpeg datas from a Mediadeepa archive file",
-			paramLabel = "FILE")
-	private File input;
-
 	@Option(names = { "-c", "--container" },
 			description = "Do a container analysing (ffprobe streams)")
 	private boolean containerAnalysing;

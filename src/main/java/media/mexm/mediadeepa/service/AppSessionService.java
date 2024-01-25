@@ -31,4 +31,6 @@ public interface AppSessionService {
 
 	void validateOutputDir(File dir) throws ParameterException;
 
+	boolean checkIfSourceIsZIP();
+
 }

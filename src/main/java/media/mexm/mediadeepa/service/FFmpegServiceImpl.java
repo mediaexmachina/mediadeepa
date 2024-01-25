@@ -185,7 +185,8 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	@Override
-	public MediaAnalyserSession createMediaAnalyserSession(final ProcessFileCmd processFileCmd,
+	public MediaAnalyserSession createMediaAnalyserSession(final File inputFile,
+														   final ProcessFileCmd processFileCmd,
 														   final File lavfiSecondaryVideoFile,
 														   final FFprobeJAXB ffprobeJAXB,
 														   final FilterCmd options) {
@@ -209,7 +210,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 				Optional.ofNullable(options).orElseGet(FilterCmd::new),
 				avgFrameRate);
 
-		final var session = ma.createSession(processFileCmd.getInput());
+		final var session = ma.createSession(inputFile);
 		session.setPgmFFDuration(processFileCmd.getDuration());
 		session.setPgmFFStartTime(processFileCmd.getStartTime());
 		return session;
@@ -487,15 +488,16 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	@Override
-	public ContainerAnalyserSession createContainerAnalyserSession(final ProcessFileCmd processFileCmd) {
+	public ContainerAnalyserSession createContainerAnalyserSession(final File inputFile,
+																   final ProcessFileCmd processFileCmd) {
 		final var ca = new ContainerAnalyser(appConfig.getFfprobeExecName(), executableFinder);
-		return ca.createSession(processFileCmd.getInput());
+		return ca.createSession(inputFile);
 	}
 
 	@Override
-	public FFprobeJAXB getFFprobeJAXBFromFileToProcess(final ProcessFileCmd processFileCmd) {
+	public FFprobeJAXB getFFprobeJAXBFromFileToProcess(final File inputFile, final ProcessFileCmd processFileCmd) {
 		return new ProbeMedia(executableFinder, maxExecTimeScheduler)
-				.doAnalysing(processFileCmd.getInput());
+				.doAnalysing(inputFile);
 	}
 
 }

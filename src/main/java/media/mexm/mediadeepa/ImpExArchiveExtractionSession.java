@@ -53,7 +53,7 @@ public class ImpExArchiveExtractionSession {
 
 	private static final String CAN_T_READ_FROM_JSON = "Can't read from json";
 	static final String NEWLINE = "\n";
-	private static final int TEN_MB = 0xFFFFFF;
+	public static final int TEN_MB = 0xFFFFFF;
 
 	private final ObjectMapper objectMapper;
 	private final LinkedHashMap<String, String> contentItems;
