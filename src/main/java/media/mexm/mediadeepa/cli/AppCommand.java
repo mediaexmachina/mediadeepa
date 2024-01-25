@@ -69,8 +69,7 @@ public class AppCommand implements Callable<Integer> {
 
 	@Option(names = { "-i", "--input" },
 			description = "Input (media) file to process, or raw ffmpeg datas from a Mediadeepa archive file",
-			paramLabel = "FILE",
-			required = true)
+			paramLabel = "FILE")
 	private File input;
 
 	@ArgGroup(exclusive = false,

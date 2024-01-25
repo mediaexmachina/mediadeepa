@@ -200,6 +200,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 					"You can't cumulate more than two options with --input/--export/--extract");
 		}
 
+		validateInputFile(appCommand.getInput());
+
 		if (processFileCmd == null
 			&& extractToCmd == null
 			&& exportToCmd == null) {

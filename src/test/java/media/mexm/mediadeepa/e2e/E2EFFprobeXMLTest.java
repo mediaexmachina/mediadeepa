@@ -73,7 +73,7 @@ class E2EFFprobeXMLTest extends E2EUtils implements ConstStrings {
 		final var outputFile = new File("target/e2e-export", baseFileName);
 		runApp(
 				"--temp", "target/e2e-temp",
-				"--import", rawData.archive().getPath(),
+				"-i", rawData.archive().getPath(),
 				"-f", "ffprobexml",
 				"-e", "target/e2e-export",
 				"--export-base-filename", "mpg");

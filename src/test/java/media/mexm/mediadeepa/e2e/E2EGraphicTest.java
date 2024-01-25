@@ -134,7 +134,7 @@ class E2EGraphicTest extends E2EUtils {
 		final var outputFile = new File("target/e2e-export", baseFileName);
 		runApp(
 				"--temp", "target/e2e-temp",
-				"--import", rawData.archive().getPath(),
+				"-i", rawData.archive().getPath(),
 				"-f", "graphic",
 				"-e", "target/e2e-export",
 				"--export-base-filename", "mpg",
