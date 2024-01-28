@@ -17,6 +17,7 @@
 package media.mexm.mediadeepa.cli;
 
 import java.io.File;
+import java.util.Optional;
 import java.util.Set;
 
 import lombok.Data;
@@ -29,19 +30,19 @@ public class ExportToCmd {
 	@Option(names = { "-f", "--format" },
 			description = "Format to export datas",
 			paramLabel = "FORMAT_TYPE")
-	private Set<String> format;
+	private Set<String> format;// TODO if exportOnly, not needed
 
 	@Option(names = { "-e", "--export" },
 			description = "Export datas to this directory",
 			paramLabel = "DIRECTORY",
 			required = true)
-	private File export;
+	private File export;// TODO if exportOnly, not needed
 
 	@Option(names = { "--export-base-filename" },
 			description = "Base file name for exported data file(s)",
 			paramLabel = "FILENAME",
 			required = false)
-	private String baseFileName;
+	private String baseFileName;// TODO if exportOnly, not needed
 
 	@ArgGroup(exclusive = false, heading = "Export options%n")
 	private ExportOptions exportOptions;
@@ -57,6 +58,13 @@ public class ExportToCmd {
 			return new File(export, baseFileName + "_" + suffix);
 		}
 		return new File(export, suffix);
+	}
+
+	public boolean isExportToJpeg() {
+		return Optional.ofNullable(exportOptions)
+				.map(ExportOptions::isGraphicJpg)
+				.orElse(false)
+				.booleanValue();
 	}
 
 }

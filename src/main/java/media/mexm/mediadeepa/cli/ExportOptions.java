@@ -26,4 +26,8 @@ public class ExportOptions {
 			required = false)
 	private boolean graphicJpg;
 
+	@Option(names = { "--export-only" }, description = "Export only this file name", // TODO rename to singleExport ?
+			required = false)
+	private String exportOnly;// TODO k:v k=internalfilename v=savetofilename + multiple
+
 }

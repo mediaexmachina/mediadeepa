@@ -17,6 +17,8 @@
 package media.mexm.mediadeepa.rendererengine;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.GraphicArtifact;
@@ -24,5 +26,9 @@ import media.mexm.mediadeepa.exportformat.GraphicArtifact;
 public interface GraphicRendererEngine {
 
 	List<GraphicArtifact> toGraphic(DataResult result);
+
+	Optional<GraphicArtifact> toSingleGraphic(String graphicBaseFileName, DataResult result);
+
+	Set<String> getGraphicInternalProducedBaseFileNames();
 
 }

@@ -99,18 +99,25 @@ public class TabularDocument {
 	}
 
 	public Optional<File> exportToFile(final ExportToCmd exportToCmd) {
-		final var outfile = exportToCmd.makeOutputFile(baseFileName + "." + exporter.getDocumentFileExtension());
+		return exportToBytes()
+				.map(bytes -> {
+					final var outfile = exportToCmd.makeOutputFile(
+							baseFileName + "." + exporter.getDocumentFileExtension());
+					try {
+						FileUtils.writeByteArrayToFile(outfile, bytes);
+						return outfile;
+					} catch (final IOException e) {
+						throw new UncheckedIOException("Can't write file", e);
+					}
+				});
+	}
+
+	public Optional<byte[]> exportToBytes() {
 		if (lines.isEmpty()) {
-			log.trace("Nothing to export for {}", outfile.getName());
+			log.trace("Nothing to export for {}", baseFileName);
 			return Optional.empty();
 		}
-
-		try {
-			FileUtils.writeByteArrayToFile(outfile, exporter.getDocument(header, lines));
-		} catch (final IOException e) {
-			throw new UncheckedIOException("Can't write file", e);
-		}
-		return Optional.ofNullable(outfile);
+		return Optional.ofNullable(exporter.getDocument(header, lines));
 	}
 
 }

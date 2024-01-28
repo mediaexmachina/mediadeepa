@@ -32,6 +32,7 @@ import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
@@ -41,7 +42,8 @@ public class Ebur128SummaryRendererEngine implements
 										  ReportRendererEngine,
 										  TableRendererEngine,
 										  TabularRendererEngine,
-										  ConstStrings {
+										  ConstStrings,
+										  SingleTabularDocumentExporterTraits {
 
 	public static final List<String> HEAD_EBUR128_SUMMARY = List.of(
 			INTEGRATED,
@@ -54,14 +56,19 @@ public class Ebur128SummaryRendererEngine implements
 			TRUE_PEAK);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "audio-ebur128-summary";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getMediaAnalyserResult()
 				.map(MediaAnalyserResult::ebur128Summary)
 				.flatMap(Optional::ofNullable)
 				.map(ebu -> {
-					final var t = new TabularDocument(tabularExportFormat, "audio-ebur128-summary").head(
-							HEAD_EBUR128_SUMMARY);
+					final var t = new TabularDocument(tabularExportFormat, getSingleUniqTabularDocumentBaseFileName())
+							.head(HEAD_EBUR128_SUMMARY);
 					t.row(
 							tabularExportFormat.formatNumberLowPrecision(ebu.getIntegrated()),
 							tabularExportFormat.formatNumberLowPrecision(ebu.getIntegratedThreshold()),

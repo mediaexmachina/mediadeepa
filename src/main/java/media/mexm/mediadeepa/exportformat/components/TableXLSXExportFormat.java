@@ -20,9 +20,8 @@ import static org.apache.poi.ss.usermodel.CellType.BLANK;
 import static org.apache.poi.ss.usermodel.CellType.NUMERIC;
 import static org.apache.poi.ss.usermodel.CellType.STRING;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 
@@ -73,25 +72,16 @@ public class TableXLSXExportFormat extends TableExportFormat {
 	}
 
 	@Override
-	public File save(final DataResult result, final List<Table> tables, final ExportToCmd exportToCmd) {
+	public void makeDocument(final DataResult result,
+							 final List<Table> tables,
+							 final ExportToCmd exportToCmd,
+							 final OutputStream outputStream) {
 		try (final var wb = new SXSSFWorkbook()) {
 			wb.setCompressTempFiles(false);
 			tables.forEach(table -> makeTableOnWorkbook(exportToCmd.getBaseFileName(), wb, table));
-			final var outputFile = exportToCmd.makeOutputFile(appConfig.getXslxtableFileName());
-			save(wb, outputFile);
-			return outputFile;
+			wb.write(outputStream);
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't close Workbook", e);
-		}
-	}
-
-	private static void save(final SXSSFWorkbook wb, final File outputFile) {
-		try (final var out = new FileOutputStream(outputFile)) {
-			wb.write(out);
-		} catch (final IOException e) {
-			throw new UncheckedIOException("Can't export to XSLX", e);
-		} finally {
-			wb.dispose();
 		}
 	}
 
@@ -148,6 +138,11 @@ public class TableXLSXExportFormat extends TableExportFormat {
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't flush " + table.getTableName(), e);
 		}
+	}
+
+	@Override
+	public String getInternalFileName() {
+		return appConfig.getXslxtableFileName();
 	}
 
 }

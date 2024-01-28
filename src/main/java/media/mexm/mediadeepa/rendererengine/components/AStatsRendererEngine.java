@@ -48,6 +48,7 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
@@ -63,7 +64,8 @@ public class AStatsRendererEngine implements
 								  TableRendererEngine,
 								  TabularRendererEngine,
 								  GraphicRendererEngine,
-								  ConstStrings {
+								  ConstStrings,
+								  SingleTabularDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -83,12 +85,18 @@ public class AStatsRendererEngine implements
 			OTHER);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "audio-stats";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getMediaAnalyserResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
-					final var aStats = new TabularDocument(tabularExportFormat, "audio-stats").head(HEAD_ASTATS);
+					final var aStats = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName()).head(HEAD_ASTATS);
 					lavfiMetadatas.getAStatsReport()
 							.forEach(a -> {
 								final var channels = a.value().channels();

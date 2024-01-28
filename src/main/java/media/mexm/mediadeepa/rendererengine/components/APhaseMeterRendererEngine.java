@@ -41,6 +41,7 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
@@ -53,7 +54,8 @@ public class APhaseMeterRendererEngine implements
 									   TableRendererEngine,
 									   TabularRendererEngine,
 									   GraphicRendererEngine,
-									   ConstStrings {
+									   ConstStrings,
+									   SingleTabularDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -63,13 +65,18 @@ public class APhaseMeterRendererEngine implements
 	public static final List<String> HEAD_APHASE = List.of(FRAME, PTS, PTS_TIME, VALUE);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "audio-phase-meter";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getMediaAnalyserResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
-					final var aPhaseMeter = new TabularDocument(tabularExportFormat, "audio-phase-meter")
-							.head(HEAD_APHASE);
+					final var aPhaseMeter = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName()).head(HEAD_APHASE);
 					lavfiMetadatas.getAPhaseMeterReport()
 							.forEach(a -> aPhaseMeter.row(a.frame(), a.pts(), a.ptsTime(), a.value()));
 					return aPhaseMeter;

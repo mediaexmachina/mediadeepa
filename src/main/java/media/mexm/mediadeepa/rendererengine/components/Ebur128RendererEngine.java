@@ -40,6 +40,7 @@ import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
@@ -52,7 +53,8 @@ public class Ebur128RendererEngine implements
 								   TableRendererEngine,
 								   TabularRendererEngine,
 								   GraphicRendererEngine,
-								   ConstStrings {
+								   ConstStrings,
+								   SingleTabularDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -70,9 +72,15 @@ public class Ebur128RendererEngine implements
 			TRUE_PEAK_L, TRUE_PEAK_R);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "audio-ebur128";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		final var t = new TabularDocument(tabularExportFormat, "audio-ebur128").head(HEAD_EBUR128);
+		final var t = new TabularDocument(tabularExportFormat, getSingleUniqTabularDocumentBaseFileName()).head(
+				HEAD_EBUR128);
 		result.getEbur128events()
 				.forEach(ebu -> t.row(
 						tabularExportFormat.formatNumberLowPrecision(ebu.getT()),

@@ -17,17 +17,20 @@
 package media.mexm.mediadeepa.service;
 
 import static java.util.Collections.unmodifiableMap;
+import static java.util.function.Predicate.not;
 
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
+import media.mexm.mediadeepa.cli.ExportOptions;
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.ExportFormatComparator;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -56,7 +59,7 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 	}
 
 	@Override
-	public Map<String, String> getExportFormatInformation() {
+	public Map<String, String> getExportFormatInformation() {// TODO add filenames ?
 		final var result = new LinkedHashMap<String, String>();
 		exportFormatList.stream()
 				.sorted(exportFormatComparator)
@@ -67,10 +70,35 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 	@Override
 	public void exportAnalytics(final DataResult result,
 								final ExportToCmd exportToCmd) {
+		final var oExportOnly = Optional.ofNullable(exportToCmd.getExportOptions())
+				.map(ExportOptions::getExportOnly)
+				.flatMap(Optional::ofNullable)
+				.filter(not(String::isBlank));
+		if (oExportOnly.isPresent()) {
+			final var exportOnly = oExportOnly.get();
+			log.info("Single export result {} file...", exportOnly);
+			singleExportAnalytics(exportOnly, result, exportToCmd);
+			return;
+		}
+
 		log.info("Start export result files...");
 		exportToCmd.getFormat().stream()
 				.map(this::getExportFormatByName)
 				.forEach(s -> doExportAnalytic(result, exportToCmd, s));
+	}
+
+	private void singleExportAnalytics(final String internalFileName,
+									   final DataResult result,
+									   final ExportToCmd exportToCmd) {
+		exportToCmd.getFormat().stream()
+				.map(this::getExportFormatByName)
+				.filter(f -> f.getInternalProducedFileNames().contains(internalFileName))
+				.map(d -> d.makeSingleExport(result, exportToCmd, internalFileName))
+				.flatMap(Optional::stream)
+				.forEach(bytes -> {
+					log.info("Single export result {} file produce {} bytes", internalFileName, bytes.length);
+					// TODO save
+				});
 	}
 
 	private void doExportAnalytic(final DataResult result, final ExportToCmd exportToCmd, final ExportFormat s) {

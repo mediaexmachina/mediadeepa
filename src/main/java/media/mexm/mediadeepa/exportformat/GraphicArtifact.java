@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Objects;
-import java.util.Optional;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -30,11 +29,13 @@ import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 
 import lombok.Getter;
-import media.mexm.mediadeepa.cli.ExportOptions;
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.config.AppConfig;
 
 public class GraphicArtifact {
+
+	public static final String DOT_PNG = ".png";
+	public static final String DOT_JPEG = ".jpeg";
 
 	private final String fileNameWOExt;
 	@Getter
@@ -82,20 +83,22 @@ public class GraphicArtifact {
 		}
 	}
 
-	public File save(final ExportToCmd exportToCmd, final AppConfig appConfig) {
-		final var isJpg = Optional.ofNullable(exportToCmd.getExportOptions())
-				.map(ExportOptions::isGraphicJpg)
-				.orElse(false)
-				.booleanValue();
-
-		final byte[] rawImage;
-		String fileName;
-		if (isJpg) {
-			fileName = fileNameWOExt + ".jpeg";
-			rawImage = getJPEG(graphic, imageSize, appConfig.getGraphicConfig().getJpegCompressionRatio());
+	public byte[] getRawData(final ExportToCmd exportToCmd, final AppConfig appConfig) {
+		if (exportToCmd.isExportToJpeg()) {
+			return getJPEG(graphic, imageSize, appConfig.getGraphicConfig().getJpegCompressionRatio());
 		} else {
-			fileName = fileNameWOExt + ".png";
-			rawImage = getPNG(graphic, imageSize);
+			return getPNG(graphic, imageSize);
+		}
+	}
+
+	public File save(final ExportToCmd exportToCmd, final AppConfig appConfig) {
+		final var rawImage = getRawData(exportToCmd, appConfig);
+
+		String fileName;
+		if (exportToCmd.isExportToJpeg()) {
+			fileName = fileNameWOExt + DOT_JPEG;
+		} else {
+			fileName = fileNameWOExt + DOT_PNG;
 		}
 
 		final var outputFile = exportToCmd.makeOutputFile(fileName);

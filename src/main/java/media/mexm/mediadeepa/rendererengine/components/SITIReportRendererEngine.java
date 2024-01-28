@@ -35,6 +35,7 @@ import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdSiti;
@@ -46,7 +47,8 @@ public class SITIReportRendererEngine implements
 									  TableRendererEngine,
 									  TabularRendererEngine,
 									  ReportRendererEngine,
-									  ConstStrings {
+									  ConstStrings,
+									  SingleTabularDocumentExporterTraits {
 
 	@Autowired
 	private NumberUtils numberUtils;
@@ -54,13 +56,19 @@ public class SITIReportRendererEngine implements
 	public static final List<String> HEAD_SITI_REPORT = List.of(TYPE, AVERAGE, MAX, MIN);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "video-siti-stats-ITU-T_P-910";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getMediaAnalyserResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
-					final var sitiStats = new TabularDocument(tabularExportFormat, "video-siti-stats-ITU-T_P-910")
-							.head(HEAD_SITI_REPORT);
+					final var sitiStats = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName())
+									.head(HEAD_SITI_REPORT);
 					if (lavfiMetadatas.getSitiReport().isEmpty() == false) {
 						final var stats = lavfiMetadatas.computeSitiStats();
 						sitiStats

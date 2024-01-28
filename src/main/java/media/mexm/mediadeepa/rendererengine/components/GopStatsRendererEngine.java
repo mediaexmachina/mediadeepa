@@ -48,6 +48,7 @@ import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeBaseFrame;
@@ -62,7 +63,8 @@ public class GopStatsRendererEngine implements
 									TableRendererEngine,
 									TabularRendererEngine,
 									GraphicRendererEngine,
-									ConstStrings {
+									ConstStrings,
+									SingleTabularDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -79,12 +81,18 @@ public class GopStatsRendererEngine implements
 			B_FRAMES_DATA_SIZE);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "container-video-gop";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getContainerAnalyserResult()
 				.map(caResult -> {
-					final var gopStats = new TabularDocument(tabularExportFormat, "container-video-gop")
-							.head(HEAD_GOPSTATS);
+					final var gopStats = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName())
+									.head(HEAD_GOPSTATS);
 					caResult.extractGOPStats()
 							.forEach(f -> gopStats.row(
 									f.gopFrameCount(),

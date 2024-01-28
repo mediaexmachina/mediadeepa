@@ -41,6 +41,7 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
@@ -53,7 +54,8 @@ public class BlurRendererEngine implements
 								TabularRendererEngine,
 								GraphicRendererEngine,
 								ReportRendererEngine,
-								ConstStrings {
+								ConstStrings,
+								SingleTabularDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -63,12 +65,18 @@ public class BlurRendererEngine implements
 	public static final List<String> HEAD_BLUR = List.of(FRAME, PTS, PTS_TIME, VALUE);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "video-blur-detect";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getMediaAnalyserResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
-					final var blur = new TabularDocument(tabularExportFormat, "video-blur-detect").head(HEAD_BLUR);
+					final var blur = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName()).head(HEAD_BLUR);
 					lavfiMetadatas.getBlurDetectReport()
 							.forEach(a -> blur.row(a.frame(), a.pts(), a.ptsTime(), a.value()));
 					return blur;

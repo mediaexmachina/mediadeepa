@@ -48,6 +48,7 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeBaseFrame;
@@ -60,7 +61,8 @@ public class VFramesRendererEngine implements
 								   TableRendererEngine,
 								   TabularRendererEngine,
 								   GraphicRendererEngine,
-								   ConstStrings {
+								   ConstStrings,
+								   SingleTabularDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -84,12 +86,18 @@ public class VFramesRendererEngine implements
 			PKT_SIZE);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "container-video-frames";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getContainerAnalyserResult()
 				.map(caResult -> {
-					final var vFrames = new TabularDocument(tabularExportFormat, "container-video-frames")
-							.head(HEAD_VFRAMES);
+					final var vFrames = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName())
+									.head(HEAD_VFRAMES);
 					caResult.videoFrames().forEach(r -> {
 						final var frame = r.frame();
 						vFrames.row(
