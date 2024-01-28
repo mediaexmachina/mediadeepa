@@ -16,8 +16,8 @@
  */
 package media.mexm.mediadeepa.exportformat.components;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 
@@ -29,11 +29,9 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
 import lombok.extern.slf4j.Slf4j;
-import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
-import media.mexm.mediadeepa.exportformat.OutputStreamProvider;
 import media.mexm.mediadeepa.exportformat.TableCellFloat;
 import media.mexm.mediadeepa.exportformat.TableCellInteger;
 import media.mexm.mediadeepa.exportformat.TableCellLong;
@@ -46,7 +44,7 @@ import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 
 @Slf4j
 @Component
-public class TableJsonExportFormat extends TableExportFormat implements OutputStreamProvider {
+public class TableJsonExportFormat extends TableExportFormat {
 
 	private final JsonFactory jsonFactory;
 	private final AppConfig appConfig;
@@ -70,11 +68,10 @@ public class TableJsonExportFormat extends TableExportFormat implements OutputSt
 	}
 
 	@Override
-	public File save(final DataResult result, final List<Table> tables, final ExportToCmd exportToCmd) {
-		final var outputFile = exportToCmd.makeOutputFile(appConfig.getJsontableFileName());
-		log.debug("Start export {} tables to {}...", tables.size(), outputFile);
-
-		try (final var json = jsonFactory.createGenerator(createOutputStream(outputFile), JsonEncoding.UTF8)) {
+	public void makeDocument(final DataResult result,
+							 final List<Table> tables,
+							 final OutputStream outputStream) {
+		try (final var json = jsonFactory.createGenerator(outputStream, JsonEncoding.UTF8)) {
 			json.writeStartObject();
 			json.writeFieldName("report");
 			json.writeStartObject();
@@ -86,8 +83,6 @@ public class TableJsonExportFormat extends TableExportFormat implements OutputSt
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't write Json file", e);
 		}
-
-		return outputFile;
 	}
 
 	private void makeTable(final List<Table> tables,
@@ -134,6 +129,11 @@ public class TableJsonExportFormat extends TableExportFormat implements OutputSt
 			}
 		}
 		json.writeEndObject();
+	}
+
+	@Override
+	public String getInternalFileName() {
+		return appConfig.getJsontableFileName();
 	}
 
 }

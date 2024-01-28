@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,7 @@ import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
+import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
 @Component
 public class FFProbeXMLExportFormat implements ExportFormat {
@@ -69,6 +72,19 @@ public class FFProbeXMLExportFormat implements ExportFormat {
 				})
 				.stream()
 				.collect(toUnmodifiableMap(f -> getBaseName(f.getName()), identity()));
+	}
+
+	@Override
+	public Optional<byte[]> makeSingleExport(final DataResult result,
+											 final String internalFileName) {
+		return result.getFFprobeResult()
+				.map(FFprobeJAXB::getXmlContent)
+				.map(f -> f.getBytes(UTF_8));
+	}
+
+	@Override
+	public Set<String> getInternalProducedFileNames() {
+		return Set.of(appConfig.getFfprobexmlFileName());
 	}
 
 }

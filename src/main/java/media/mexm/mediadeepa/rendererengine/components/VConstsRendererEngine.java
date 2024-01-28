@@ -37,6 +37,7 @@ import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
@@ -46,7 +47,8 @@ public class VConstsRendererEngine implements
 								   ReportRendererEngine,
 								   TableRendererEngine,
 								   TabularRendererEngine,
-								   ConstStrings {
+								   ConstStrings,
+								   SingleTabularDocumentExporterTraits {
 
 	@Autowired
 	private NumberUtils numberUtils;
@@ -75,12 +77,18 @@ public class VConstsRendererEngine implements
 			REF_PKT_POS);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "container-video-consts";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getContainerAnalyserResult()
 				.map(caResult -> {
-					final var vConsts = new TabularDocument(tabularExportFormat, "container-video-consts")
-							.head(HEAD_VCONSTS);
+					final var vConsts = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName())
+									.head(HEAD_VCONSTS);
 					Stream.concat(
 							caResult.olderVideoConsts().stream(),
 							Stream.of(caResult.videoConst()))

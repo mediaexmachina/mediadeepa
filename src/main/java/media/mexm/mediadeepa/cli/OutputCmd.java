@@ -11,24 +11,27 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
- * Copyright (C) Media ex Machina 2023
+ * Copyright (C) Media ex Machina 2024
  *
  */
-package media.mexm.mediadeepa.service;
+package media.mexm.mediadeepa.cli;
 
-import java.io.File;
-import java.io.IOException;
+import lombok.Data;
+import picocli.CommandLine.ArgGroup;
 
-import picocli.CommandLine.ParameterException;
+@Data
+public class OutputCmd {
 
-public interface AppSessionService {
+	@ArgGroup(exclusive = false,
+			  heading = "Extract to archive%n")
+	private ExtractToCmd extractToCmd;
 
-	int runCli() throws IOException;
+	@ArgGroup(exclusive = false,
+			  heading = "Export to generated files%n")
+	private ExportToCmd exportToCmd;
 
-	void validateInputFile(File file) throws ParameterException;
-
-	void validateOutputFile(File file) throws ParameterException;
-
-	void validateOutputDir(File dir) throws ParameterException;
+	@ArgGroup(exclusive = false,
+			  heading = "Single export option%n")
+	private SingleExportCmd singleExportCmd;
 
 }

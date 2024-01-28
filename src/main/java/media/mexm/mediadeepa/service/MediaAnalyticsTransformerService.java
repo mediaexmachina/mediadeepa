@@ -16,7 +16,7 @@
  */
 package media.mexm.mediadeepa.service;
 
-import java.util.Map;
+import java.io.File;
 
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -26,7 +26,9 @@ public interface MediaAnalyticsTransformerService {
 	void exportAnalytics(DataResult result,
 						 ExportToCmd exportToCmd);
 
-	Map<String, String> getExportFormatInformation();
+	void singleExportAnalytics(String internalFileName,
+							   DataResult result,
+							   File outputFile);
 
 	boolean isExportFormatExists(String name);
 

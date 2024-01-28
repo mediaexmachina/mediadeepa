@@ -44,6 +44,8 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeAudioFrame;
@@ -56,7 +58,9 @@ public class AFramesRendererEngine implements
 								   TableRendererEngine,
 								   TabularRendererEngine,
 								   GraphicRendererEngine,
-								   ConstStrings {
+								   ConstStrings,
+								   SingleTabularDocumentExporterTraits,
+								   SingleGraphicDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -78,12 +82,18 @@ public class AFramesRendererEngine implements
 			PKT_SIZE);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "container-audio-frames";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getContainerAnalyserResult()
 				.map(caResult -> {
-					final var aFrames = new TabularDocument(tabularExportFormat, "container-audio-frames").head(
-							HEAD_AFRAMES);
+					final var aFrames = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName()).head(
+									HEAD_AFRAMES);
 
 					caResult.audioFrames().forEach(r -> {
 						final var frame = r.frame();
@@ -178,9 +188,14 @@ public class AFramesRendererEngine implements
 
 		return List.of(
 				new GraphicArtifact(
-						appConfig.getGraphicConfig().getABitrateGraphicFilename(),
+						getSingleUniqGraphicBaseFileName(),
 						dataGraphic.addMinMaxValueMarkers().makeLinearAxisGraphic(numberUtils),
 						appConfig.getGraphicConfig().getImageSizeHalfSize()));
+	}
+
+	@Override
+	public String getSingleUniqGraphicBaseFileName() {
+		return appConfig.getGraphicConfig().getABitrateGraphicFilename();
 	}
 
 	@Override

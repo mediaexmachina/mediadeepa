@@ -116,7 +116,6 @@ class TabularDocumentTest {
 		doc.row((List<String>) null);
 		doc.row(List.of());
 		assertTrue(doc.exportToFile(exportTo).isEmpty());
-		verify(exporter, times(1)).getDocumentFileExtension();
 	}
 
 	@Test
@@ -124,7 +123,6 @@ class TabularDocumentTest {
 		final var empty = List.of("");
 		assertThrows(IllegalArgumentException.class, () -> doc.row(empty));
 		assertTrue(doc.exportToFile(exportTo).isEmpty());
-		verify(exporter, times(1)).getDocumentFileExtension();
 	}
 
 	@Test
@@ -171,7 +169,6 @@ class TabularDocumentTest {
 	@Test
 	void testExportToFile_empty() {
 		assertTrue(doc.exportToFile(exportTo).isEmpty());
-		verify(exporter, times(1)).getDocumentFileExtension();
 	}
 
 	@Test

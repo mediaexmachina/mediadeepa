@@ -46,6 +46,8 @@ import java.io.UncheckedIOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,8 +105,7 @@ public class ReportExportFormat implements ExportFormat, ConstStrings {
 		}
 	}
 
-	@Override
-	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
+	private String makeHTMLPage(final DataResult result) {
 		final var document = new ReportDocument();
 
 		engines.stream()
@@ -155,7 +156,7 @@ public class ReportExportFormat implements ExportFormat, ConstStrings {
 						a(attrs(".backtotop"), TO_TOP_ICON).withHref("#top")),
 				aboutDocument.toDomContent(numberUtils)));
 
-		final var htmlDocument = String.join("\r\n",
+		return String.join("\r\n",
 				"<!DOCTYPE html>",
 				html(
 						head(
@@ -175,6 +176,11 @@ public class ReportExportFormat implements ExportFormat, ConstStrings {
 								.withLang("en")
 								.render())
 				.trim();
+	}
+
+	@Override
+	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
+		final var htmlDocument = makeHTMLPage(result);
 		try {
 			final var outFile = exportToCmd.makeOutputFile(appConfig.getReportConfig().getHtmlFilename());
 			FileUtils.write(
@@ -187,6 +193,17 @@ public class ReportExportFormat implements ExportFormat, ConstStrings {
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't write file", e);
 		}
+	}
+
+	@Override
+	public Optional<byte[]> makeSingleExport(final DataResult result,
+											 final String internalFileName) {
+		return Optional.ofNullable(makeHTMLPage(result).getBytes(UTF_8));
+	}
+
+	@Override
+	public Set<String> getInternalProducedFileNames() {
+		return Set.of(appConfig.getReportConfig().getHtmlFilename());
 	}
 
 }

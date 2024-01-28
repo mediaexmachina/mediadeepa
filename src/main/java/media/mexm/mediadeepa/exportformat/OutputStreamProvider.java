@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 
+@Deprecated
 public interface OutputStreamProvider {
 
 	default OutputStream createOutputStream(final File outputFile) {

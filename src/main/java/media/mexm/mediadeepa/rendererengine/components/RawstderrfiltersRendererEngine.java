@@ -25,6 +25,7 @@ import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 
@@ -32,14 +33,21 @@ import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 public class RawstderrfiltersRendererEngine implements
 											TableRendererEngine,
 											TabularRendererEngine,
-											ConstStrings {
+											ConstStrings,
+											SingleTabularDocumentExporterTraits {
 
 	public static final List<String> HEAD_STDERRFILTERS = List.of(FILTER_NAME, CHAIN_POS, LINE);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "rawstderrfilters";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		final var t = new TabularDocument(tabularExportFormat, "rawstderrfilters").head(HEAD_STDERRFILTERS);
+		final var t = new TabularDocument(tabularExportFormat, getSingleUniqTabularDocumentBaseFileName()).head(
+				HEAD_STDERRFILTERS);
 		result.getRawStdErrEvents().stream()
 				.filter(r -> r.getFilterName().equals("cropdetect") == false)
 				.forEach(r -> t.row(r.getFilterName(), r.getFilterChainPos(), r.getLineValue()));

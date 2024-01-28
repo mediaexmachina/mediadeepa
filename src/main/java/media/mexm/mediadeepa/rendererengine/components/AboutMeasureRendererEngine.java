@@ -21,6 +21,8 @@ import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.ABOUT;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,9 @@ public class AboutMeasureRendererEngine implements
 										TabularRendererEngine,
 										ConstStrings {
 
+	static final String ABOUT_NAME = "about";
+	static final String FILTERS = "filters";
+
 	@Autowired
 	private RunnedJavaCmdLine runnedJavaCmdLine;
 
@@ -55,18 +60,28 @@ public class AboutMeasureRendererEngine implements
 	public static final List<String> HEAD_APP_ABOUT = List.of(TYPE, VALUE);
 
 	@Override
-	public List<TabularDocument> toTabularDocument(final DataResult result,
-												   final TabularExportFormat tabularExportFormat) {
-		final var tAbout = new TabularDocument(tabularExportFormat, "about").head(HEAD_APP_ABOUT);
-		result.getVersions().entrySet().forEach(entry -> tAbout.row(entry.getKey(), entry.getValue()));
+	public Optional<TabularDocument> toSingleTabularDocument(final String internalTabularBaseFileName,
+															 final DataResult result,
+															 final TabularExportFormat tabularExportFormat) {
+		if (ABOUT_NAME.equalsIgnoreCase(internalTabularBaseFileName)) {
+			return Optional.ofNullable(getAboutTabular(result, tabularExportFormat));
+		}
+		if (FILTERS.equalsIgnoreCase(internalTabularBaseFileName)) {
+			return getFiltersTabular(result, tabularExportFormat);
+		}
+		return Optional.empty();
+	}
 
-		runnedJavaCmdLine.makeArchiveCommandline()
-				.ifPresent(cmdLine -> tAbout.row(ANALYSIS_CREATED_BY, cmdLine));
-		tAbout.row(REPORT_CREATED_BY, runnedJavaCmdLine.makeFullExtendedCommandline());
+	@Override
+	public Set<String> getInternalTabularBaseFileNames() {
+		return Set.of(ABOUT_NAME, FILTERS);
+	}
 
-		final var oTFilters = result.getMediaAnalyserResult()
+	private Optional<TabularDocument> getFiltersTabular(final DataResult result,
+														final TabularExportFormat tabularExportFormat) {
+		return result.getMediaAnalyserResult()
 				.map(maResult -> {
-					final var tFilters = new TabularDocument(tabularExportFormat, "filters")
+					final var tFilters = new TabularDocument(tabularExportFormat, FILTERS)
 							.head(HEAD_ABOUT);
 					maResult.filters()
 							.forEach(f -> tFilters.row(
@@ -76,7 +91,23 @@ public class AboutMeasureRendererEngine implements
 									f.className()));
 					return tFilters;
 				});
+	}
 
+	private TabularDocument getAboutTabular(final DataResult result, final TabularExportFormat tabularExportFormat) {
+		final var tAbout = new TabularDocument(tabularExportFormat, ABOUT_NAME).head(HEAD_APP_ABOUT);
+		result.getVersions().entrySet().forEach(entry -> tAbout.row(entry.getKey(), entry.getValue()));
+
+		runnedJavaCmdLine.makeArchiveCommandline()
+				.ifPresent(cmdLine -> tAbout.row(ANALYSIS_CREATED_BY, cmdLine));
+		tAbout.row(REPORT_CREATED_BY, runnedJavaCmdLine.makeFullExtendedCommandline());
+		return tAbout;
+	}
+
+	@Override
+	public List<TabularDocument> toTabularDocument(final DataResult result,
+												   final TabularExportFormat tabularExportFormat) {
+		final var tAbout = getAboutTabular(result, tabularExportFormat);
+		final var oTFilters = getFiltersTabular(result, tabularExportFormat);
 		return Stream.concat(Stream.of(tAbout), oTFilters.stream()).toList();
 	}
 

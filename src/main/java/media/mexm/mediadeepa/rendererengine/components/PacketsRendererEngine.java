@@ -39,6 +39,7 @@ import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType;
@@ -49,7 +50,8 @@ public class PacketsRendererEngine implements
 								   ReportRendererEngine,
 								   TableRendererEngine,
 								   TabularRendererEngine,
-								   ConstStrings {
+								   ConstStrings,
+								   SingleTabularDocumentExporterTraits {
 
 	@Autowired
 	private NumberUtils numberUtils;
@@ -68,12 +70,18 @@ public class PacketsRendererEngine implements
 			FLAGS);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "container-packets";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getContainerAnalyserResult()
 				.map(caResult -> {
-					final var packets = new TabularDocument(tabularExportFormat, "container-packets")
-							.head(HEAD_CONTAINER_PACKETS);
+					final var packets = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName())
+									.head(HEAD_CONTAINER_PACKETS);
 					caResult.packets().forEach(
 							r -> packets.row(
 									r.codecType(),

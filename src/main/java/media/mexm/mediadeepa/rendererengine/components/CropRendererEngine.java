@@ -51,6 +51,8 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
@@ -68,7 +70,9 @@ public class CropRendererEngine implements
 								TableRendererEngine,
 								TabularRendererEngine,
 								GraphicRendererEngine,
-								ConstStrings {
+								ConstStrings,
+								SingleTabularDocumentExporterTraits,
+								SingleGraphicDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -79,12 +83,18 @@ public class CropRendererEngine implements
 			"x1", "x2", "y1", "y2", "w", "h", "x", "y");
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "video-crop-detect";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getMediaAnalyserResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
-					final var crop = new TabularDocument(tabularExportFormat, "video-crop-detect").head(HEAD_CROP);
+					final var crop = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName()).head(HEAD_CROP);
 					lavfiMetadatas.getCropDetectReport().forEach(a -> {
 						final var value = a.value();
 						crop.row(a.frame(), a.pts(), a.ptsTime(),
@@ -168,11 +178,16 @@ public class CropRendererEngine implements
 							.ifPresent(dataGraphic::addValueMarker);
 
 					return new GraphicArtifact(
-							appConfig.getGraphicConfig().getCropGraphicFilename(),
+							getSingleUniqGraphicBaseFileName(),
 							dataGraphic.makeLinearAxisGraphic(numberUtils),
 							appConfig.getGraphicConfig().getImageSizeFullSize());
 				})
 				.toList();
+	}
+
+	@Override
+	public String getSingleUniqGraphicBaseFileName() {
+		return appConfig.getGraphicConfig().getCropGraphicFilename();
 	}
 
 	@Override

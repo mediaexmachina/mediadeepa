@@ -16,14 +16,13 @@
  */
 package media.mexm.mediadeepa.service;
 
-import static java.util.Collections.unmodifiableMap;
-
 import java.io.File;
-import java.util.LinkedHashMap;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,21 +55,32 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 	}
 
 	@Override
-	public Map<String, String> getExportFormatInformation() {
-		final var result = new LinkedHashMap<String, String>();
-		exportFormatList.stream()
-				.sorted(exportFormatComparator)
-				.forEach(eF -> result.put(eF.getFormatName(), eF.getFormatLongName()));
-		return unmodifiableMap(result);
-	}
-
-	@Override
 	public void exportAnalytics(final DataResult result,
 								final ExportToCmd exportToCmd) {
 		log.info("Start export result files...");
 		exportToCmd.getFormat().stream()
 				.map(this::getExportFormatByName)
 				.forEach(s -> doExportAnalytic(result, exportToCmd, s));
+	}
+
+	@Override
+	public void singleExportAnalytics(final String internalFileName,
+									  final DataResult result,
+									  final File outputFile) {
+		exportFormatList.stream()
+				.sorted(exportFormatComparator)
+				.filter(f -> f.getInternalProducedFileNames().contains(internalFileName))
+				.findFirst()
+				.flatMap(d -> d.makeSingleExport(result, internalFileName))
+				.ifPresent(bytes -> {
+					log.info("Single export result {} file produce {} bytes, save to {}",
+							internalFileName, bytes.length, outputFile);
+					try {
+						FileUtils.writeByteArrayToFile(outputFile, bytes, false);
+					} catch (final IOException e) {
+						throw new UncheckedIOException("Can't write to " + outputFile, e);
+					}
+				});
 	}
 
 	private void doExportAnalytic(final DataResult result, final ExportToCmd exportToCmd, final ExportFormat s) {

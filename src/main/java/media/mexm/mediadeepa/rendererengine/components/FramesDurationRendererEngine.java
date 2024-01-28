@@ -38,6 +38,7 @@ import media.mexm.mediadeepa.exportformat.RangeAxis;
 import media.mexm.mediadeepa.exportformat.SeriesStyle;
 import media.mexm.mediadeepa.exportformat.XYLineChartDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeBaseFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrame;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
@@ -45,7 +46,8 @@ import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 @Component
 public class FramesDurationRendererEngine implements
 										  GraphicRendererEngine,
-										  ConstStrings {
+										  ConstStrings,
+										  SingleGraphicDocumentExporterTraits {
 	@Autowired
 	private AppConfig appConfig;
 	@Autowired
@@ -107,9 +109,14 @@ public class FramesDurationRendererEngine implements
 
 		return List.of(
 				new GraphicArtifact(
-						appConfig.getGraphicConfig().getVFrameDurationGraphicFilename(),
+						getSingleUniqGraphicBaseFileName(),
 						dataGraphic.makeLinearAxisGraphic(numberUtils),
 						appConfig.getGraphicConfig().getImageSizeHalfSize()));
+	}
+
+	@Override
+	public String getSingleUniqGraphicBaseFileName() {
+		return appConfig.getGraphicConfig().getVFrameDurationGraphicFilename();
 	}
 
 }

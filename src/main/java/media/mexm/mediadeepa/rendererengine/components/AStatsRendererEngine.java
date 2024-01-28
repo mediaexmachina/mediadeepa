@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -47,9 +46,13 @@ import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
+import media.mexm.mediadeepa.rendererengine.MultipleGraphicDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicMaker;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
+import media.mexm.mediadeepa.rendererengine.components.AStatsRendererEngine.AStatReportItem;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdAstats;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdAstatsChannel;
@@ -63,12 +66,16 @@ public class AStatsRendererEngine implements
 								  TableRendererEngine,
 								  TabularRendererEngine,
 								  GraphicRendererEngine,
-								  ConstStrings {
+								  ConstStrings,
+								  SingleTabularDocumentExporterTraits,
+								  MultipleGraphicDocumentExporterTraits<AStatReportItem> {
 
 	@Autowired
 	private AppConfig appConfig;
 	@Autowired
 	private NumberUtils numberUtils;
+
+	private List<SingleGraphicMaker<AStatReportItem>> graphicMakerList;
 
 	public static final List<String> HEAD_ASTATS = List.of(
 			FRAME, PTS, PTS_TIME,
@@ -83,12 +90,18 @@ public class AStatsRendererEngine implements
 			OTHER);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "audio-stats";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getMediaAnalyserResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
-					final var aStats = new TabularDocument(tabularExportFormat, "audio-stats").head(HEAD_ASTATS);
+					final var aStats = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName()).head(HEAD_ASTATS);
 					lavfiMetadatas.getAStatsReport()
 							.forEach(a -> {
 								final var channels = a.value().channels();
@@ -149,86 +162,165 @@ public class AStatsRendererEngine implements
 	}
 
 	@Override
-	public List<GraphicArtifact> toGraphic(final DataResult result) {
+	public List<SingleGraphicMaker<AStatReportItem>> getGraphicMakerList() {
+		return graphicMakerList;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		graphicMakerList = List.of(
+				new DcOffsetGraphicMaker(),
+				new EntropyGraphicMaker(),
+				new FlatnessGraphicMaker(),
+				new NoiseFloorGraphicMaker(),
+				new PeakLevelGraphicMaker());
+	}
+
+	static record AStatReportItem(List<LavfiMtdValue<LavfiMtdAstats>> aStatsReport, int chCount) {
+	}
+
+	@Override
+	public Optional<AStatReportItem> makeGraphicReportItem(final DataResult result) {
 		return result.getMediaAnalyserResult()
 				.map(MediaAnalyserResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getAStatsReport)
 				.filter(not(List::isEmpty))
-				.stream()
-				.flatMap(aStatReport -> {
+				.map(aStatReport -> {
 					final var chCount = aStatReport.stream()
 							.map(LavfiMtdValue::value)
 							.map(LavfiMtdAstats::channels)
 							.map(List::size)
 							.findFirst()
 							.orElse(0);
+
 					if (chCount == 0) {
 						log.warn("No channel found for export astats");
 					} else if (chCount > 2) {
 						log.warn("Only the two first channels will be graphed instead of {}", chCount);
 					}
 
-					return Stream.of(
-							new GraphicArtifact(
-									appConfig.getGraphicConfig().getDcOffsetGraphicFilename(),
-									prepareAStatGraphic(
-											aStatReport,
-											chCount,
-											astat -> astat.dcOffset() * 100f,
-											"Audio DC offset (%)",
-											10).makeLinearAxisGraphic(numberUtils),
-									appConfig.getGraphicConfig().getImageSizeHalfSize()),
+					return new AStatReportItem(aStatReport, chCount);
+				});
+	}
 
-							new GraphicArtifact(
-									appConfig.getGraphicConfig().getEntropyGraphicFilename(),
-									prepareAStatGraphic(
-											aStatReport,
-											chCount,
-											astat -> astat.entropy() * 100f,
-											"Audio entropy (%)",
-											10).makeLinearAxisGraphic(numberUtils),
-									appConfig.getGraphicConfig().getImageSizeHalfSize()),
+	class DcOffsetGraphicMaker implements SingleGraphicMaker<AStatReportItem> {
 
-							new GraphicArtifact(appConfig.getGraphicConfig().getFlatnessGraphicFilename(),
-									prepareAStatGraphic(
-											aStatReport,
-											chCount,
-											LavfiMtdAstatsChannel::flatness,
-											"Audio flatness",
-											1).makeLinearAxisGraphic(numberUtils),
-									appConfig.getGraphicConfig().getImageSizeHalfSize()),
+		@Override
+		public String getBaseFileName() {
+			return appConfig.getGraphicConfig().getDcOffsetGraphicFilename();
+		}
 
-							new GraphicArtifact(appConfig.getGraphicConfig().getNoiseFloorGraphicFilename(),
-									prepareAStatGraphic(
-											RangeAxis.createFromValueSet("Audio noise floor (dBFS)",
-													-144, 20, 0,
-													aStatReport.stream()
-															.map(LavfiMtdValue::value)
-															.map(LavfiMtdAstats::channels)
-															.flatMap(List::stream)
-															.map(LavfiMtdAstatsChannel::noiseFloor)),
-											aStatReport,
-											chCount,
-											LavfiMtdAstatsChannel::noiseFloor)
-													.makeLogarithmicAxisGraphic(numberUtils),
-									appConfig.getGraphicConfig().getImageSizeHalfSize()),
+		@Override
+		public GraphicArtifact makeGraphic(final AStatReportItem item) {
+			return new GraphicArtifact(
+					getBaseFileName(),
+					prepareAStatGraphic(
+							item.aStatsReport,
+							item.chCount,
+							astat -> astat.dcOffset() * 100f,
+							"Audio DC offset (%)",
+							10).makeLinearAxisGraphic(numberUtils),
+					appConfig.getGraphicConfig().getImageSizeHalfSize());
+		}
+	}
 
-							new GraphicArtifact(appConfig.getGraphicConfig().getPeakLevelGraphicFilename(),
-									prepareAStatGraphic(
-											RangeAxis.createFromValueSet("Audio audio peak level (dBFS)",
-													-96, 10, 5,
-													aStatReport.stream()
-															.map(LavfiMtdValue::value)
-															.map(LavfiMtdAstats::channels)
-															.flatMap(List::stream)
-															.map(LavfiMtdAstatsChannel::peakLevel)),
-											aStatReport,
-											chCount,
-											LavfiMtdAstatsChannel::peakLevel)
-													.makeLogarithmicAxisGraphic(numberUtils),
-									appConfig.getGraphicConfig().getImageSizeHalfSize()));
-				})
-				.toList();
+	class EntropyGraphicMaker implements SingleGraphicMaker<AStatReportItem> {
+
+		@Override
+		public String getBaseFileName() {
+			return appConfig.getGraphicConfig().getEntropyGraphicFilename();
+		}
+
+		@Override
+		public GraphicArtifact makeGraphic(final AStatReportItem item) {
+			return new GraphicArtifact(
+					getBaseFileName(),
+					prepareAStatGraphic(
+							item.aStatsReport,
+							item.chCount,
+							astat -> astat.entropy() * 100f,
+							"Audio entropy (%)",
+							10).makeLinearAxisGraphic(numberUtils),
+					appConfig.getGraphicConfig().getImageSizeHalfSize());
+		}
+	}
+
+	class FlatnessGraphicMaker implements SingleGraphicMaker<AStatReportItem> {
+
+		@Override
+		public String getBaseFileName() {
+			return appConfig.getGraphicConfig().getFlatnessGraphicFilename();
+		}
+
+		@Override
+		public GraphicArtifact makeGraphic(final AStatReportItem item) {
+			return new GraphicArtifact(
+					getBaseFileName(),
+					prepareAStatGraphic(
+							item.aStatsReport,
+							item.chCount,
+							LavfiMtdAstatsChannel::flatness,
+							"Audio flatness",
+							1).makeLinearAxisGraphic(numberUtils),
+					appConfig.getGraphicConfig().getImageSizeHalfSize());
+		}
+
+	}
+
+	class NoiseFloorGraphicMaker implements SingleGraphicMaker<AStatReportItem> {
+
+		@Override
+		public String getBaseFileName() {
+			return appConfig.getGraphicConfig().getNoiseFloorGraphicFilename();
+		}
+
+		@Override
+		public GraphicArtifact makeGraphic(final AStatReportItem item) {
+			return new GraphicArtifact(
+					getBaseFileName(),
+					prepareAStatGraphic(
+							RangeAxis.createFromValueSet("Audio noise floor (dBFS)",
+									-144, 20, 0,
+									item.aStatsReport.stream()
+											.map(LavfiMtdValue::value)
+											.map(LavfiMtdAstats::channels)
+											.flatMap(List::stream)
+											.map(LavfiMtdAstatsChannel::noiseFloor)),
+							item.aStatsReport,
+							item.chCount,
+							LavfiMtdAstatsChannel::noiseFloor)
+									.makeLogarithmicAxisGraphic(numberUtils),
+					appConfig.getGraphicConfig().getImageSizeHalfSize());
+		}
+
+	}
+
+	class PeakLevelGraphicMaker implements SingleGraphicMaker<AStatReportItem> {
+
+		@Override
+		public String getBaseFileName() {
+			return appConfig.getGraphicConfig().getPeakLevelGraphicFilename();
+		}
+
+		@Override
+		public GraphicArtifact makeGraphic(final AStatReportItem item) {
+			return new GraphicArtifact(
+					getBaseFileName(),
+					prepareAStatGraphic(
+							RangeAxis.createFromValueSet("Audio audio peak level (dBFS)",
+									-96, 10, 5,
+									item.aStatsReport.stream()
+											.map(LavfiMtdValue::value)
+											.map(LavfiMtdAstats::channels)
+											.flatMap(List::stream)
+											.map(LavfiMtdAstatsChannel::peakLevel)),
+							item.aStatsReport,
+							item.chCount,
+							LavfiMtdAstatsChannel::peakLevel)
+									.makeLogarithmicAxisGraphic(numberUtils),
+					appConfig.getGraphicConfig().getImageSizeHalfSize());
+		}
+
 	}
 
 	private static TimedDataGraphic prepareAStatGraphic(final RangeAxis rangeAxis,

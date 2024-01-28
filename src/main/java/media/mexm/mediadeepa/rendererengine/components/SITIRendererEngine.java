@@ -39,6 +39,8 @@ import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
@@ -51,7 +53,9 @@ public class SITIRendererEngine implements
 								TableRendererEngine,
 								TabularRendererEngine,
 								GraphicRendererEngine,
-								ConstStrings {
+								ConstStrings,
+								SingleTabularDocumentExporterTraits,
+								SingleGraphicDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -61,12 +65,19 @@ public class SITIRendererEngine implements
 	public static final List<String> HEAD_SITI = List.of(FRAME, PTS, PTS_TIME, SPATIAL_INFO, TEMPORAL_INFO);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "video-siti-ITU-T_P-910";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getMediaAnalyserResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
-					final var siti = new TabularDocument(tabularExportFormat, "video-siti-ITU-T_P-910").head(HEAD_SITI);
+					final var siti = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName()).head(
+									HEAD_SITI);
 					lavfiMetadatas.getSitiReport()
 							.forEach(a -> siti.row(a.frame(), a.pts(), a.ptsTime(), a.value().si(), a.value().ti()));
 					return siti;
@@ -122,11 +133,16 @@ public class SITIRendererEngine implements
 									.map(LavfiMtdSiti::ti)));
 
 					return new GraphicArtifact(
-							appConfig.getGraphicConfig().getSitiGraphicFilename(),
+							getSingleUniqGraphicBaseFileName(),
 							dataGraphic.addMinMaxValueMarkers().makeLinearAxisGraphic(numberUtils),
 							appConfig.getGraphicConfig().getImageSizeFullSize());
 				}).stream()
 				.toList();
+	}
+
+	@Override
+	public String getSingleUniqGraphicBaseFileName() {
+		return appConfig.getGraphicConfig().getSitiGraphicFilename();
 	}
 
 }

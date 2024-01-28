@@ -16,7 +16,9 @@
  */
 package media.mexm.mediadeepa.exportformat;
 
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toUnmodifiableMap;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 import java.io.File;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
@@ -34,6 +37,28 @@ public abstract class TabularExportFormat implements ExportFormat, TabularDocume
 
 	protected TabularExportFormat(final List<TabularRendererEngine> engines) {
 		this.engines = Objects.requireNonNull(engines, "\"engines\" can't to be null");
+	}
+
+	@Override
+	public Set<String> getInternalProducedFileNames() {
+		return engines.stream()
+				.map(TabularRendererEngine::getInternalTabularBaseFileNames)
+				.flatMap(Set::stream)
+				.distinct()
+				.map(name -> name + "." + getDocumentFileExtension())
+				.collect(toUnmodifiableSet());
+	}
+
+	@Override
+	public Optional<byte[]> makeSingleExport(final DataResult result,
+											 final String internalFileName) {
+		final var internalBaseFileName = getBaseName(internalFileName);
+		return engines.stream()
+				.filter(en -> en.getInternalTabularBaseFileNames().contains(internalBaseFileName))
+				.findFirst()
+				.map(en -> en.toSingleTabularDocument(internalBaseFileName, result, this))
+				.flatMap(identity())
+				.flatMap(TabularDocument::exportToBytes);
 	}
 
 	@Override

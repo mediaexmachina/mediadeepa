@@ -11,24 +11,30 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
- * Copyright (C) Media ex Machina 2023
+ * Copyright (C) Media ex Machina 2024
  *
  */
 package media.mexm.mediadeepa.rendererengine;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.GraphicArtifact;
 
-public interface GraphicRendererEngine {
+public interface SingleGraphicDocumentExporterTraits extends GraphicRendererEngine {
 
-	List<GraphicArtifact> toGraphic(DataResult result);
+	@Override
+	default Optional<GraphicArtifact> toSingleGraphic(final String internalGraphicBaseFileName,
+													  final DataResult result) {
+		return toGraphic(result).stream().findFirst();
+	}
 
-	Optional<GraphicArtifact> toSingleGraphic(String graphicBaseFileName, DataResult result);
+	@Override
+	default Set<String> getGraphicInternalProducedBaseFileNames() {
+		return Set.of(getSingleUniqGraphicBaseFileName());
+	}
 
-	Set<String> getGraphicInternalProducedBaseFileNames();
+	String getSingleUniqGraphicBaseFileName();
 
 }

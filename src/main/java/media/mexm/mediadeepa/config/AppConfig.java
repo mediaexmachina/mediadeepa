@@ -61,25 +61,25 @@ public class AppConfig {
 
 	@Data
 	public class GraphicConfig {
-		private String lufsGraphicFilename = "audio-loudness.png";
-		private String lufsTPKGraphicFilename = "audio-loundness-truepeak.png";
-		private String aPhaseGraphicFilename = "audio-phase.png";
-		private String dcOffsetGraphicFilename = "audio-dcoffset.png";
-		private String entropyGraphicFilename = "audio-entropy.png";
-		private String flatnessGraphicFilename = "audio-flatness.png";
-		private String noiseFloorGraphicFilename = "audio-noise-floor.png";
-		private String peakLevelGraphicFilename = "audio-peak-level.png";
-		private String sitiGraphicFilename = "video-siti.png";
-		private String blockGraphicFilename = "video-block.png";
-		private String blurGraphicFilename = "video-blur.png";
-		private String itetGraphicFilename = "video-idet.png";
-		private String cropGraphicFilename = "video-crop.png";
-		private String eventsGraphicFilename = "events.png";
-		private String vBitrateGraphicFilename = "video-bitrate.png";
-		private String aBitrateGraphicFilename = "audio-bitrate.png";
-		private String vFrameDurationGraphicFilename = "video-frame-duration.png";
-		private String gopCountGraphicFilename = "video-gop-count.png";
-		private String gopSizeGraphicFilename = "video-gop-size.png";
+		private String lufsGraphicFilename = "audio-loudness";
+		private String lufsTPKGraphicFilename = "audio-loundness-truepeak";
+		private String aPhaseGraphicFilename = "audio-phase";
+		private String dcOffsetGraphicFilename = "audio-dcoffset";
+		private String entropyGraphicFilename = "audio-entropy";
+		private String flatnessGraphicFilename = "audio-flatness";
+		private String noiseFloorGraphicFilename = "audio-noise-floor";
+		private String peakLevelGraphicFilename = "audio-peak-level";
+		private String sitiGraphicFilename = "video-siti";
+		private String blockGraphicFilename = "video-block";
+		private String blurGraphicFilename = "video-blur";
+		private String itetGraphicFilename = "video-idet";
+		private String cropGraphicFilename = "video-crop";
+		private String eventsGraphicFilename = "events";
+		private String vBitrateGraphicFilename = "video-bitrate";
+		private String aBitrateGraphicFilename = "audio-bitrate";
+		private String vFrameDurationGraphicFilename = "video-frame-duration";
+		private String gopCountGraphicFilename = "video-gop-count";
+		private String gopSizeGraphicFilename = "video-gop-size";
 
 		private Dimension imageSizeFullSize = new Dimension(2000, 1200);
 		private Dimension imageSizeHalfSize = new Dimension(2000, 600);

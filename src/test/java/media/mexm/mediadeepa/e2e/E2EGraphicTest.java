@@ -25,6 +25,7 @@ import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -38,7 +39,6 @@ import org.junit.jupiter.api.function.Executable;
 class E2EGraphicTest extends E2EUtils {
 
 	private static final String MPG = "mpg_";
-	E2ERawOutDataFiles rawData;
 	ThreadLocal<float[]> hsbvalsThreadLocal;
 
 	@BeforeEach
@@ -47,110 +47,90 @@ class E2EGraphicTest extends E2EUtils {
 	}
 
 	@TestFactory
-	Stream<DynamicTest> testTable() throws IOException {
+	Stream<DynamicTest> testGraphics() throws IOException {
 		rawData = prepareMpgForSimpleE2ETests();
 		if (rawData == null) {
 			return Stream.empty();
 		}
 
 		final var tests = new LinkedHashMap<String, Executable>();
-
-		final var IMAGE_SIZE_FULL_HEIGHT = defaultAppConfig.getGraphicConfig().getImageSizeFullSize();
-		final var IMAGE_SIZE_HALF_HEIGHT = defaultAppConfig.getGraphicConfig().getImageSizeHalfSize();
-
-		doAllTests(tests, IMAGE_SIZE_FULL_HEIGHT, IMAGE_SIZE_HALF_HEIGHT, false);
-		doAllTests(tests, IMAGE_SIZE_FULL_HEIGHT, IMAGE_SIZE_HALF_HEIGHT, true);
+		tests.putAll(doAllTests(false));
+		tests.putAll(doAllTests(true));
 		return tests.entrySet().stream()
 				.map(entry -> dynamicTest(entry.getKey(), entry.getValue()));
 	}
 
-	private void doAllTests(final LinkedHashMap<String, Executable> tests,
-							final Dimension IMAGE_SIZE_FULL_HEIGHT,
-							final Dimension IMAGE_SIZE_HALF_HEIGHT,
-							final boolean jpg) throws IOException {
+	private Map<String, Executable> doAllTests(final boolean jpg) throws IOException {
+		final var fullHeight = defaultAppConfig.getGraphicConfig().getImageSizeFullSize();
+		final var halfHeight = defaultAppConfig.getGraphicConfig().getImageSizeHalfSize();
 		final var testName = jpg ? " JPEG" : " PNG";
+		final var ext = "." + testName.trim().toLowerCase();
 		final var graphicConf = defaultAppConfig.getGraphicConfig();
 
+		final var tests = new LinkedHashMap<String, Executable>();
 		tests.put("LUFS" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getLufsGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getLufsGraphicFilename() + ext, fullHeight));
 		tests.put("LUFS TPK" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getLufsTPKGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getLufsTPKGraphicFilename() + ext, fullHeight));
 		tests.put("Audio phase" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getAPhaseGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getAPhaseGraphicFilename() + ext, halfHeight));
 		tests.put("Audio entropy" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getEntropyGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getEntropyGraphicFilename() + ext, halfHeight));
 		tests.put("Audio flat-factor" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getFlatnessGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getFlatnessGraphicFilename() + ext, halfHeight));
 		tests.put("Audio noise-floor" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getNoiseFloorGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getNoiseFloorGraphicFilename() + ext, halfHeight));
 		tests.put("Audio peak-level" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getPeakLevelGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getPeakLevelGraphicFilename() + ext, halfHeight));
 		tests.put("Audio DC offset" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getDcOffsetGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getDcOffsetGraphicFilename() + ext, halfHeight));
 		tests.put("Video SITI" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getSitiGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getSitiGraphicFilename() + ext, fullHeight));
 		tests.put("Video block" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getBlockGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getBlockGraphicFilename() + ext, fullHeight));
 		tests.put("Video blur" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getBlurGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getBlurGraphicFilename() + ext, fullHeight));
 		tests.put("Video idet" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getItetGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getItetGraphicFilename() + ext, halfHeight));
 		tests.put("Video crop" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getCropGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getCropGraphicFilename() + ext, fullHeight));
 		tests.put("Events" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getEventsGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getEventsGraphicFilename() + ext, halfHeight));
 		tests.put("Video bitrate" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getVBitrateGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getVBitrateGraphicFilename() + ext, fullHeight));
 		tests.put("Audio bitrate" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getABitrateGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getABitrateGraphicFilename() + ext, halfHeight));
 		tests.put("Video frame duration" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getVFrameDurationGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getVFrameDurationGraphicFilename() + ext, halfHeight));
 		tests.put("Video GOP counts" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getGopCountGraphicFilename()), IMAGE_SIZE_HALF_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getGopCountGraphicFilename() + ext, halfHeight));
 		tests.put("Video GOP sizes" + testName,
-				checkImageGraphic(makeOutputFile(jpg,
-						MPG + graphicConf.getGopSizeGraphicFilename()), IMAGE_SIZE_FULL_HEIGHT));
+				makeAndCheckGraphic(jpg, MPG + graphicConf.getGopSizeGraphicFilename() + ext, fullHeight));
+		return tests;
 	}
 
-	File makeOutputFile(final boolean jpg, final String baseFileName) throws IOException {
-		final var outputFile = new File("target/e2e-export", baseFileName);
-		runApp(
-				"--temp", "target/e2e-temp",
-				"-i", rawData.archive().getPath(),
-				"-f", "graphic",
-				"-e", "target/e2e-export",
-				"--export-base-filename", "mpg",
-				jpg ? "--graphic-jpg" : null);
-		return outputFile;
+	private Executable makeAndCheckGraphic(final boolean jpg,
+										   final String baseFileName,
+										   final Dimension expectedImageSize) {
+		return () -> {
+			final var outputFile = new File("target/e2e-export", baseFileName);
+			if (outputFile.exists() == false) {
+				runApp(
+						"--temp", "target/e2e-temp",
+						"-i", rawData.archive().getPath(),
+						"-f", "graphic",
+						"-e", "target/e2e-export",
+						"--export-base-filename", "mpg",
+						jpg ? "--graphic-jpg" : null);
+				checkImageGraphicInternal(outputFile, expectedImageSize);
+			}
+		};
 	}
 
 	private static record HSV(float hue, float sat, float value) {
 		static HSV get(final float[] hsbvals) {
 			return new HSV(hsbvals[0], hsbvals[1], hsbvals[2]);
 		}
-	}
-
-	private Executable checkImageGraphic(final File outputFile,
-										 final Dimension expectedImageSize) {
-		return () -> checkImageGraphicInternal(outputFile, expectedImageSize);
 	}
 
 	private void checkImageGraphicInternal(final File outputFile,

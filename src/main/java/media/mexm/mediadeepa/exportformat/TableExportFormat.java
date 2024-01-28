@@ -16,16 +16,29 @@
  */
 package media.mexm.mediadeepa.exportformat;
 
+import static media.mexm.mediadeepa.ImpExArchiveExtractionSession.TEN_MB;
+
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.exportformat.TableDocument.Table;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 
+@Slf4j
 public abstract class TableExportFormat implements ExportFormat {
 
 	protected final List<TableRendererEngine> engines;
@@ -37,13 +50,45 @@ public abstract class TableExportFormat implements ExportFormat {
 		this.numberUtils = Objects.requireNonNull(numberUtils, "\"numberUtils\" can't to be null");
 	}
 
+	public abstract String getInternalFileName();
+
+	public abstract void makeDocument(DataResult result,
+									  List<Table> tables,
+									  OutputStream outputStream);
+
 	@Override
 	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
 		final var tableDocument = new TableDocument(numberUtils);
 		engines.forEach(en -> en.addToTable(result, tableDocument));
-		return Map.of("tables", save(result, tableDocument.getTables(), exportToCmd));
+
+		final var outputFile = exportToCmd.makeOutputFile(getInternalFileName());
+		log.debug("Start export {} tables to {}...", tableDocument.getTables().size(), outputFile);
+
+		try (var outputStream = new BufferedOutputStream(new FileOutputStream(outputFile), 0XFFFFFF)) {
+			makeDocument(result, tableDocument.getTables(), outputStream);
+		} catch (final FileNotFoundException e) {
+			throw new UncheckedIOException("Can't create file", e);
+		} catch (final IOException e1) {
+			throw new UncheckedIOException("Can't close stream file", e1);
+		}
+
+		return Map.of("tables", outputFile);
 	}
 
-	public abstract File save(DataResult result, List<Table> tables, ExportToCmd exportToCmd);
+	@Override
+	public Optional<byte[]> makeSingleExport(final DataResult result,
+											 final String internalFileName) {
+		final var tableDocument = new TableDocument(numberUtils);
+		engines.forEach(en -> en.addToTable(result, tableDocument));
+
+		final var bias = new ByteArrayOutputStream(TEN_MB);
+		makeDocument(result, tableDocument.getTables(), bias);
+		return Optional.ofNullable(bias.toByteArray());
+	}
+
+	@Override
+	public Set<String> getInternalProducedFileNames() {
+		return Set.of(getInternalFileName());
+	}
 
 }

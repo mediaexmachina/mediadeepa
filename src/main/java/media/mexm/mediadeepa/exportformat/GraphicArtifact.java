@@ -22,19 +22,19 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Objects;
-import java.util.Optional;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 
 import lombok.Getter;
-import media.mexm.mediadeepa.cli.ExportOptions;
-import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.config.AppConfig;
 
 public class GraphicArtifact {
+
+	public static final String DOT_PNG = ".png";
+	public static final String DOT_JPEG = ".jpeg";
 
 	private final String fileNameWOExt;
 	@Getter
@@ -42,10 +42,10 @@ public class GraphicArtifact {
 	@Getter
 	private final Dimension imageSize;
 
-	public GraphicArtifact(final String fileName,
+	public GraphicArtifact(final String fileNameWOExt,
 						   final JFreeChart graphic,
 						   final Dimension imageSize) {
-		fileNameWOExt = FilenameUtils.removeExtension(fileName);
+		this.fileNameWOExt = Objects.requireNonNull(fileNameWOExt, "\"fileNameWOExt\" can't to be null");
 		this.graphic = Objects.requireNonNull(graphic, "\"graphic\" can't to be null");
 		this.imageSize = Objects.requireNonNull(imageSize, "\"imageSize\" can't to be null");
 	}
@@ -82,23 +82,25 @@ public class GraphicArtifact {
 		}
 	}
 
-	public File save(final ExportToCmd exportToCmd, final AppConfig appConfig) {
-		final var isJpg = Optional.ofNullable(exportToCmd.getExportOptions())
-				.map(ExportOptions::isGraphicJpg)
-				.orElse(false)
-				.booleanValue();
-
-		final byte[] rawImage;
-		String fileName;
-		if (isJpg) {
-			fileName = fileNameWOExt + ".jpeg";
-			rawImage = getJPEG(graphic, imageSize, appConfig.getGraphicConfig().getJpegCompressionRatio());
+	public byte[] getRawData(final AppCommand appCommand, final AppConfig appConfig) {
+		if (appCommand.isGraphicJpg()) {
+			return getJPEG(graphic, imageSize, appConfig.getGraphicConfig().getJpegCompressionRatio());
 		} else {
-			fileName = fileNameWOExt + ".png";
-			rawImage = getPNG(graphic, imageSize);
+			return getPNG(graphic, imageSize);
+		}
+	}
+
+	public File save(final AppCommand appCommand, final AppConfig appConfig) {
+		final var rawImage = getRawData(appCommand, appConfig);
+
+		String fileName;
+		if (appCommand.isGraphicJpg()) {
+			fileName = fileNameWOExt + DOT_JPEG;
+		} else {
+			fileName = fileNameWOExt + DOT_PNG;
 		}
 
-		final var outputFile = exportToCmd.makeOutputFile(fileName);
+		final var outputFile = appCommand.getOutputCmd().getExportToCmd().makeOutputFile(fileName);
 		try {
 			FileUtils.writeByteArrayToFile(outputFile, rawImage, false);
 		} catch (final IOException e) {

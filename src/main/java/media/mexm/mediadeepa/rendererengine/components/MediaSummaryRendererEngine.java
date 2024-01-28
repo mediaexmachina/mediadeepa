@@ -43,6 +43,7 @@ import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
@@ -54,7 +55,8 @@ public class MediaSummaryRendererEngine implements
 										ReportRendererEngine,
 										TableRendererEngine,
 										TabularRendererEngine,
-										ConstStrings {
+										ConstStrings,
+										SingleTabularDocumentExporterTraits {
 
 	@Autowired
 	private NumberUtils numberUtils;
@@ -62,12 +64,18 @@ public class MediaSummaryRendererEngine implements
 	public static final List<String> HEAD_MEDIA_SUMMARY = List.of(TYPE, VALUE);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "media-summary";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getFFprobeResult()
 				.map(FFprobeJAXB::getMediaSummary)
 				.map(mediaSummary -> {
-					final var t = new TabularDocument(tabularExportFormat, "media-summary").head(HEAD_MEDIA_SUMMARY);
+					final var t = new TabularDocument(tabularExportFormat, getSingleUniqTabularDocumentBaseFileName())
+							.head(HEAD_MEDIA_SUMMARY);
 					mediaSummary.streams().forEach(s -> t.row(STREAM, s));
 					t.row(FORMAT, mediaSummary.format());
 					return t;

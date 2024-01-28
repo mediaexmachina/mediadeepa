@@ -52,6 +52,8 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
@@ -66,7 +68,9 @@ public class EventsRendererEngine implements
 								  TableRendererEngine,
 								  TabularRendererEngine,
 								  GraphicRendererEngine,
-								  ConstStrings {
+								  ConstStrings,
+								  SingleTabularDocumentExporterTraits,
+								  SingleGraphicDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -76,6 +80,11 @@ public class EventsRendererEngine implements
 	public static final List<String> HEAD_EVENTS = List.of(NAME, SCOPE_CHANNEL, START, END, DURATION);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "events";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getMediaAnalyserResult()
@@ -83,7 +92,8 @@ public class EventsRendererEngine implements
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
 					final var sourceDuration = result.getSourceDuration().get();
-					final var events = new TabularDocument(tabularExportFormat, "events").head(HEAD_EVENTS);
+					final var events = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName()).head(HEAD_EVENTS);
 					Stream.of(
 							lavfiMetadatas.getMonoEvents(),
 							lavfiMetadatas.getSilenceEvents(),
@@ -183,9 +193,14 @@ public class EventsRendererEngine implements
 				AUDIO_MONO, YELLOW, THIN_STROKE, dataGraphic);
 
 		return List.of(new GraphicArtifact(
-				appConfig.getGraphicConfig().getEventsGraphicFilename(),
+				getSingleUniqGraphicBaseFileName(),
 				dataGraphic.makeLinearAxisGraphic(numberUtils),
 				appConfig.getGraphicConfig().getImageSizeHalfSize()));
+	}
+
+	@Override
+	public String getSingleUniqGraphicBaseFileName() {
+		return appConfig.getGraphicConfig().getEventsGraphicFilename();
 	}
 
 	@Override

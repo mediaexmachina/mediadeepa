@@ -18,7 +18,6 @@ package media.mexm.mediadeepa.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -83,17 +82,6 @@ class MediaAnalyticsTransformerServiceTest {
 		assertFalse(matService.isExportFormatExists(formatLongName));
 		assertTrue(matService.isExportFormatExists(formatName));
 		assertTrue(matService.isExportFormatExists(formatName.toUpperCase()));
-	}
-
-	@Test
-	void testGetExportFormatInformation() {
-		final var info = matService.getExportFormatInformation();
-		assertThat(info)
-				.isNotNull()
-				.size().isGreaterThan(9)
-				.returnToMap()
-				.containsEntry(formatName, formatLongName);
-		assertThrows(UnsupportedOperationException.class, () -> info.put("", ""));
 	}
 
 	@Test

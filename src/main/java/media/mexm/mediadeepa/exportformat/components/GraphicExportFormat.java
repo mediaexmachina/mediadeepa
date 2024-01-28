@@ -17,17 +17,21 @@
 package media.mexm.mediadeepa.exportformat.components;
 
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableMap;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -41,16 +45,38 @@ public class GraphicExportFormat implements ExportFormat {
 	private List<GraphicRendererEngine> engines;
 	@Autowired
 	private AppConfig appConfig;
+	@Autowired
+	private AppCommand appCommand;
 
 	@Override
 	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
 		return engines.stream()
 				.map(engine -> engine.toGraphic(result))
 				.flatMap(List::stream)
-				.map(f -> f.save(exportToCmd, appConfig))
+				.map(f -> f.save(appCommand, appConfig))
 				.collect(toUnmodifiableMap(
 						f -> getBaseName(f.getName()),
 						identity()));
+	}
+
+	@Override
+	public Set<String> getInternalProducedFileNames() {
+		return engines.stream()
+				.map(GraphicRendererEngine::getGraphicInternalProducedBaseFileNames)
+				.flatMap(Set::stream)
+				.distinct()
+				.collect(toUnmodifiableSet());
+	}
+
+	@Override
+	public Optional<byte[]> makeSingleExport(final DataResult result,
+											 final String internalFileName) {
+		final var baseFileName = getBaseName(internalFileName);
+		return engines.stream()
+				.filter(engine -> engine.getGraphicInternalProducedBaseFileNames().contains(baseFileName))
+				.findFirst()
+				.flatMap(engine -> engine.toSingleGraphic(baseFileName, result))
+				.map(ga -> ga.getRawData(appCommand, appConfig));
 	}
 
 	@Override
@@ -60,7 +86,7 @@ public class GraphicExportFormat implements ExportFormat {
 
 	@Override
 	public String getFormatLongName() {
-		return "Graphical representation of data";
+		return "Data graphical representation";
 	}
 
 	@Override
@@ -76,7 +102,7 @@ public class GraphicExportFormat implements ExportFormat {
 				video GOP (group of picture) size (number of frames by GOP, and by frame type)
 				video GOP frame size, by frame type, by GOP, by frame number
 				""";
-		return result.lines().collect(Collectors.joining(", "));
+		return result.lines().collect(joining(", "));
 	}
 
 }

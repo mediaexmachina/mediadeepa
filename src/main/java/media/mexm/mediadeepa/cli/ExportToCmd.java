@@ -20,7 +20,6 @@ import java.io.File;
 import java.util.Set;
 
 import lombok.Data;
-import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Option;
 
 @Data
@@ -33,18 +32,13 @@ public class ExportToCmd {
 
 	@Option(names = { "-e", "--export" },
 			description = "Export datas to this directory",
-			paramLabel = "DIRECTORY",
-			required = true)
+			paramLabel = "DIRECTORY")
 	private File export;
 
 	@Option(names = { "--export-base-filename" },
 			description = "Base file name for exported data file(s)",
-			paramLabel = "FILENAME",
-			required = false)
+			paramLabel = "FILENAME")
 	private String baseFileName;
-
-	@ArgGroup(exclusive = false, heading = "Export options%n")
-	private ExportOptions exportOptions;
 
 	public File makeOutputFile(final String suffix) {
 		if (baseFileName != null && baseFileName.isEmpty() == false) {

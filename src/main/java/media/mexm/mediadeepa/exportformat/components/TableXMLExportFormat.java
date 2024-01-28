@@ -18,7 +18,7 @@ package media.mexm.mediadeepa.exportformat.components;
 
 import static media.mexm.mediadeepa.exportformat.components.TableSQLiteExportFormat.cleanNameToFieldName;
 
-import java.io.File;
+import java.io.OutputStream;
 import java.util.List;
 
 import javax.xml.stream.XMLEventFactory;
@@ -30,11 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
-import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
-import media.mexm.mediadeepa.exportformat.OutputStreamProvider;
 import media.mexm.mediadeepa.exportformat.TableCellFloat;
 import media.mexm.mediadeepa.exportformat.TableCellInteger;
 import media.mexm.mediadeepa.exportformat.TableCellLong;
@@ -47,7 +45,7 @@ import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 
 @Component
 @Slf4j
-public class TableXMLExportFormat extends TableExportFormat implements OutputStreamProvider {
+public class TableXMLExportFormat extends TableExportFormat {
 
 	private static final String REPORT = "report";
 
@@ -73,13 +71,12 @@ public class TableXMLExportFormat extends TableExportFormat implements OutputStr
 	}
 
 	@Override
-	public File save(final DataResult result, final List<Table> tables, final ExportToCmd exportToCmd) {
-		final var outputFile = exportToCmd.makeOutputFile(appConfig.getXmltableFileName());
+	public void makeDocument(final DataResult result,
+							 final List<Table> tables,
+							 final OutputStream outputStream) {
 		try {
-			log.debug("Start export {} tables to {}...", tables.size(), outputFile);
-
 			final var writer = XMLOutputFactory.newInstance()
-					.createXMLEventWriter(createOutputStream(outputFile));
+					.createXMLEventWriter(outputStream);
 			writer.add(xml.createStartDocument());
 			writer.add(xml.createStartElement("", null, REPORT));
 
@@ -94,8 +91,6 @@ public class TableXMLExportFormat extends TableExportFormat implements OutputStr
 		} catch (final XMLStreamException e) {
 			throw new IllegalStateException("Can't write XML file", e);
 		}
-
-		return outputFile;
 	}
 
 	private void makeTable(final List<Table> tables,
@@ -171,6 +166,11 @@ public class TableXMLExportFormat extends TableExportFormat implements OutputStr
 			}
 		}
 		writer.add(xml.createEndElement("", null, "entry"));
+	}
+
+	@Override
+	public String getInternalFileName() {
+		return appConfig.getXmltableFileName();
 	}
 
 }

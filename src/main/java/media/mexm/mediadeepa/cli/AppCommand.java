@@ -81,11 +81,8 @@ public class AppCommand implements Callable<Integer> {
 			paramLabel = "DIRECTORY")
 	private File tempDir;
 
-	@ArgGroup(exclusive = false, heading = "Extract to archive%n")
-	private ExtractToCmd extractToCmd;
-
-	@ArgGroup(exclusive = false, heading = "Export to generated files%n")
-	private ExportToCmd exportToCmd;
+	@ArgGroup(exclusive = true, heading = "Output options%n", multiplicity = "0..1")
+	private OutputCmd outputCmd;
 
 	@Option(names = { "--verbose" }, description = "Verbose mode")
 	private boolean verbose;
@@ -97,6 +94,10 @@ public class AppCommand implements Callable<Integer> {
 			description = "Redirect all log messages to text file",
 			paramLabel = "LOG_FILE")
 	private File logToFile;
+
+	@Option(names = { "--graphic-jpg" }, description = "Export to JPEG instead to PNG the produced graphic images",
+			required = false)
+	private boolean graphicJpg;
 
 	@Override
 	public Integer call() throws Exception {

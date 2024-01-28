@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
@@ -38,6 +40,9 @@ public class DemoExportFormat implements ExportFormat {
 	String formatDescr;
 	Map<String, File> exportResult;
 	List<DataResult> capturedResults;
+	String singleExportFileName;
+	List<String> singleExport;
+	byte[] singleExportData;
 
 	public DemoExportFormat() {
 		formatLongName = faker.numerify("formatLongName###");
@@ -47,6 +52,21 @@ public class DemoExportFormat implements ExportFormat {
 				faker.numerify("resultKey###"),
 				new File(faker.numerify("resultValue###"))));
 		capturedResults = new ArrayList<>();
+		singleExport = new ArrayList<>();
+		singleExportData = "A".getBytes();
+		singleExportFileName = faker.numerify("singleExportFileName###");
+	}
+
+	@Override
+	public Optional<byte[]> makeSingleExport(final DataResult result,
+											 final String internalFileName) {
+		singleExport.add(internalFileName);
+		return Optional.ofNullable(singleExportData);
+	}
+
+	@Override
+	public Set<String> getInternalProducedFileNames() {
+		return Set.of(singleExportFileName);
 	}
 
 	@Override

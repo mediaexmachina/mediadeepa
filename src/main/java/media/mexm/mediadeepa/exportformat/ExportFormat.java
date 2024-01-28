@@ -18,6 +18,8 @@ package media.mexm.mediadeepa.exportformat;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import media.mexm.mediadeepa.cli.ExportToCmd;
 
@@ -32,5 +34,9 @@ public interface ExportFormat {
 	default String getFormatDescription() {
 		return "";
 	}
+
+	Set<String> getInternalProducedFileNames();
+
+	Optional<byte[]> makeSingleExport(DataResult result, String internalFileName);
 
 }

@@ -11,12 +11,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
- * Copyright (C) Media ex Machina 2023
+ * Copyright (C) Media ex Machina 2024
  *
  */
 package media.mexm.mediadeepa.rendererengine;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -24,14 +23,20 @@ import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 
-public interface TabularRendererEngine {
+public interface SingleTabularDocumentExporterTraits extends TabularRendererEngine {
 
-	List<TabularDocument> toTabularDocument(DataResult result, TabularExportFormat tabularExportFormat);
+	@Override
+	default Optional<TabularDocument> toSingleTabularDocument(final String internalTabularBaseFileName,
+															  final DataResult result,
+															  final TabularExportFormat tabularExportFormat) {
+		return toTabularDocument(result, tabularExportFormat).stream().findFirst();
+	}
 
-	Optional<TabularDocument> toSingleTabularDocument(String internalTabularBaseFileName,
-													  DataResult result,
-													  TabularExportFormat tabularExportFormat);
+	@Override
+	default Set<String> getInternalTabularBaseFileNames() {
+		return Set.of(getSingleUniqTabularDocumentBaseFileName());
+	}
 
-	Set<String> getInternalTabularBaseFileNames();
+	String getSingleUniqTabularDocumentBaseFileName();
 
 }

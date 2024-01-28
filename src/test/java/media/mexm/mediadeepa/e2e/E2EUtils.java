@@ -40,6 +40,8 @@ import media.mexm.mediadeepa.config.AppConfig.ZippedArchive;
 
 abstract class E2EUtils {
 
+	E2ERawOutDataFiles rawData;
+
 	static final int V_FRAME_COUNT = 1400;
 
 	static final File TARGET_DIR = new File(".demo-media-files");

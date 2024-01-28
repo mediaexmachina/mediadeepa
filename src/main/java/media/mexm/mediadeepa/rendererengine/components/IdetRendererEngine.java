@@ -53,6 +53,8 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
@@ -65,7 +67,9 @@ public class IdetRendererEngine implements
 								TableRendererEngine,
 								TabularRendererEngine,
 								GraphicRendererEngine,
-								ConstStrings {
+								ConstStrings,
+								SingleTabularDocumentExporterTraits,
+								SingleGraphicDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -89,12 +93,18 @@ public class IdetRendererEngine implements
 			REPEATED_NEITHER);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "video-interlace-detect";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getMediaAnalyserResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
-					final var idet = new TabularDocument(tabularExportFormat, "video-interlace-detect").head(HEAD_IDET);
+					final var idet = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName()).head(HEAD_IDET);
 					lavfiMetadatas.getIdetReport()
 							.forEach(a -> {
 								final var value = a.value();
@@ -204,11 +214,16 @@ public class IdetRendererEngine implements
 									.currentFrame()))));
 
 					return new GraphicArtifact(
-							appConfig.getGraphicConfig().getItetGraphicFilename(),
+							getSingleUniqGraphicBaseFileName(),
 							dataGraphic.makeLinearAxisGraphic(numberUtils),
 							appConfig.getGraphicConfig().getImageSizeHalfSize());
 				})
 				.toList();
+	}
+
+	@Override
+	public String getSingleUniqGraphicBaseFileName() {
+		return appConfig.getGraphicConfig().getItetGraphicFilename();
 	}
 
 	@Override

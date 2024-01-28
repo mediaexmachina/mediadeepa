@@ -11,24 +11,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
- * Copyright (C) Media ex Machina 2023
+ * Copyright (C) Media ex Machina 2024
  *
  */
-package media.mexm.mediadeepa.service;
+package media.mexm.mediadeepa.rendererengine;
 
-import java.io.File;
-import java.io.IOException;
+import media.mexm.mediadeepa.exportformat.GraphicArtifact;
 
-import picocli.CommandLine.ParameterException;
+public interface SingleGraphicMaker<T> {
 
-public interface AppSessionService {
+	GraphicArtifact makeGraphic(T datas);
 
-	int runCli() throws IOException;
-
-	void validateInputFile(File file) throws ParameterException;
-
-	void validateOutputFile(File file) throws ParameterException;
-
-	void validateOutputDir(File dir) throws ParameterException;
+	String getBaseFileName();
 
 }

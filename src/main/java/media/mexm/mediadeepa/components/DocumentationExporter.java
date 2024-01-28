@@ -58,6 +58,7 @@ import tv.hd3g.commons.version.EnvironmentVersion;
 @Slf4j
 @Component
 public class DocumentationExporter {
+	private static final String SINGLE_EXPORT_MD = "single-export.md";
 	private static final String RELEASES_MD = "releases.md";
 	private static final String E2E_TESTS_MD = "e2e-tests.md";
 	private static final String LOGS_MD = "logs.md";
@@ -269,6 +270,21 @@ public class DocumentationExporter {
 						.sorted(SPEC_COMPARATOR)));
 
 		ppg.addStaticMdContent(OPTIONS_AFTER_LIST_MD);
+
+		ppg.addStaticMdContent(SINGLE_EXPORT_MD);
+		ppg.addMdContent(exportFormatList.stream()
+				.sorted(exportFormatComparator)
+				.map(exportFormat -> {
+					final var fileNames = exportFormat.getInternalProducedFileNames()
+							.stream()
+							.sorted()
+							.map(f -> " - `" + f + "`")
+							.collect(joining("\n"));
+					return "### " + exportFormat.getFormatLongName() + " (" + exportFormat.getFormatName() + ")\n\n"
+						   + fileNames;
+				})
+				.collect(joining("\n")));
+
 		ppg.addStaticMdContent(INTERNAL_OPTIONS_BEFORE_LIST_MD);
 
 		final var rootPrefix = configurationCrawler.getRootPrefix();

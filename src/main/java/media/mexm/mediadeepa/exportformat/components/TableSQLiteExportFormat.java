@@ -19,11 +19,15 @@ package media.mexm.mediadeepa.exportformat.components;
 import static java.util.stream.Collectors.joining;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.StringJoiner;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.sqlite.SQLiteConfig;
@@ -32,7 +36,7 @@ import org.sqlite.SQLiteConfig.SynchronousMode;
 import org.sqlite.SQLiteConfig.TempStore;
 
 import lombok.extern.slf4j.Slf4j;
-import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -50,12 +54,15 @@ import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 public class TableSQLiteExportFormat extends TableExportFormat {
 
 	private final AppConfig appConfig;
+	private final AppCommand appCommand;
 
 	public TableSQLiteExportFormat(@Autowired final List<TableRendererEngine> engines,
 								   @Autowired final AppConfig appConfig,
-								   @Autowired final NumberUtils numberUtils) {
+								   @Autowired final NumberUtils numberUtils,
+								   @Autowired final AppCommand appCommand) {
 		super(engines, numberUtils);
 		this.appConfig = appConfig;
+		this.appCommand = appCommand;
 	}
 
 	@Override
@@ -69,9 +76,17 @@ public class TableSQLiteExportFormat extends TableExportFormat {
 	}
 
 	@Override
-	public File save(final DataResult result, final List<Table> tables, final ExportToCmd exportToCmd) {
-		final var outputFile = exportToCmd.makeOutputFile(appConfig.getSqllitetableFileName());
-		final var url = "jdbc:sqlite:" + outputFile.getPath().replace('\\', '/');
+	public void makeDocument(final DataResult result,
+							 final List<Table> tables,
+							 final OutputStream outputStream) {
+		File tempOutputFile;
+		try {
+			tempOutputFile = File.createTempFile("mediadeepa", "-sqlite-tmp.db", appCommand.getTempDir());
+			FileUtils.forceDelete(tempOutputFile);
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't prepare temp file", e);
+		}
+		final var url = "jdbc:sqlite:" + tempOutputFile.getPath().replace('\\', '/');
 
 		final var sqliteConfig = new SQLiteConfig();
 		sqliteConfig.enableFullSync(false);
@@ -96,7 +111,15 @@ public class TableSQLiteExportFormat extends TableExportFormat {
 			throw new IllegalStateException("Can't operate SQLlite file", e);
 		}
 
-		return outputFile;
+		try {
+			FileUtils.copyFile(tempOutputFile, outputStream);
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't read from previously writed SQLite db file", e);
+		}
+
+		if (FileUtils.deleteQuietly(tempOutputFile) == false) {
+			tempOutputFile.deleteOnExit();
+		}
 	}
 
 	private static void makeTableOnSQL(final Table table, final Statement statement) throws SQLException {
@@ -190,6 +213,11 @@ public class TableSQLiteExportFormat extends TableExportFormat {
 				.replace(' ', '_')
 				.replace('-', '_')
 				.replace('/', '_');
+	}
+
+	@Override
+	public String getInternalFileName() {
+		return appConfig.getSqllitetableFileName();
 	}
 
 }

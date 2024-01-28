@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.junit.jupiter.api.AfterEach;
@@ -44,8 +43,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.cli.AppCommand;
-import media.mexm.mediadeepa.cli.ExportToCmd;
-import media.mexm.mediadeepa.cli.ExtractToCmd;
 import media.mexm.mediadeepa.cli.ProcessFileCmd;
 import media.mexm.mediadeepa.components.CLIRunner;
 import media.mexm.mediadeepa.components.DocumentationExporter;
@@ -84,9 +81,9 @@ class AppSessionServiceTest {
 	@MockBean
 	KeyPressToExit keyPressToExit;
 	@MockBean
-	MediaAnalyticsTransformerService mediaAnalyticsTransformerService;
-	@MockBean
 	DocumentationExporter documentationExporter;
+	@MockBean
+	MediaAnalyticsTransformerService mediaAnalyticsTransformerService;
 
 	@Mock
 	PrintWriter pw;
@@ -111,7 +108,6 @@ class AppSessionServiceTest {
 
 		when(ffmpegService.getVersions()).thenReturn(Map.of());
 		when(ffmpegService.getMtdFiltersAvaliable()).thenReturn(Map.of());
-		when(mediaAnalyticsTransformerService.getExportFormatInformation()).thenReturn(Map.of());
 
 		processFileCmd = new ProcessFileCmd();
 		appCommand.setInput(File.createTempFile("mediadeepa", ".tmp"));
@@ -126,13 +122,12 @@ class AppSessionServiceTest {
 				scheduledExecutorService,
 				executableFinder,
 				keyPressToExit,
-				mediaAnalyticsTransformerService,
 				documentationExporter);
 	}
 
 	@Test
 	void testRunCli_nothing() throws IOException {
-		assertThrows(UncheckedIOException.class, () -> appSessionService.runCli());
+		assertThrows(ParameterException.class, () -> appSessionService.runCli());
 	}
 
 	@Test
@@ -150,7 +145,6 @@ class AppSessionServiceTest {
 		verify(ffmpegService, atLeastOnce()).getMtdFiltersAvaliable();
 		verify(executableFinder, atLeastOnce()).get(appConfig.getFfmpegExecName());
 		verify(executableFinder, atLeastOnce()).get(appConfig.getFfprobeExecName());
-		verify(mediaAnalyticsTransformerService, atLeastOnce()).getExportFormatInformation();
 	}
 
 	@Test
@@ -164,35 +158,6 @@ class AppSessionServiceTest {
 	@Test
 	void testRunCli_process_nothingToDo() throws IOException {
 		appCommand.setProcessFileCmd(processFileCmd);
-		assertThrows(ParameterException.class, () -> appSessionService.runCli());
-	}
-
-	@Test
-	void testRunCli_cantCumulateOptions() throws IOException {
-		appCommand.setProcessFileCmd(new ProcessFileCmd());
-		appCommand.setExtractToCmd(new ExtractToCmd());
-		appCommand.setExportToCmd(new ExportToCmd());
-		assertThrows(ParameterException.class, () -> appSessionService.runCli());
-	}
-
-	@Test
-	void testRunCli_cantCombinateImportExtractOptions() throws IOException {
-		appCommand.setExtractToCmd(new ExtractToCmd());
-		assertThrows(ParameterException.class, () -> appSessionService.runCli());
-	}
-
-	@Test
-	void testRunCli_exportFormatEmpty() throws IOException {
-		appCommand.setProcessFileCmd(processFileCmd);
-		final var exportToCmd = new ExportToCmd();
-		exportToCmd.setExport(new File(""));
-		appCommand.setExportToCmd(exportToCmd);
-		assertThrows(ParameterException.class, () -> appSessionService.runCli());
-
-		exportToCmd.setFormat(Set.of());
-		assertThrows(ParameterException.class, () -> appSessionService.runCli());
-
-		exportToCmd.setFormat(Set.of("Something"));
 		assertThrows(ParameterException.class, () -> appSessionService.runCli());
 	}
 

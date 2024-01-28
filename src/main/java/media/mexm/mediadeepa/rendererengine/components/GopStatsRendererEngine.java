@@ -19,13 +19,16 @@ package media.mexm.mediadeepa.rendererengine.components;
 import static java.awt.Color.BLUE;
 import static java.awt.Color.GRAY;
 import static java.awt.Color.RED;
+import static java.util.function.Predicate.not;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
+import static media.mexm.mediadeepa.exportformat.RangeAxis.createAutomaticRangeAxis;
 import static media.mexm.mediadeepa.exportformat.ReportEntrySubset.toEntrySubset;
 import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.CONTAINER;
 import static media.mexm.mediadeepa.exportformat.StatisticsUnitValueReportEntry.createFromInteger;
 import static media.mexm.mediadeepa.exportformat.StatisticsUnitValueReportEntry.createFromLong;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +40,6 @@ import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.GraphicArtifact;
 import media.mexm.mediadeepa.exportformat.NumericUnitValueReportEntry;
-import media.mexm.mediadeepa.exportformat.RangeAxis;
 import media.mexm.mediadeepa.exportformat.ReportDocument;
 import media.mexm.mediadeepa.exportformat.ReportSection;
 import media.mexm.mediadeepa.exportformat.SeriesStyle;
@@ -47,9 +49,13 @@ import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
+import media.mexm.mediadeepa.rendererengine.MultipleGraphicDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicMaker;
+import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
+import media.mexm.mediadeepa.rendererengine.components.GopStatsRendererEngine.GOPReportItem;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeBaseFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobePictType;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrame;
@@ -62,12 +68,16 @@ public class GopStatsRendererEngine implements
 									TableRendererEngine,
 									TabularRendererEngine,
 									GraphicRendererEngine,
-									ConstStrings {
+									ConstStrings,
+									SingleTabularDocumentExporterTraits,
+									MultipleGraphicDocumentExporterTraits<GOPReportItem> {
 
 	@Autowired
 	private AppConfig appConfig;
 	@Autowired
 	private NumberUtils numberUtils;
+
+	private List<SingleGraphicMaker<GOPReportItem>> graphicMakerList;
 
 	public static final List<String> HEAD_GOPSTATS = List.of(
 			GOP_FRAME_COUNT,
@@ -79,12 +89,18 @@ public class GopStatsRendererEngine implements
 			B_FRAMES_DATA_SIZE);
 
 	@Override
+	public String getSingleUniqTabularDocumentBaseFileName() {
+		return "container-video-gop";
+	}
+
+	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getContainerAnalyserResult()
 				.map(caResult -> {
-					final var gopStats = new TabularDocument(tabularExportFormat, "container-video-gop")
-							.head(HEAD_GOPSTATS);
+					final var gopStats = new TabularDocument(tabularExportFormat,
+							getSingleUniqTabularDocumentBaseFileName())
+									.head(HEAD_GOPSTATS);
 					caResult.extractGOPStats()
 							.forEach(f -> gopStats.row(
 									f.gopFrameCount(),
@@ -117,58 +133,94 @@ public class GopStatsRendererEngine implements
 				});
 	}
 
+	static record GOPReportItem(List<GOPStatItem> gopStatsReport) {
+	}
+
 	@Override
-	public List<GraphicArtifact> toGraphic(final DataResult result) {
-		final var gopStatsReport = result.getContainerAnalyserResult()
+	public void afterPropertiesSet() throws Exception {
+		graphicMakerList = List.of(
+				new GopWidthGraphicMaker(),
+				new GopSizeGraphicMaker());
+	}
+
+	@Override
+	public List<SingleGraphicMaker<GOPReportItem>> getGraphicMakerList() {
+		return graphicMakerList;
+	}
+
+	@Override
+	public Optional<GOPReportItem> makeGraphicReportItem(final DataResult result) {
+		return result.getContainerAnalyserResult()
 				.map(ContainerAnalyserResult::extractGOPStats)
-				.stream()
-				.flatMap(List::stream)
-				.toList();
-		if (gopStatsReport.isEmpty()) {
-			return List.of();
+				.filter(not(List::isEmpty))
+				.map(GOPReportItem::new);
+	}
+
+	class GopWidthGraphicMaker implements SingleGraphicMaker<GOPReportItem> {
+
+		@Override
+		public String getBaseFileName() {
+			return appConfig.getGraphicConfig().getGopCountGraphicFilename();
 		}
 
-		final var gopWidthDataGraphic = new StackedXYAreaChartDataGraphic(RangeAxis.createAutomaticRangeAxis(
-				NUMBER_OF_FRAMES));
-		gopWidthDataGraphic.addValueMarker(gopStatsReport.stream().mapToInt(GOPStatItem::gopFrameCount).max().orElse(
-				0));
+		@Override
+		public GraphicArtifact makeGraphic(final GOPReportItem item) {
+			final var gopWidthDataGraphic = new StackedXYAreaChartDataGraphic(createAutomaticRangeAxis(
+					NUMBER_OF_FRAMES));
 
-		gopWidthDataGraphic.addSeriesByCounter(new SeriesStyle(P_FRAME_COUNT_BY_GOP, BLUE, THIN_STROKE),
-				gopStatsReport.stream().map(GOPStatItem::pFramesCount));
-		gopWidthDataGraphic.addSeriesByCounter(new SeriesStyle(B_FRAME_COUNT_BY_GOP, RED.darker(), THIN_STROKE),
-				gopStatsReport.stream().map(GOPStatItem::bFramesCount));
-		gopWidthDataGraphic.addSeriesByCounter(new SeriesStyle(VIDEO_FRAME_COUNT_BY_GOP, GRAY, THIN_STROKE),
-				gopStatsReport.stream().map(g -> g.gopFrameCount() - (g.bFramesCount() + g.pFramesCount())));
+			gopWidthDataGraphic.addValueMarker(item.gopStatsReport.stream()
+					.mapToInt(GOPStatItem::gopFrameCount)
+					.max()
+					.orElse(0));
 
-		final var gopSizeDataGraphic = new StackedXYAreaChartDataGraphic(RangeAxis.createAutomaticRangeAxis(
-				GOP_FRAME_SIZE_KBYTES));
-		gopSizeDataGraphic.addValueMarker(gopStatsReport.stream()
-				.mapToDouble(GOPStatItem::gopDataSize)
-				.max()
-				.stream()
-				.map(d -> d / 1024d)
-				.findFirst().orElse(0d));
+			gopWidthDataGraphic.addSeriesByCounter(new SeriesStyle(P_FRAME_COUNT_BY_GOP, BLUE, THIN_STROKE),
+					item.gopStatsReport.stream().map(GOPStatItem::pFramesCount));
+			gopWidthDataGraphic.addSeriesByCounter(new SeriesStyle(B_FRAME_COUNT_BY_GOP, RED.darker(), THIN_STROKE),
+					item.gopStatsReport.stream().map(GOPStatItem::bFramesCount));
+			gopWidthDataGraphic.addSeriesByCounter(new SeriesStyle(VIDEO_FRAME_COUNT_BY_GOP, GRAY, THIN_STROKE),
+					item.gopStatsReport.stream().map(g -> g.gopFrameCount() - (g.bFramesCount() + g.pFramesCount())));
 
-		gopSizeDataGraphic.addSeriesByCounter(new SeriesStyle(P_FRAMES_SIZE_IN_GOP, BLUE, THIN_STROKE),
-				gopStatsReport.stream().flatMap(g -> g.videoFrames().stream()
-						.map(f -> g.pFramesDataSize() / 1024d)));
-		gopSizeDataGraphic.addSeriesByCounter(new SeriesStyle(B_FRAMES_SIZE_IN_GOP, RED.darker(), THIN_STROKE),
-				gopStatsReport.stream().flatMap(g -> g.videoFrames().stream()
-						.map(f -> g.bFramesDataSize() / 1024d)));
-		gopSizeDataGraphic.addSeriesByCounter(new SeriesStyle(I_FRAMES_SIZE_IN_GOP, GRAY, THIN_STROKE),
-				gopStatsReport.stream().flatMap(g -> g.videoFrames().stream()
-						.map(f -> (g.gopDataSize() - (g.bFramesDataSize() + g.pFramesDataSize())) / 1024d)));
+			return new GraphicArtifact(
+					getBaseFileName(),
+					gopWidthDataGraphic.makeLinearAxisGraphic(numberUtils),
+					appConfig.getGraphicConfig().getImageSizeHalfSize());
+		}
 
-		return List.of(
-				new GraphicArtifact(
-						appConfig.getGraphicConfig().getGopCountGraphicFilename(),
-						gopWidthDataGraphic.makeLinearAxisGraphic(numberUtils),
-						appConfig.getGraphicConfig().getImageSizeHalfSize()),
-				new GraphicArtifact(
-						appConfig.getGraphicConfig().getGopSizeGraphicFilename(),
-						gopSizeDataGraphic.makeLinearAxisGraphic(numberUtils),
-						appConfig.getGraphicConfig().getImageSizeFullSize()));
+	}
 
+	class GopSizeGraphicMaker implements SingleGraphicMaker<GOPReportItem> {
+		@Override
+		public String getBaseFileName() {
+			return appConfig.getGraphicConfig().getGopSizeGraphicFilename();
+		}
+
+		@Override
+		public GraphicArtifact makeGraphic(final GOPReportItem item) {
+			final var gopSizeDataGraphic = new StackedXYAreaChartDataGraphic(createAutomaticRangeAxis(
+					GOP_FRAME_SIZE_KBYTES));
+
+			gopSizeDataGraphic.addValueMarker(item.gopStatsReport.stream()
+					.mapToDouble(GOPStatItem::gopDataSize)
+					.max()
+					.stream()
+					.map(d -> d / 1024d)
+					.findFirst().orElse(0d));
+
+			gopSizeDataGraphic.addSeriesByCounter(new SeriesStyle(P_FRAMES_SIZE_IN_GOP, BLUE, THIN_STROKE),
+					item.gopStatsReport.stream().flatMap(g -> g.videoFrames().stream()
+							.map(f -> g.pFramesDataSize() / 1024d)));
+			gopSizeDataGraphic.addSeriesByCounter(new SeriesStyle(B_FRAMES_SIZE_IN_GOP, RED.darker(), THIN_STROKE),
+					item.gopStatsReport.stream().flatMap(g -> g.videoFrames().stream()
+							.map(f -> g.bFramesDataSize() / 1024d)));
+			gopSizeDataGraphic.addSeriesByCounter(new SeriesStyle(I_FRAMES_SIZE_IN_GOP, GRAY, THIN_STROKE),
+					item.gopStatsReport.stream().flatMap(g -> g.videoFrames().stream()
+							.map(f -> (g.gopDataSize() - (g.bFramesDataSize() + g.pFramesDataSize())) / 1024d)));
+
+			return new GraphicArtifact(
+					getBaseFileName(),
+					gopSizeDataGraphic.makeLinearAxisGraphic(numberUtils),
+					appConfig.getGraphicConfig().getImageSizeFullSize());
+		}
 	}
 
 	@Override

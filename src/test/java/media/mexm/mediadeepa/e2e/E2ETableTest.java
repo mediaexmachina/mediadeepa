@@ -49,8 +49,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 
 class E2ETableTest extends E2EUtils {
 
-	E2ERawOutDataFiles rawData;
-
 	@Mock
 	DefaultHandler defaultHandler;
 

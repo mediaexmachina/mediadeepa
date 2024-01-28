@@ -20,10 +20,11 @@ import lombok.Data;
 import picocli.CommandLine.Option;
 
 @Data
-public class ExportOptions {
+public class SingleExportCmd {
 
-	@Option(names = { "--graphic-jpg" }, description = "Export to JPEG instead to PNG the produced graphic images",
-			required = false)
-	private boolean graphicJpg;
+	@Option(names = { "--single-export" },
+			description = "Export only this file, as: \"internal-file-name:outputfilename.ext\"",
+			required = true)
+	private String singleExport;
 
 }

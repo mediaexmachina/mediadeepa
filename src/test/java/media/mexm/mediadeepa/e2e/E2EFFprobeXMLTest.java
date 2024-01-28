@@ -37,8 +37,6 @@ import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
 class E2EFFprobeXMLTest extends E2EUtils implements ConstStrings {
 
-	E2ERawOutDataFiles rawData;
-
 	@Mock
 	Consumer<String> onWarnLog;
 
