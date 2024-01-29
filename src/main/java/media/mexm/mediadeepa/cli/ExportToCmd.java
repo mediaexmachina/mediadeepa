@@ -30,19 +30,19 @@ public class ExportToCmd {
 	@Option(names = { "-f", "--format" },
 			description = "Format to export datas",
 			paramLabel = "FORMAT_TYPE")
-	private Set<String> format;// TODO if exportOnly, not needed
+	private Set<String> format;// TODO if exportOnly, not needed (dev on TDD aproach)
 
 	@Option(names = { "-e", "--export" },
 			description = "Export datas to this directory",
 			paramLabel = "DIRECTORY",
 			required = true)
-	private File export;// TODO if exportOnly, not needed
+	private File export;// TODO if exportOnly, not needed (dev on TDD aproach)
 
 	@Option(names = { "--export-base-filename" },
 			description = "Base file name for exported data file(s)",
 			paramLabel = "FILENAME",
 			required = false)
-	private String baseFileName;// TODO if exportOnly, not needed
+	private String baseFileName;// TODO if exportOnly, not needed (dev on TDD aproach)
 
 	@ArgGroup(exclusive = false, heading = "Export options%n")
 	private ExportOptions exportOptions;

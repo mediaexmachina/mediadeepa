@@ -41,6 +41,7 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
@@ -55,7 +56,8 @@ public class BlurRendererEngine implements
 								GraphicRendererEngine,
 								ReportRendererEngine,
 								ConstStrings,
-								SingleTabularDocumentExporterTraits {
+								SingleTabularDocumentExporterTraits,
+								SingleGraphicDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -120,12 +122,17 @@ public class BlurRendererEngine implements
 							blurReport.stream().map(LavfiMtdValue::value)));
 
 					return new GraphicArtifact(
-							appConfig.getGraphicConfig().getBlurGraphicFilename(),
+							getSingleUniqGraphicBaseFileName(),
 							dataGraphic.addMinMaxValueMarkers()
 									.makeLinearAxisGraphic(numberUtils),
 							appConfig.getGraphicConfig().getImageSizeFullSize());
 				})
 				.toList();
+	}
+
+	@Override
+	public String getSingleUniqGraphicBaseFileName() {
+		return appConfig.getGraphicConfig().getBlurGraphicFilename();
 	}
 
 	@Override

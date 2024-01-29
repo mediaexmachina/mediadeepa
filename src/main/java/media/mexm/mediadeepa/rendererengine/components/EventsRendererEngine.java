@@ -52,6 +52,7 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
@@ -68,7 +69,8 @@ public class EventsRendererEngine implements
 								  TabularRendererEngine,
 								  GraphicRendererEngine,
 								  ConstStrings,
-								  SingleTabularDocumentExporterTraits {
+								  SingleTabularDocumentExporterTraits,
+								  SingleGraphicDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -191,9 +193,14 @@ public class EventsRendererEngine implements
 				AUDIO_MONO, YELLOW, THIN_STROKE, dataGraphic);
 
 		return List.of(new GraphicArtifact(
-				appConfig.getGraphicConfig().getEventsGraphicFilename(),
+				getSingleUniqGraphicBaseFileName(),
 				dataGraphic.makeLinearAxisGraphic(numberUtils),
 				appConfig.getGraphicConfig().getImageSizeHalfSize()));
+	}
+
+	@Override
+	public String getSingleUniqGraphicBaseFileName() {
+		return appConfig.getGraphicConfig().getEventsGraphicFilename();
 	}
 
 	@Override

@@ -54,8 +54,8 @@ public class TimedDataGraphic extends DataGraphic {
 				Objects.requireNonNull(rangeAxis, "\"rangeAxis\" can't to be null"));
 	}
 
-	private TimedDataGraphic(final List<FixedMillisecond> positions, final RangeAxis rangeAxis) {
-		super(rangeAxis);
+	public TimedDataGraphic(final List<FixedMillisecond> positions, final RangeAxis rangeAxis) {
+		super(Objects.requireNonNull(rangeAxis, "\"rangeAxis\" can't to be null"));
 		series = new ArrayList<>();
 		this.positions = positions;
 	}

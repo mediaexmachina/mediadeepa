@@ -53,6 +53,7 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
@@ -67,7 +68,8 @@ public class IdetRendererEngine implements
 								TabularRendererEngine,
 								GraphicRendererEngine,
 								ConstStrings,
-								SingleTabularDocumentExporterTraits {
+								SingleTabularDocumentExporterTraits,
+								SingleGraphicDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -212,11 +214,16 @@ public class IdetRendererEngine implements
 									.currentFrame()))));
 
 					return new GraphicArtifact(
-							appConfig.getGraphicConfig().getItetGraphicFilename(),
+							getSingleUniqGraphicBaseFileName(),
 							dataGraphic.makeLinearAxisGraphic(numberUtils),
 							appConfig.getGraphicConfig().getImageSizeHalfSize());
 				})
 				.toList();
+	}
+
+	@Override
+	public String getSingleUniqGraphicBaseFileName() {
+		return appConfig.getGraphicConfig().getItetGraphicFilename();
 	}
 
 	@Override

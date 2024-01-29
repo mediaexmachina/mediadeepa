@@ -39,6 +39,7 @@ import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
@@ -53,7 +54,8 @@ public class SITIRendererEngine implements
 								TabularRendererEngine,
 								GraphicRendererEngine,
 								ConstStrings,
-								SingleTabularDocumentExporterTraits {
+								SingleTabularDocumentExporterTraits,
+								SingleGraphicDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -131,11 +133,16 @@ public class SITIRendererEngine implements
 									.map(LavfiMtdSiti::ti)));
 
 					return new GraphicArtifact(
-							appConfig.getGraphicConfig().getSitiGraphicFilename(),
+							getSingleUniqGraphicBaseFileName(),
 							dataGraphic.addMinMaxValueMarkers().makeLinearAxisGraphic(numberUtils),
 							appConfig.getGraphicConfig().getImageSizeFullSize());
 				}).stream()
 				.toList();
+	}
+
+	@Override
+	public String getSingleUniqGraphicBaseFileName() {
+		return appConfig.getGraphicConfig().getSitiGraphicFilename();
 	}
 
 }

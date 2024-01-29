@@ -24,7 +24,6 @@ import java.io.UncheckedIOException;
 import java.util.Objects;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 
@@ -43,10 +42,10 @@ public class GraphicArtifact {
 	@Getter
 	private final Dimension imageSize;
 
-	public GraphicArtifact(final String fileName,
+	public GraphicArtifact(final String fileNameWOExt,
 						   final JFreeChart graphic,
 						   final Dimension imageSize) {
-		fileNameWOExt = FilenameUtils.removeExtension(fileName);
+		this.fileNameWOExt = Objects.requireNonNull(fileNameWOExt, "\"fileNameWOExt\" can't to be null");
 		this.graphic = Objects.requireNonNull(graphic, "\"graphic\" can't to be null");
 		this.imageSize = Objects.requireNonNull(imageSize, "\"imageSize\" can't to be null");
 	}

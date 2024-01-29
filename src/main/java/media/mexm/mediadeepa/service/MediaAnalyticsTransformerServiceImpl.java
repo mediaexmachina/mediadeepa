@@ -59,7 +59,7 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 	}
 
 	@Override
-	public Map<String, String> getExportFormatInformation() {// TODO add filenames ?
+	public Map<String, String> getExportFormatInformation() {// TODO add filenames to help
 		final var result = new LinkedHashMap<String, String>();
 		exportFormatList.stream()
 				.sorted(exportFormatComparator)
@@ -71,7 +71,7 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 	public void exportAnalytics(final DataResult result,
 								final ExportToCmd exportToCmd) {
 		final var oExportOnly = Optional.ofNullable(exportToCmd.getExportOptions())
-				.map(ExportOptions::getExportOnly)
+				.map(ExportOptions::getSingleExport)
 				.flatMap(Optional::ofNullable)
 				.filter(not(String::isBlank));
 		if (oExportOnly.isPresent()) {
@@ -90,7 +90,9 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 	private void singleExportAnalytics(final String internalFileName,
 									   final DataResult result,
 									   final ExportToCmd exportToCmd) {
-		exportToCmd.getFormat().stream()
+		// exportFormatList.stream().map(f -> f.getInternalProducedFileNames())
+
+		exportToCmd.getFormat().stream()// TODO NOPE !
 				.map(this::getExportFormatByName)
 				.filter(f -> f.getInternalProducedFileNames().contains(internalFileName))
 				.map(d -> d.makeSingleExport(result, exportToCmd, internalFileName))

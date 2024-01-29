@@ -48,6 +48,7 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
@@ -62,7 +63,8 @@ public class VFramesRendererEngine implements
 								   TabularRendererEngine,
 								   GraphicRendererEngine,
 								   ConstStrings,
-								   SingleTabularDocumentExporterTraits {
+								   SingleTabularDocumentExporterTraits,
+								   SingleGraphicDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -189,9 +191,14 @@ public class VFramesRendererEngine implements
 
 		return List.of(
 				new GraphicArtifact(
-						appConfig.getGraphicConfig().getVBitrateGraphicFilename(),
+						getSingleUniqGraphicBaseFileName(),
 						dataGraphic.addMinMaxValueMarkers().makeLinearAxisGraphic(numberUtils),
 						appConfig.getGraphicConfig().getImageSizeFullSize()));
+	}
+
+	@Override
+	public String getSingleUniqGraphicBaseFileName() {
+		return appConfig.getGraphicConfig().getVBitrateGraphicFilename();
 	}
 
 	@Override

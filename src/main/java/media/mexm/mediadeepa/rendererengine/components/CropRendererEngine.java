@@ -51,6 +51,7 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
@@ -70,7 +71,8 @@ public class CropRendererEngine implements
 								TabularRendererEngine,
 								GraphicRendererEngine,
 								ConstStrings,
-								SingleTabularDocumentExporterTraits {
+								SingleTabularDocumentExporterTraits,
+								SingleGraphicDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
@@ -176,11 +178,16 @@ public class CropRendererEngine implements
 							.ifPresent(dataGraphic::addValueMarker);
 
 					return new GraphicArtifact(
-							appConfig.getGraphicConfig().getCropGraphicFilename(),
+							getSingleUniqGraphicBaseFileName(),
 							dataGraphic.makeLinearAxisGraphic(numberUtils),
 							appConfig.getGraphicConfig().getImageSizeFullSize());
 				})
 				.toList();
+	}
+
+	@Override
+	public String getSingleUniqGraphicBaseFileName() {
+		return appConfig.getGraphicConfig().getCropGraphicFilename();
 	}
 
 	@Override

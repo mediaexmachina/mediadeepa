@@ -20,23 +20,21 @@ import java.util.Optional;
 import java.util.Set;
 
 import media.mexm.mediadeepa.exportformat.DataResult;
-import media.mexm.mediadeepa.exportformat.TabularDocument;
-import media.mexm.mediadeepa.exportformat.TabularExportFormat;
+import media.mexm.mediadeepa.exportformat.GraphicArtifact;
 
-public interface SingleTabularDocumentExporterTraits extends TabularRendererEngine {// TODO test
+public interface SingleGraphicDocumentExporterTraits extends GraphicRendererEngine {// TODO test
 
 	@Override
-	default Optional<TabularDocument> toSingleTabularDocument(final String internalTabularBaseFileName,
-															  final DataResult result,
-															  final TabularExportFormat tabularExportFormat) {
-		return toTabularDocument(result, tabularExportFormat).stream().findFirst();
+	default Optional<GraphicArtifact> toSingleGraphic(final String internalGraphicBaseFileName,
+													  final DataResult result) {
+		return toGraphic(result).stream().findFirst();
 	}
 
 	@Override
-	default Set<String> getInternalTabularBaseFileNames() {
-		return Set.of(getSingleUniqTabularDocumentBaseFileName());
+	default Set<String> getGraphicInternalProducedBaseFileNames() {
+		return Set.of(getSingleUniqGraphicBaseFileName());
 	}
 
-	String getSingleUniqTabularDocumentBaseFileName();
+	String getSingleUniqGraphicBaseFileName();
 
 }
