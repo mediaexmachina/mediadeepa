@@ -34,6 +34,6 @@ public class ExportOptions {
 							"Use \":\" in Linux/Posix and \";\" in Windows as separator",
 							"This option invalidate \"-f\", \"-e\" and \"--export-base-filename\"" }, // TODO check multiline desc in MD+SITE+MAN
 			required = false)
-	private String singleExport;// TODO k:v k=internalfilename v=savetofilename + multiple
+	private String singleExport;
 
 }

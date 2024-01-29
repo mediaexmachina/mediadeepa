@@ -84,8 +84,6 @@ class AppSessionServiceTest {
 	@MockBean
 	KeyPressToExit keyPressToExit;
 	@MockBean
-	MediaAnalyticsTransformerService mediaAnalyticsTransformerService;
-	@MockBean
 	DocumentationExporter documentationExporter;
 
 	@Mock
@@ -111,7 +109,6 @@ class AppSessionServiceTest {
 
 		when(ffmpegService.getVersions()).thenReturn(Map.of());
 		when(ffmpegService.getMtdFiltersAvaliable()).thenReturn(Map.of());
-		when(mediaAnalyticsTransformerService.getExportFormatInformation()).thenReturn(Map.of());
 
 		processFileCmd = new ProcessFileCmd();
 		appCommand.setInput(File.createTempFile("mediadeepa", ".tmp"));
@@ -126,7 +123,6 @@ class AppSessionServiceTest {
 				scheduledExecutorService,
 				executableFinder,
 				keyPressToExit,
-				mediaAnalyticsTransformerService,
 				documentationExporter);
 	}
 
@@ -150,7 +146,6 @@ class AppSessionServiceTest {
 		verify(ffmpegService, atLeastOnce()).getMtdFiltersAvaliable();
 		verify(executableFinder, atLeastOnce()).get(appConfig.getFfmpegExecName());
 		verify(executableFinder, atLeastOnce()).get(appConfig.getFfprobeExecName());
-		verify(mediaAnalyticsTransformerService, atLeastOnce()).getExportFormatInformation();
 	}
 
 	@Test

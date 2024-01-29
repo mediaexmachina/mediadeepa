@@ -16,23 +16,18 @@
  */
 package media.mexm.mediadeepa.service;
 
-import static java.util.Collections.unmodifiableMap;
-import static java.util.function.Predicate.not;
-
 import java.io.File;
-import java.util.LinkedHashMap;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
-import media.mexm.mediadeepa.cli.ExportOptions;
 import media.mexm.mediadeepa.cli.ExportToCmd;
-import media.mexm.mediadeepa.components.ExportFormatComparator;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
 
@@ -42,8 +37,6 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 
 	@Autowired
 	private List<ExportFormat> exportFormatList;
-	@Autowired
-	private ExportFormatComparator exportFormatComparator;
 
 	private ExportFormat getExportFormatByName(final String name) {
 		return exportFormatList.stream()
@@ -59,47 +52,31 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 	}
 
 	@Override
-	public Map<String, String> getExportFormatInformation() {// TODO add filenames to help
-		final var result = new LinkedHashMap<String, String>();
-		exportFormatList.stream()
-				.sorted(exportFormatComparator)
-				.forEach(eF -> result.put(eF.getFormatName(), eF.getFormatLongName()));
-		return unmodifiableMap(result);
-	}
-
-	@Override
 	public void exportAnalytics(final DataResult result,
 								final ExportToCmd exportToCmd) {
-		final var oExportOnly = Optional.ofNullable(exportToCmd.getExportOptions())
-				.map(ExportOptions::getSingleExport)
-				.flatMap(Optional::ofNullable)
-				.filter(not(String::isBlank));
-		if (oExportOnly.isPresent()) {
-			final var exportOnly = oExportOnly.get();
-			log.info("Single export result {} file...", exportOnly);
-			singleExportAnalytics(exportOnly, result, exportToCmd);
-			return;
-		}
-
 		log.info("Start export result files...");
 		exportToCmd.getFormat().stream()
 				.map(this::getExportFormatByName)
 				.forEach(s -> doExportAnalytic(result, exportToCmd, s));
 	}
 
-	private void singleExportAnalytics(final String internalFileName,
-									   final DataResult result,
-									   final ExportToCmd exportToCmd) {
-		// exportFormatList.stream().map(f -> f.getInternalProducedFileNames())
-
-		exportToCmd.getFormat().stream()// TODO NOPE !
-				.map(this::getExportFormatByName)
+	@Override
+	public void singleExportAnalytics(final String internalFileName,
+									  final DataResult result,
+									  final ExportToCmd exportToCmd,
+									  final File outputFile) {
+		exportFormatList.stream()
 				.filter(f -> f.getInternalProducedFileNames().contains(internalFileName))
-				.map(d -> d.makeSingleExport(result, exportToCmd, internalFileName))
-				.flatMap(Optional::stream)
-				.forEach(bytes -> {
-					log.info("Single export result {} file produce {} bytes", internalFileName, bytes.length);
-					// TODO save
+				.findFirst()
+				.flatMap(d -> d.makeSingleExport(result, exportToCmd, internalFileName))
+				.ifPresent(bytes -> {
+					log.info("Single export result {} file produce {} bytes, save to {}",
+							internalFileName, bytes.length, outputFile);
+					try {
+						FileUtils.writeByteArrayToFile(outputFile, bytes, false);
+					} catch (final IOException e) {
+						throw new UncheckedIOException("Can't write to " + outputFile, e);
+					}
 				});
 	}
 

@@ -16,6 +16,7 @@
  */
 package media.mexm.mediadeepa.service;
 
+import static java.io.File.pathSeparator;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.function.Predicate.not;
@@ -39,6 +40,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
@@ -46,6 +48,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -56,8 +59,12 @@ import media.mexm.mediadeepa.ImpExArchiveExtractionSession.ExtractedFileEntry;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.cli.AppCommand;
+import media.mexm.mediadeepa.cli.ExportOptions;
+import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.components.ExportFormatComparator;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
+import media.mexm.mediadeepa.exportformat.ExportFormat;
 import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.Help;
@@ -94,6 +101,10 @@ public class AppSessionServiceImpl implements AppSessionService {
 	private RunnedJavaCmdLine runnedJavaCmdLine;
 	@Autowired
 	private MediaAnalyticsTransformerService mediaAnalyticsTransformerService;
+	@Autowired
+	private List<ExportFormat> exportFormatList;
+	@Autowired
+	private ExportFormatComparator exportFormatComparator;
 
 	@Value("${mediadeepa.disableKeyPressExit:false}")
 	private boolean disableKeyPressExit;
@@ -125,8 +136,10 @@ public class AppSessionServiceImpl implements AppSessionService {
 					.forEach((k, v) -> out.format("%-15s%-15s\n", k, v)); // NOSONAR S3457
 			out.println("");
 			out.println("Export formats available:");
-			mediaAnalyticsTransformerService.getExportFormatInformation()
-					.forEach((k, v) -> out.format("%-15s%-15s\n", k, v)); // NOSONAR S3457
+			exportFormatList.stream()
+					.sorted(exportFormatComparator)
+					.forEach(eF -> out.format("%-15s%-15s\n", eF.getFormatName(), eF.getFormatLongName()));
+
 			return 0;
 		}
 
@@ -390,8 +403,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 			dataResult.setContainerAnalyserResult(caSession.process());
 		}
 
-		log.debug("Export analytics");
-		mediaAnalyticsTransformerService.exportAnalytics(dataResult, exportToCmd);
+		exportAnalytics(exportToCmd, dataResult);
 	}
 
 	@Override
@@ -469,8 +481,30 @@ public class AppSessionServiceImpl implements AppSessionService {
 				.ifPresent(f -> dataResult.setContainerAnalyserResult(ContainerAnalyserSession
 						.importFromOffline(new ByteArrayInputStream(f.getBytes(UTF_8)))));
 
-		log.debug("Export analytics");
-		mediaAnalyticsTransformerService.exportAnalytics(dataResult, exportToCmd);
+		exportAnalytics(exportToCmd, dataResult);
+	}
+
+	private void exportAnalytics(final ExportToCmd exportToCmd, final DataResult dataResult) {// TODO test singleExport
+		final var oSingleExportParam = Optional.ofNullable(exportToCmd.getExportOptions())
+				.map(ExportOptions::getSingleExport)
+				.flatMap(Optional::ofNullable)
+				.filter(not(String::isBlank));
+		if (oSingleExportParam.isPresent()) {
+			final var exportOnlyParams = StringUtils.split(oSingleExportParam.get(), pathSeparator, 1);
+			if (exportOnlyParams.length == 1) {
+				throw new ParameterException(commandLine,
+						"Can't manage singleExport param: missing path separator \"" + pathSeparator + "\"");
+			}
+			final var internalFileName = exportOnlyParams[0];
+			final var outputFile = new File(exportOnlyParams[1]);
+
+			log.debug("Single export analytics {} file to {}...", internalFileName, outputFile);
+			mediaAnalyticsTransformerService.singleExportAnalytics(internalFileName, dataResult, exportToCmd,
+					outputFile);
+		} else {
+			log.debug("Export analytics");
+			mediaAnalyticsTransformerService.exportAnalytics(dataResult, exportToCmd);
+		}
 	}
 
 	private static Stream<String> openFileToLineStream(final File file) {

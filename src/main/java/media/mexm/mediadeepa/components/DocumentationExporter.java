@@ -234,7 +234,7 @@ public class DocumentationExporter {
 		ppg.addStaticMdContent(FEATURES_MD);
 
 		ppg.addStaticMdContent(EXPORT_FORMATS_BEFORELIST_MD);
-		ppg.addMdContent(exportFormatList.stream()
+		ppg.addMdContent(exportFormatList.stream()// TODO add files lists in another section
 				.sorted(exportFormatComparator)
 				.map(exportFormat -> " - `"
 									 + exportFormat.getFormatName() + "`: "
