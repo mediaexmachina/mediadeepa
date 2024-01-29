@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.components.ExportFormatComparator;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
 
@@ -37,6 +38,8 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 
 	@Autowired
 	private List<ExportFormat> exportFormatList;
+	@Autowired
+	private ExportFormatComparator exportFormatComparator;
 
 	private ExportFormat getExportFormatByName(final String name) {
 		return exportFormatList.stream()
@@ -66,6 +69,7 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 									  final ExportToCmd exportToCmd,
 									  final File outputFile) {
 		exportFormatList.stream()
+				.sorted(exportFormatComparator)
 				.filter(f -> f.getInternalProducedFileNames().contains(internalFileName))
 				.findFirst()
 				.flatMap(d -> d.makeSingleExport(result, exportToCmd, internalFileName))

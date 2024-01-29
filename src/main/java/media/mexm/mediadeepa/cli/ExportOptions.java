@@ -27,12 +27,7 @@ public class ExportOptions {
 	private boolean graphicJpg;
 
 	@Option(names = { "--single-export" },
-			description = { "Export only this file",
-							"Usage: \"internal-file-name:outputfilename.ext\"",
-							"With \"internal-file-name\" the choosed file to export, as \"-o\" list it",
-							"And \"outputfilename.ext\" the new file path name to produce",
-							"Use \":\" in Linux/Posix and \";\" in Windows as separator",
-							"This option invalidate \"-f\", \"-e\" and \"--export-base-filename\"" }, // TODO check multiline desc in MD+SITE+MAN
+			description = "Export only this file, as: \"internal-file-name:outputfilename.ext\"",
 			required = false)
 	private String singleExport;
 

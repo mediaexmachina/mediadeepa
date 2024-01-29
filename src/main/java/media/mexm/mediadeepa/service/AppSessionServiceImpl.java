@@ -135,10 +135,24 @@ public class AppSessionServiceImpl implements AppSessionService {
 			ffmpegService.getMtdFiltersAvaliable()
 					.forEach((k, v) -> out.format("%-15s%-15s\n", k, v)); // NOSONAR S3457
 			out.println("");
-			out.println("Export formats available:");
+			out.println("Export formats available (and produced files):");
 			exportFormatList.stream()
 					.sorted(exportFormatComparator)
-					.forEach(eF -> out.format("%-15s%-15s\n", eF.getFormatName(), eF.getFormatLongName()));
+					.forEach(eF -> {
+						final var files = eF.getInternalProducedFileNames();
+						final var fileList = files.stream().sorted().collect(joining(", "));
+						if (files.size() > 1) {
+							out.format("%-15s%-15s\n%-15s%-15s\n", // NOSONAR S3457
+									eF.getFormatName(),
+									eF.getFormatLongName(),
+									"",
+									" > " + fileList);
+						} else {
+							out.format("%-15s%-15s\n", // NOSONAR S3457
+									eF.getFormatName(),
+									eF.getFormatLongName() + " > " + fileList);
+						}
+					});
 
 			return 0;
 		}

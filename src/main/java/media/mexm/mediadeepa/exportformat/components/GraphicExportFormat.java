@@ -20,8 +20,6 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static media.mexm.mediadeepa.exportformat.GraphicArtifact.DOT_JPEG;
-import static media.mexm.mediadeepa.exportformat.GraphicArtifact.DOT_PNG;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 import java.io.File;
@@ -33,7 +31,6 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -47,8 +44,6 @@ public class GraphicExportFormat implements ExportFormat {
 	private List<GraphicRendererEngine> engines;
 	@Autowired
 	private AppConfig appConfig;
-	@Autowired
-	private AppCommand appCommand;
 
 	@Override
 	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
@@ -63,12 +58,10 @@ public class GraphicExportFormat implements ExportFormat {
 
 	@Override
 	public Set<String> getInternalProducedFileNames() {
-		final var exportToJpeg = appCommand.getExportToCmd().isExportToJpeg();
 		return engines.stream()
 				.map(GraphicRendererEngine::getGraphicInternalProducedBaseFileNames)
 				.flatMap(Set::stream)
 				.distinct()
-				.map(f -> exportToJpeg ? f.concat(DOT_JPEG) : f.concat(DOT_PNG))
 				.collect(toUnmodifiableSet());
 	}
 
