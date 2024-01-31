@@ -22,7 +22,7 @@ import java.util.Set;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.GraphicArtifact;
 
-public interface SingleGraphicDocumentExporterTraits extends GraphicRendererEngine {// TODO test
+public interface SingleGraphicDocumentExporterTraits extends GraphicRendererEngine {
 
 	@Override
 	default Optional<GraphicArtifact> toSingleGraphic(final String internalGraphicBaseFileName,

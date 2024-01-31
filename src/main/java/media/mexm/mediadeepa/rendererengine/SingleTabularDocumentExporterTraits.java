@@ -23,7 +23,7 @@ import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 
-public interface SingleTabularDocumentExporterTraits extends TabularRendererEngine {// TODO test
+public interface SingleTabularDocumentExporterTraits extends TabularRendererEngine {
 
 	@Override
 	default Optional<TabularDocument> toSingleTabularDocument(final String internalTabularBaseFileName,

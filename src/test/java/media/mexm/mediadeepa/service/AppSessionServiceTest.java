@@ -16,11 +16,13 @@
  */
 package media.mexm.mediadeepa.service;
 
+import static java.io.File.pathSeparator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -36,6 +38,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,12 +47,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.cli.AppCommand;
+import media.mexm.mediadeepa.cli.ExportOptions;
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.cli.ExtractToCmd;
 import media.mexm.mediadeepa.cli.ProcessFileCmd;
 import media.mexm.mediadeepa.components.CLIRunner;
 import media.mexm.mediadeepa.components.DocumentationExporter;
 import media.mexm.mediadeepa.config.AppConfig;
+import media.mexm.mediadeepa.exportformat.DataResult;
 import net.datafaker.Faker;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
@@ -85,6 +90,8 @@ class AppSessionServiceTest {
 	KeyPressToExit keyPressToExit;
 	@MockBean
 	DocumentationExporter documentationExporter;
+	@MockBean
+	MediaAnalyticsTransformerService mediaAnalyticsTransformerService;
 
 	@Mock
 	PrintWriter pw;
@@ -177,7 +184,7 @@ class AppSessionServiceTest {
 	}
 
 	@Test
-	void testRunCli_exportFormatEmpty() throws IOException {
+	void testRunCli_exportFormatEmpty() throws IOException {// TODO exportOnly should invalidate it
 		appCommand.setProcessFileCmd(processFileCmd);
 		final var exportToCmd = new ExportToCmd();
 		exportToCmd.setExport(new File(""));
@@ -228,6 +235,57 @@ class AppSessionServiceTest {
 		assertTrue(regularFile.exists());
 		assertThrows(ParameterException.class,
 				() -> appSessionService.validateOutputDir(regularFile));
+	}
+
+	@Nested
+	class ExportAnalytics {
+
+		ExportToCmd exportToCmd;
+
+		@Mock
+		DataResult dataResult;
+
+		@BeforeEach
+		void init() throws Exception {
+			openMocks(this).close();
+			exportToCmd = new ExportToCmd();
+		}
+
+		@AfterEach
+		void ends() {
+			verifyNoMoreInteractions(dataResult, mediaAnalyticsTransformerService);
+		}
+
+		@Test
+		void testDefault() {
+			appSessionService.exportAnalytics(exportToCmd, dataResult);
+			verify(mediaAnalyticsTransformerService, only())
+					.exportAnalytics(dataResult, exportToCmd);
+		}
+
+		@Test
+		void testSingle() {
+			final var internalFileName = faker.numerify("internalFileName###");
+			final var outputFile = new File("target/" + faker.numerify("outputFile###"));
+
+			final var exportOptions = new ExportOptions();
+			exportOptions.setSingleExport(internalFileName + pathSeparator + outputFile.getPath());
+			exportToCmd.setExportOptions(exportOptions);
+
+			appSessionService.exportAnalytics(exportToCmd, dataResult);
+			verify(mediaAnalyticsTransformerService, only())
+					.singleExportAnalytics(internalFileName, dataResult, exportToCmd, outputFile);
+		}
+
+		@Test
+		void testSingle_missingSingleExport() {
+			final var exportOptions = new ExportOptions();
+			exportOptions.setSingleExport(faker.numerify("missingseparator###"));
+			exportToCmd.setExportOptions(exportOptions);
+
+			assertThrows(ParameterException.class, () -> appSessionService.exportAnalytics(exportToCmd, dataResult));
+		}
+
 	}
 
 }

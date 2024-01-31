@@ -164,14 +164,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 			return 0;
 		}
 
-		if (appCommand.getTempDir() == null) {
-			appCommand.setTempDir(FileUtils.getTempDirectory());
-			log.debug("Use {} as temp dir", appCommand.getTempDir());
-		} else {
-			log.debug("Create {} temp dir", appCommand.getTempDir());
-			forceMkdir(appCommand.getTempDir());
-		}
-
+		setupTempDir();
 		verifyOptions();
 
 		final var processFileCmd = appCommand.getProcessFileCmd();
@@ -199,6 +192,16 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		cleanTempDir(appCommand.getTempDir());
 		return 0;
+	}
+
+	private void setupTempDir() throws IOException {
+		if (appCommand.getTempDir() == null) {
+			appCommand.setTempDir(FileUtils.getTempDirectory());
+			log.debug("Use {} as temp dir", appCommand.getTempDir());
+		} else {
+			log.debug("Create {} temp dir", appCommand.getTempDir());
+			forceMkdir(appCommand.getTempDir());
+		}
 	}
 
 	private void startKeyPressExit() {
@@ -300,7 +303,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		}
 	}
 
-	public void createExtractionSession(final File inputFile) throws IOException {
+	private void createExtractionSession(final File inputFile) throws IOException {
 		final var processFileCmd = appCommand.getProcessFileCmd();
 		final var extractToCmd = appCommand.getExtractToCmd();
 		final var tempDir = appCommand.getTempDir();
@@ -372,7 +375,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		return unmodifiableMap(version);
 	}
 
-	public void createProcessingSession(final File inputFile) throws IOException {
+	private void createProcessingSession(final File inputFile) throws IOException {
 		final var processFileCmd = appCommand.getProcessFileCmd();
 		final var exportToCmd = appCommand.getExportToCmd();
 		final var tempDir = appCommand.getTempDir();
@@ -440,7 +443,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		return true;
 	}
 
-	public void createOfflineProcessingSession() throws IOException {
+	private void createOfflineProcessingSession() throws IOException {
 		final var archiveFile = appCommand.getInput();
 		final var exportToCmd = appCommand.getExportToCmd();
 		final var zippedTxtFileNames = appConfig.getZippedArchive();
@@ -498,13 +501,14 @@ public class AppSessionServiceImpl implements AppSessionService {
 		exportAnalytics(exportToCmd, dataResult);
 	}
 
-	private void exportAnalytics(final ExportToCmd exportToCmd, final DataResult dataResult) {// TODO test singleExport
+	@Override
+	public void exportAnalytics(final ExportToCmd exportToCmd, final DataResult dataResult) {
 		final var oSingleExportParam = Optional.ofNullable(exportToCmd.getExportOptions())
 				.map(ExportOptions::getSingleExport)
 				.flatMap(Optional::ofNullable)
 				.filter(not(String::isBlank));
 		if (oSingleExportParam.isPresent()) {
-			final var exportOnlyParams = StringUtils.split(oSingleExportParam.get(), pathSeparator, 1);
+			final var exportOnlyParams = StringUtils.split(oSingleExportParam.get(), pathSeparator, 2);
 			if (exportOnlyParams.length == 1) {
 				throw new ParameterException(commandLine,
 						"Can't manage singleExport param: missing path separator \"" + pathSeparator + "\"");
