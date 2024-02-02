@@ -415,7 +415,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		log.debug("Try to load source {} as zip zip file", zipFile);
 		try (var zipIn = new ZipInputStream(
 				new BufferedInputStream(new FileInputStream(zipFile), TEN_MB))) {
-			zipIn.getNextEntry();
+			return zipIn.getNextEntry() != null;
 		} catch (final FileNotFoundException e) {
 			throw new UncheckedIOException("Can't found input file", e);
 		} catch (final IOException e) {
@@ -426,7 +426,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 			}
 			return false;
 		}
-		return true;
 	}
 
 	private void createOfflineProcessingSession() throws IOException {
