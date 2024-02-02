@@ -19,7 +19,6 @@ package media.mexm.mediadeepa.service;
 import java.io.File;
 import java.io.IOException;
 
-import media.mexm.mediadeepa.exportformat.DataResult;
 import picocli.CommandLine.ParameterException;
 
 public interface AppSessionService {
@@ -31,9 +30,5 @@ public interface AppSessionService {
 	void validateOutputFile(File file) throws ParameterException;
 
 	void validateOutputDir(File dir) throws ParameterException;
-
-	boolean checkIfSourceIsZIP();
-
-	void exportAnalytics(DataResult dataResult);
 
 }

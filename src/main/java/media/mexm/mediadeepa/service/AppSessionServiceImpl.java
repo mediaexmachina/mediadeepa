@@ -409,8 +409,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		exportAnalytics(dataResult);
 	}
 
-	@Override
-	public boolean checkIfSourceIsZIP() {
+	private boolean checkIfSourceIsZIP() {
 		final var zipFile = appCommand.getInput();
 		log.debug("Try to load source {} as zip zip file", zipFile);
 		try (var zipIn = new ZipInputStream(
@@ -485,8 +484,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		exportAnalytics(dataResult);
 	}
 
-	@Override
-	public void exportAnalytics(final DataResult dataResult) {
+	private void exportAnalytics(final DataResult dataResult) {
 		final var oSingleExportParam = Optional.ofNullable(appCommand.getOutputCmd().getSingleExportCmd())
 				.map(SingleExportCmd::getSingleExport)
 				.flatMap(Optional::ofNullable)
