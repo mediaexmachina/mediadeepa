@@ -28,7 +28,7 @@ import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 
 import lombok.Getter;
-import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.config.AppConfig;
 
 public class GraphicArtifact {
@@ -82,25 +82,25 @@ public class GraphicArtifact {
 		}
 	}
 
-	public byte[] getRawData(final ExportToCmd exportToCmd, final AppConfig appConfig) {
-		if (exportToCmd.isExportToJpeg()) {
+	public byte[] getRawData(final AppCommand appCommand, final AppConfig appConfig) {
+		if (appCommand.isGraphicJpg()) {
 			return getJPEG(graphic, imageSize, appConfig.getGraphicConfig().getJpegCompressionRatio());
 		} else {
 			return getPNG(graphic, imageSize);
 		}
 	}
 
-	public File save(final ExportToCmd exportToCmd, final AppConfig appConfig) {
-		final var rawImage = getRawData(exportToCmd, appConfig);
+	public File save(final AppCommand appCommand, final AppConfig appConfig) {
+		final var rawImage = getRawData(appCommand, appConfig);
 
 		String fileName;
-		if (exportToCmd.isExportToJpeg()) {
+		if (appCommand.isGraphicJpg()) {
 			fileName = fileNameWOExt + DOT_JPEG;
 		} else {
 			fileName = fileNameWOExt + DOT_PNG;
 		}
 
-		final var outputFile = exportToCmd.makeOutputFile(fileName);
+		final var outputFile = appCommand.getOutputCmd().getExportToCmd().makeOutputFile(fileName);
 		try {
 			FileUtils.writeByteArrayToFile(outputFile, rawImage, false);
 		} catch (final IOException e) {

@@ -44,7 +44,7 @@ import media.mexm.mediadeepa.App;
 
 @ExtendWith(OutputCaptureExtension.class)
 @Slf4j
-class E2ECmdUtilsTest extends E2EUtils {
+class E2ECmdUtilsTest extends E2EUtils {// TODO fix bugs...
 
 	@ParameterizedTest
 	@ValueSource(strings = { "-h", "--help" })

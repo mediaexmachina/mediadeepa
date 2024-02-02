@@ -25,7 +25,8 @@ import picocli.CommandLine.Option;
 public class ExtractToCmd {
 	@Option(names = { "--extract" },
 			description = "Extract all raw ffmpeg datas to a Mediadeepa archive file",
-			paramLabel = "MEDIADEEPA_FILE")
+			paramLabel = "MEDIADEEPA_FILE",
+			required = true)
 	private File archiveFile;
 
 }

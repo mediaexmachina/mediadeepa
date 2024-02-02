@@ -29,7 +29,7 @@ class E2ECSVTest extends E2EUtils {
 
 	@Test
 	void testCSV_classic() throws IOException {
-		final var rawData = prepareMpgForSimpleE2ETests();
+		rawData = prepareMpgForSimpleE2ETests();
 		if (rawData == null) {
 			return;
 		}

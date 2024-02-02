@@ -31,6 +31,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -44,13 +45,15 @@ public class GraphicExportFormat implements ExportFormat {
 	private List<GraphicRendererEngine> engines;
 	@Autowired
 	private AppConfig appConfig;
+	@Autowired
+	private AppCommand appCommand;
 
 	@Override
 	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
 		return engines.stream()
 				.map(engine -> engine.toGraphic(result))
 				.flatMap(List::stream)
-				.map(f -> f.save(exportToCmd, appConfig))
+				.map(f -> f.save(appCommand, appConfig))
 				.collect(toUnmodifiableMap(
 						f -> getBaseName(f.getName()),
 						identity()));
@@ -74,7 +77,7 @@ public class GraphicExportFormat implements ExportFormat {
 				.filter(engine -> engine.getGraphicInternalProducedBaseFileNames().contains(baseFileName))
 				.findFirst()
 				.flatMap(engine -> engine.toSingleGraphic(baseFileName, result))
-				.map(ga -> ga.getRawData(exportToCmd, appConfig));
+				.map(ga -> ga.getRawData(appCommand, appConfig));
 	}
 
 	@Override

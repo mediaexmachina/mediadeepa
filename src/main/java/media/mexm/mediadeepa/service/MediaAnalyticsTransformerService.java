@@ -28,7 +28,7 @@ public interface MediaAnalyticsTransformerService {
 
 	void singleExportAnalytics(String internalFileName,
 							   DataResult result,
-							   ExportToCmd exportToCmd,
+							   ExportToCmd exportToCmd, // TODO why, now ?
 							   File outputFile);
 
 	boolean isExportFormatExists(String name);

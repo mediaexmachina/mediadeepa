@@ -30,8 +30,6 @@ import media.mexm.mediadeepa.ConstStrings;
 
 class E2EReportTest extends E2EUtils implements ConstStrings {
 
-	E2ERawOutDataFiles rawData;
-
 	@Test
 	void testHTML() throws IOException {
 		rawData = prepareTsForSimpleE2ETests();

@@ -25,7 +25,7 @@ import media.mexm.mediadeepa.cli.ExportToCmd;
 
 public interface ExportFormat {
 
-	Map<String, File> exportResult(DataResult result, ExportToCmd exportToCmd);
+	Map<String, File> exportResult(DataResult result, ExportToCmd exportToCmd);// TODO needed exportToCmd ?
 
 	String getFormatName();
 
@@ -37,6 +37,6 @@ public interface ExportFormat {
 
 	Set<String> getInternalProducedFileNames();
 
-	Optional<byte[]> makeSingleExport(DataResult result, ExportToCmd exportToCmd, String internalFileName);
+	Optional<byte[]> makeSingleExport(DataResult result, ExportToCmd exportToCmd, String internalFileName);// TODO needed exportToCmd ?
 
 }

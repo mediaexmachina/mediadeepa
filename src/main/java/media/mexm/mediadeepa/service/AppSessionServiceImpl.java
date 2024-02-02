@@ -59,8 +59,7 @@ import media.mexm.mediadeepa.ImpExArchiveExtractionSession.ExtractedFileEntry;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.cli.AppCommand;
-import media.mexm.mediadeepa.cli.ExportOptions;
-import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.cli.SingleExportCmd;
 import media.mexm.mediadeepa.components.ExportFormatComparator;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -168,23 +167,25 @@ public class AppSessionServiceImpl implements AppSessionService {
 		verifyOptions();
 
 		final var processFileCmd = appCommand.getProcessFileCmd();
-		final var exportToCmd = appCommand.getExportToCmd();
-		final var extractToCmd = appCommand.getExtractToCmd();
-		final var isZipImport = checkIfSourceIsZIP();
+		final var extractToCmd = appCommand.getOutputCmd().getExtractToCmd();
 
-		if (processFileCmd != null && extractToCmd != null) {
-			log.info("Prepare extraction session from media file: {}", appCommand.getInput());
-			startKeyPressExit();
-			createExtractionSession(appCommand.getInput());
-		} else if (processFileCmd != null && exportToCmd != null) {
-			log.info("Prepare processing session from media file: {} to {}",
-					appCommand.getInput(), exportToCmd.getExport());
-			startKeyPressExit();
-			createProcessingSession(appCommand.getInput());
-		} else if (isZipImport && exportToCmd != null) {
+		if (checkIfSourceIsZIP()) {
+			if (extractToCmd != null) {
+				// TODO throw nope, supid
+			}
 			log.info("Prepare processing session from offline ffmpeg/ffprobe exports");
 			startKeyPressExit();
 			createOfflineProcessingSession();
+		} else if (processFileCmd != null) {
+			if (extractToCmd != null) {
+				log.info("Prepare extraction session from media file: {}", appCommand.getInput());
+				startKeyPressExit();
+				createExtractionSession(appCommand.getInput());
+			} else {
+				log.info("Prepare processing session from media file: {}", appCommand.getInput());
+				startKeyPressExit();
+				createProcessingSession(appCommand.getInput());
+			}
 		} else {
 			cleanTempDir(appCommand.getTempDir());
 			throw new ParameterException(commandLine, "Nothing to do!");
@@ -219,58 +220,39 @@ public class AppSessionServiceImpl implements AppSessionService {
 	}
 
 	private void verifyOptions() throws ParameterException {
-		final var exportToCmd = appCommand.getExportToCmd();
-		final var extractToCmd = appCommand.getExtractToCmd();
-		final var processFileCmd = appCommand.getProcessFileCmd();
-
-		if ((exportToCmd != null ? 1 : 0)
-			+ (extractToCmd != null ? 1 : 0)
-			+ (processFileCmd != null ? 1 : 0) > 2) {
-			throw new ParameterException(commandLine,
-					"You can't cumulate more than two options with --input/--export/--extract");
-		}
-
 		validateInputFile(appCommand.getInput());
 
-		if (processFileCmd == null
-			&& extractToCmd == null
-			&& exportToCmd == null) {
-			throw new ParameterException(commandLine,
-					"You must setup options like -i/--input, -e/--export and --extract");
-		}
-
-		Optional.ofNullable(processFileCmd)
-				.ifPresent(p -> validateInputFile(appCommand.getInput()));
-		Optional.ofNullable(extractToCmd)
+		Optional.ofNullable(appCommand.getOutputCmd().getExtractToCmd())
 				.ifPresent(et -> Optional.ofNullable(et.getArchiveFile())
 						.ifPresent(this::validateOutputFile));
 
-		Optional.ofNullable(exportToCmd).ifPresent(et -> {
-			validateOutputDir(et.getExport());
-			if (et.getFormat() == null || et.getFormat().isEmpty()) {
-				throw new ParameterException(commandLine, "Export format can't be empty");
-			} else {
-				final var notExists = et.getFormat().stream()
-						.filter(not(mediaAnalyticsTransformerService::isExportFormatExists))
-						.toList();
-				if (notExists.isEmpty() == false) {
-					throw new ParameterException(commandLine, "Can't found this export format: "
-															  + notExists.stream().collect(joining(", ")));
-				}
-			}
-		});
+		Optional.ofNullable(appCommand.getOutputCmd().getExportToCmd())
+				.ifPresent(et -> {
+					validateOutputDir(et.getExport());
+					if (et.getFormat() == null || et.getFormat().isEmpty()) {
+						throw new ParameterException(commandLine, "Export format can't be empty");
+					} else {
+						final var notExists = et.getFormat().stream()
+								.filter(not(mediaAnalyticsTransformerService::isExportFormatExists))
+								.toList();
+						if (notExists.isEmpty() == false) {
+							throw new ParameterException(commandLine, "Can't found this export format: "
+																	  + notExists.stream().collect(joining(", ")));
+						}
+					}
+				});
 	}
 
 	@Override
 	public void validateInputFile(final File file) throws ParameterException {
 		if (file == null) {
-			throw new ParameterException(commandLine, "You must set a file");
+			throw new ParameterException(commandLine, "You must set an input file");
 		} else if (file.exists() == false) {
-			throw new ParameterException(commandLine, "Can't found the provided file: " + file.getPath(),
-					new FileNotFoundException(file.getPath()));
+			throw new ParameterException(commandLine, "Can't found the provided input file: "
+													  + file.getPath(), new FileNotFoundException(file.getPath()));
 		} else if (file.isFile() == false) {
-			throw new ParameterException(commandLine, "The provided file is not a regular file: " + file.getPath(),
-					new FileNotFoundException(file.getPath()));
+			throw new ParameterException(commandLine, "The provided file is not a regular input file: "
+													  + file.getPath(), new FileNotFoundException(file.getPath()));
 		}
 	}
 
@@ -305,7 +287,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 	private void createExtractionSession(final File inputFile) throws IOException {
 		final var processFileCmd = appCommand.getProcessFileCmd();
-		final var extractToCmd = appCommand.getExtractToCmd();
+		final var extractToCmd = appCommand.getOutputCmd().getExtractToCmd();
 		final var tempDir = appCommand.getTempDir();
 		final var zippedTxtFileNames = appConfig.getZippedArchive();
 
@@ -377,7 +359,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 	private void createProcessingSession(final File inputFile) throws IOException {
 		final var processFileCmd = appCommand.getProcessFileCmd();
-		final var exportToCmd = appCommand.getExportToCmd();
 		final var tempDir = appCommand.getTempDir();
 
 		final var dataResult = new DataResult(appCommand.getInput().getName(), getVersion());
@@ -420,7 +401,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 			dataResult.setContainerAnalyserResult(caSession.process());
 		}
 
-		exportAnalytics(exportToCmd, dataResult);
+		exportAnalytics(dataResult);
 	}
 
 	@Override
@@ -445,7 +426,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 	private void createOfflineProcessingSession() throws IOException {
 		final var archiveFile = appCommand.getInput();
-		final var exportToCmd = appCommand.getExportToCmd();
 		final var zippedTxtFileNames = appConfig.getZippedArchive();
 
 		final var extractSession = new ImpExArchiveExtractionSession().readFromZip(archiveFile);
@@ -498,13 +478,13 @@ public class AppSessionServiceImpl implements AppSessionService {
 				.ifPresent(f -> dataResult.setContainerAnalyserResult(ContainerAnalyserSession
 						.importFromOffline(new ByteArrayInputStream(f.getBytes(UTF_8)))));
 
-		exportAnalytics(exportToCmd, dataResult);
+		exportAnalytics(dataResult);
 	}
 
 	@Override
-	public void exportAnalytics(final ExportToCmd exportToCmd, final DataResult dataResult) {
-		final var oSingleExportParam = Optional.ofNullable(exportToCmd.getExportOptions())
-				.map(ExportOptions::getSingleExport)
+	public void exportAnalytics(final DataResult dataResult) {
+		final var oSingleExportParam = Optional.ofNullable(appCommand.getOutputCmd().getSingleExportCmd())
+				.map(SingleExportCmd::getSingleExport)
 				.flatMap(Optional::ofNullable)
 				.filter(not(String::isBlank));
 		if (oSingleExportParam.isPresent()) {
@@ -517,11 +497,12 @@ public class AppSessionServiceImpl implements AppSessionService {
 			final var outputFile = new File(exportOnlyParams[1]);
 
 			log.debug("Single export analytics {} file to {}...", internalFileName, outputFile);
-			mediaAnalyticsTransformerService.singleExportAnalytics(internalFileName, dataResult, exportToCmd,
+			mediaAnalyticsTransformerService.singleExportAnalytics(internalFileName, dataResult, appCommand
+					.getOutputCmd().getExportToCmd(),
 					outputFile);
 		} else {
 			log.debug("Export analytics");
-			mediaAnalyticsTransformerService.exportAnalytics(dataResult, exportToCmd);
+			mediaAnalyticsTransformerService.exportAnalytics(dataResult, appCommand.getOutputCmd().getExportToCmd());
 		}
 	}
 

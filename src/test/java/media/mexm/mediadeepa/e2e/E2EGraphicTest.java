@@ -38,7 +38,6 @@ import org.junit.jupiter.api.function.Executable;
 class E2EGraphicTest extends E2EUtils {
 
 	private static final String MPG = "mpg_";
-	E2ERawOutDataFiles rawData;
 	ThreadLocal<float[]> hsbvalsThreadLocal;
 
 	@BeforeEach
@@ -47,7 +46,7 @@ class E2EGraphicTest extends E2EUtils {
 	}
 
 	@TestFactory
-	Stream<DynamicTest> testTable() throws IOException {
+	Stream<DynamicTest> testTable() throws IOException {// TODO rename
 		rawData = prepareMpgForSimpleE2ETests();
 		if (rawData == null) {
 			return Stream.empty();
@@ -61,7 +60,7 @@ class E2EGraphicTest extends E2EUtils {
 		doAllTests(tests, IMAGE_SIZE_FULL_HEIGHT, IMAGE_SIZE_HALF_HEIGHT, false);
 		doAllTests(tests, IMAGE_SIZE_FULL_HEIGHT, IMAGE_SIZE_HALF_HEIGHT, true);
 		return tests.entrySet().stream()
-				.map(entry -> dynamicTest(entry.getKey(), entry.getValue()));
+				.map(entry -> dynamicTest(entry.getKey(), entry.getValue()));// TODO non-blocking tests
 	}
 
 	private void doAllTests(final LinkedHashMap<String, Executable> tests,
