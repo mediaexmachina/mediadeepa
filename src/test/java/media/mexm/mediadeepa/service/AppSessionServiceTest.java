@@ -127,7 +127,7 @@ class AppSessionServiceTest {
 
 	@Test
 	void testRunCli_nothing() throws IOException {
-		assertThrows(UncheckedIOException.class, () -> appSessionService.runCli());
+		assertThrows(ParameterException.class, () -> appSessionService.runCli());
 	}
 
 	@Test
@@ -202,53 +202,53 @@ class AppSessionServiceTest {
 
 	/*@Nested
 	class ExportAnalytics {
-	
+
 		ExportToCmd exportToCmd;
-	
+
 		@Mock
 		DataResult dataResult;
-	
+
 		@BeforeEach
 		void init() throws Exception {
 			openMocks(this).close();
 			exportToCmd = new ExportToCmd();
 		}
-	
+
 		@AfterEach
 		void ends() {
 			verifyNoMoreInteractions(dataResult, mediaAnalyticsTransformerService);
 		}
-	
+
 		@Test
 		void testDefault() {
 			appSessionService.exportAnalytics(exportToCmd, dataResult);
 			verify(mediaAnalyticsTransformerService, only())
 					.exportAnalytics(dataResult, exportToCmd);
 		}
-	
+
 		@Test
 		void testSingle() {
 			final var internalFileName = faker.numerify("internalFileName###");
 			final var outputFile = new File("target/" + faker.numerify("outputFile###"));
-	
+
 			final var exportOptions = new SingleExportCmd();
 			exportOptions.setSingleExport(internalFileName + pathSeparator + outputFile.getPath());
 			exportToCmd.setExportOptions(exportOptions);
-	
+
 			appSessionService.exportAnalytics(exportToCmd, dataResult);
 			verify(mediaAnalyticsTransformerService, only())
 					.singleExportAnalytics(internalFileName, dataResult, exportToCmd, outputFile);
 		}
-	
+
 		@Test
 		void testSingle_missingSingleExport() {
 			final var exportOptions = new SingleExportCmd();
 			exportOptions.setSingleExport(faker.numerify("missingseparator###"));
 			exportToCmd.setExportOptions(exportOptions);
-	
+
 			assertThrows(ParameterException.class, () -> appSessionService.exportAnalytics(exportToCmd, dataResult));
 		}
-	
+
 	}*/
 
 }

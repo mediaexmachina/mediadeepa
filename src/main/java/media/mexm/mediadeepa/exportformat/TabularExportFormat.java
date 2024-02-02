@@ -51,7 +51,6 @@ public abstract class TabularExportFormat implements ExportFormat, TabularDocume
 
 	@Override
 	public Optional<byte[]> makeSingleExport(final DataResult result,
-											 final ExportToCmd exportToCmd,
 											 final String internalFileName) {
 		final var internalBaseFileName = getBaseName(internalFileName);
 		return engines.stream()

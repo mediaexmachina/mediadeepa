@@ -37,7 +37,6 @@ import org.sqlite.SQLiteConfig.TempStore;
 
 import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.cli.AppCommand;
-import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -79,7 +78,6 @@ public class TableSQLiteExportFormat extends TableExportFormat {
 	@Override
 	public void makeDocument(final DataResult result,
 							 final List<Table> tables,
-							 final ExportToCmd exportToCmd,
 							 final OutputStream outputStream) {
 		File tempOutputFile;
 		try {

@@ -81,7 +81,7 @@ public class AppCommand implements Callable<Integer> {
 			paramLabel = "DIRECTORY")
 	private File tempDir;
 
-	@ArgGroup(exclusive = true, heading = "Output options%n", multiplicity = "1")
+	@ArgGroup(exclusive = true, heading = "Output options%n", multiplicity = "0..1")
 	private OutputCmd outputCmd;
 
 	@Option(names = { "--verbose" }, description = "Verbose mode")

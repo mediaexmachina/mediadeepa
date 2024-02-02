@@ -54,7 +54,6 @@ public abstract class TableExportFormat implements ExportFormat {
 
 	public abstract void makeDocument(DataResult result,
 									  List<Table> tables,
-									  ExportToCmd exportToCmd,
 									  OutputStream outputStream);
 
 	@Override
@@ -66,7 +65,7 @@ public abstract class TableExportFormat implements ExportFormat {
 		log.debug("Start export {} tables to {}...", tableDocument.getTables().size(), outputFile);
 
 		try (var outputStream = new BufferedOutputStream(new FileOutputStream(outputFile), 0XFFFFFF)) {
-			makeDocument(result, tableDocument.getTables(), exportToCmd, outputStream);
+			makeDocument(result, tableDocument.getTables(), outputStream);
 		} catch (final FileNotFoundException e) {
 			throw new UncheckedIOException("Can't create file", e);
 		} catch (final IOException e1) {
@@ -78,13 +77,12 @@ public abstract class TableExportFormat implements ExportFormat {
 
 	@Override
 	public Optional<byte[]> makeSingleExport(final DataResult result,
-											 final ExportToCmd exportToCmd,
 											 final String internalFileName) {
 		final var tableDocument = new TableDocument(numberUtils);
 		engines.forEach(en -> en.addToTable(result, tableDocument));
 
 		final var bias = new ByteArrayOutputStream(TEN_MB);
-		makeDocument(result, tableDocument.getTables(), exportToCmd, bias);
+		makeDocument(result, tableDocument.getTables(), bias);
 		return Optional.ofNullable(bias.toByteArray());
 	}
 

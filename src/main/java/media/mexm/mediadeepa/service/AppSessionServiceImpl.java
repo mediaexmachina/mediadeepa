@@ -171,7 +171,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		if (checkIfSourceIsZIP()) {
 			if (extractToCmd != null) {
-				// TODO throw nope, supid
+				throw new ParameterException(commandLine,
+						"You can't import an archive/ZIP and export to an another archive/ZIP");
 			}
 			log.info("Prepare processing session from offline ffmpeg/ffprobe exports");
 			startKeyPressExit();
@@ -222,11 +223,15 @@ public class AppSessionServiceImpl implements AppSessionService {
 	private void verifyOptions() throws ParameterException {
 		validateInputFile(appCommand.getInput());
 
-		Optional.ofNullable(appCommand.getOutputCmd().getExtractToCmd())
+		final var outputCmd = Optional.ofNullable(appCommand.getOutputCmd())
+				.orElseThrow(() -> new ParameterException(commandLine,
+						"Nothing to do, missing an output action!"));
+
+		Optional.ofNullable(outputCmd.getExtractToCmd())
 				.ifPresent(et -> Optional.ofNullable(et.getArchiveFile())
 						.ifPresent(this::validateOutputFile));
 
-		Optional.ofNullable(appCommand.getOutputCmd().getExportToCmd())
+		Optional.ofNullable(outputCmd.getExportToCmd())
 				.ifPresent(et -> {
 					validateOutputDir(et.getExport());
 					if (et.getFormat() == null || et.getFormat().isEmpty()) {
@@ -497,9 +502,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 			final var outputFile = new File(exportOnlyParams[1]);
 
 			log.debug("Single export analytics {} file to {}...", internalFileName, outputFile);
-			mediaAnalyticsTransformerService.singleExportAnalytics(internalFileName, dataResult, appCommand
-					.getOutputCmd().getExportToCmd(),
-					outputFile);
+			mediaAnalyticsTransformerService.singleExportAnalytics(internalFileName, dataResult, outputFile);
 		} else {
 			log.debug("Export analytics");
 			mediaAnalyticsTransformerService.exportAnalytics(dataResult, appCommand.getOutputCmd().getExportToCmd());

@@ -59,7 +59,6 @@ public class DemoExportFormat implements ExportFormat {
 
 	@Override
 	public Optional<byte[]> makeSingleExport(final DataResult result,
-											 final ExportToCmd exportToCmd,
 											 final String internalFileName) {
 		singleExport.add(internalFileName);
 		return Optional.ofNullable(singleExportData);

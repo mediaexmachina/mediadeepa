@@ -76,7 +76,6 @@ public class FFProbeXMLExportFormat implements ExportFormat {
 
 	@Override
 	public Optional<byte[]> makeSingleExport(final DataResult result,
-											 final ExportToCmd exportToCmd,
 											 final String internalFileName) {
 		return result.getFFprobeResult()
 				.map(FFprobeJAXB::getXmlContent)

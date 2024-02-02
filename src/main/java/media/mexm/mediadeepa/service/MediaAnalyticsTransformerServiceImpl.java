@@ -66,13 +66,12 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 	@Override
 	public void singleExportAnalytics(final String internalFileName,
 									  final DataResult result,
-									  final ExportToCmd exportToCmd,
 									  final File outputFile) {
 		exportFormatList.stream()
 				.sorted(exportFormatComparator)
 				.filter(f -> f.getInternalProducedFileNames().contains(internalFileName))
 				.findFirst()
-				.flatMap(d -> d.makeSingleExport(result, exportToCmd, internalFileName))
+				.flatMap(d -> d.makeSingleExport(result, internalFileName))
 				.ifPresent(bytes -> {
 					log.info("Single export result {} file produce {} bytes, save to {}",
 							internalFileName, bytes.length, outputFile);

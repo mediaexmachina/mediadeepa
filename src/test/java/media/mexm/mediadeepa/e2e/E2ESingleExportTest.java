@@ -41,14 +41,17 @@ class E2ESingleExportTest extends E2EUtils {
 		if (outputFile.exists()) {
 			return;
 		}
-
-		runApp(
-				"--temp", "target/e2e-temp",
-				"-i", rawData.archive().getPath(),
-				"--single-export", "audio-loudness" + pathSeparatorChar + outputFile.getAbsolutePath());
+		runAppSingleExport(defaultAppConfig.getGraphicConfig().getLufsGraphicFilename());
 
 		assertThat(outputFile).exists().size().isNotZero();
 		// TODO check is PNG
+	}
+
+	private void runAppSingleExport(final String what) {
+		runApp(
+				"--temp", "target/e2e-temp",
+				"-i", rawData.archive().getPath(),
+				"--single-export", what + pathSeparatorChar + outputFile.getAbsolutePath());
 	}
 
 	// TODO test jpg "--graphic-jpg"

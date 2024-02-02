@@ -29,7 +29,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
 import lombok.extern.slf4j.Slf4j;
-import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -71,7 +70,6 @@ public class TableJsonExportFormat extends TableExportFormat {
 	@Override
 	public void makeDocument(final DataResult result,
 							 final List<Table> tables,
-							 final ExportToCmd exportToCmd,
 							 final OutputStream outputStream) {
 		try (final var json = jsonFactory.createGenerator(outputStream, JsonEncoding.UTF8)) {
 			json.writeStartObject();

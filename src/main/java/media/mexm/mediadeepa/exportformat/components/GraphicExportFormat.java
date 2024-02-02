@@ -70,7 +70,6 @@ public class GraphicExportFormat implements ExportFormat {
 
 	@Override
 	public Optional<byte[]> makeSingleExport(final DataResult result,
-											 final ExportToCmd exportToCmd,
 											 final String internalFileName) {
 		final var baseFileName = getBaseName(internalFileName);
 		return engines.stream()
@@ -87,7 +86,7 @@ public class GraphicExportFormat implements ExportFormat {
 
 	@Override
 	public String getFormatLongName() {
-		return "Graphical representation of data";
+		return "Data graphical representation";
 	}
 
 	@Override

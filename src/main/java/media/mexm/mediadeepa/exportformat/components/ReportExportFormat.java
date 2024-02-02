@@ -197,7 +197,6 @@ public class ReportExportFormat implements ExportFormat, ConstStrings {
 
 	@Override
 	public Optional<byte[]> makeSingleExport(final DataResult result,
-											 final ExportToCmd exportToCmd,
 											 final String internalFileName) {
 		return Optional.ofNullable(makeHTMLPage(result).getBytes(UTF_8));
 	}

@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
-import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -74,7 +73,6 @@ public class TableXMLExportFormat extends TableExportFormat {
 	@Override
 	public void makeDocument(final DataResult result,
 							 final List<Table> tables,
-							 final ExportToCmd exportToCmd,
 							 final OutputStream outputStream) {
 		try {
 			final var writer = XMLOutputFactory.newInstance()

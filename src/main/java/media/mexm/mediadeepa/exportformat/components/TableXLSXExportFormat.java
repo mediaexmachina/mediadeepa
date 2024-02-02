@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
-import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -74,18 +73,17 @@ public class TableXLSXExportFormat extends TableExportFormat {
 	@Override
 	public void makeDocument(final DataResult result,
 							 final List<Table> tables,
-							 final ExportToCmd exportToCmd,
 							 final OutputStream outputStream) {
 		try (final var wb = new SXSSFWorkbook()) {
 			wb.setCompressTempFiles(false);
-			tables.forEach(table -> makeTableOnWorkbook(exportToCmd.getBaseFileName(), wb, table));
+			tables.forEach(table -> makeTableOnWorkbook(wb, table));
 			wb.write(outputStream);
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't close Workbook", e);
 		}
 	}
 
-	private static void makeTableOnWorkbook(final String baseFileName, final SXSSFWorkbook wb, final Table table) {
+	private static void makeTableOnWorkbook(final SXSSFWorkbook wb, final Table table) {
 		final var sSheet = wb.createSheet(table.getTableName());
 
 		final var sRowHeader = sSheet.createRow(0);
@@ -96,7 +94,7 @@ public class TableXLSXExportFormat extends TableExportFormat {
 		}
 
 		final var rows = table.getRows();
-		log.debug("Add {} rows to \"{}\" sheet in XLSX {}", rows.size(), table.getTableName(), baseFileName);
+		log.debug("Add {} rows to \"{}\" sheet in XLSX", rows.size(), table.getTableName());
 
 		for (var posRow = 0; posRow < rows.size(); posRow++) {
 			final var sRow = sSheet.createRow(posRow + 1);
@@ -133,7 +131,7 @@ public class TableXLSXExportFormat extends TableExportFormat {
 		sSheet.untrackAllColumnsForAutoSizing();
 
 		try {
-			log.trace("Flush export \"{}\" sheet in XLSX {}", table.getTableName(), baseFileName);
+			log.trace("Flush export \"{}\" sheet in XLSX", table.getTableName());
 			sSheet.flushRows();
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't flush " + table.getTableName(), e);
