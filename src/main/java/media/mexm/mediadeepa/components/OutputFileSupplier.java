@@ -42,7 +42,7 @@ public class OutputFileSupplier {
 
 	public File makeOutputFile(final DataResult result, final String suffix) {
 		final var inputFiles = appCommand.getInput();
-		var fileSuffix = "";
+		var filePrefix = "";
 		if (inputFiles.size() > 1) {
 			final var rawSource = result.getSource();
 			var correctedSource = FilenameUtils.getBaseName(rawSource);
@@ -50,7 +50,7 @@ public class OutputFileSupplier {
 			if (appConfig.isAddSourceExtToOutputDirectories() && sourceExt.isEmpty() == false) {
 				correctedSource = correctedSource + "." + sourceExt;
 			}
-			fileSuffix = "_" + correctedSource;
+			filePrefix = correctedSource + "_";
 		}
 
 		final var oExportToCmd = Optional.ofNullable(appCommand.getOutputCmd())
@@ -63,15 +63,15 @@ public class OutputFileSupplier {
 				|| baseFileName.endsWith(" ")
 				|| baseFileName.endsWith("-")
 				|| baseFileName.endsWith("|")) {
-				final var f = new File(export, baseFileName + suffix + fileSuffix);
+				final var f = new File(export, filePrefix + baseFileName + suffix);
 				log.trace(MAKE_OUTPUT_FILE_NAME, f);
 				return f;
 			}
-			final var f = new File(export, baseFileName + "_" + suffix + fileSuffix);
+			final var f = new File(export, filePrefix + baseFileName + "_" + suffix);
 			log.trace(MAKE_OUTPUT_FILE_NAME, f);
 			return f;
 		}
-		final var f = new File(export, suffix + fileSuffix);
+		final var f = new File(export, filePrefix + suffix);
 		log.trace(MAKE_OUTPUT_FILE_NAME, f);
 		return f;
 	}

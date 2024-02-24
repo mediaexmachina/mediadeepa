@@ -163,7 +163,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 			return 0;
 		}
 
-		setupTempDir();
 		verifyOptions();
 
 		final var inputFiles = appCommand.getInput();
@@ -176,6 +175,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 	}
 
 	private void inputFileWorkChooser(final File inputFile) {
+		setupTempDir();
 		final var processFileCmd = appCommand.getProcessFileCmd();
 		final var extractToCmd = appCommand.getOutputCmd().getExtractToCmd();
 		if (checkIfSourceIsZIP(inputFile)) {
@@ -204,13 +204,17 @@ public class AppSessionServiceImpl implements AppSessionService {
 		cleanTempDir(appCommand.getTempDir());
 	}
 
-	private void setupTempDir() throws IOException {
+	private void setupTempDir() {
 		if (appCommand.getTempDir() == null) {
 			appCommand.setTempDir(FileUtils.getTempDirectory());
 			log.debug("Use {} as temp dir", appCommand.getTempDir());
 		} else {
 			log.debug("Create {} temp dir", appCommand.getTempDir());
-			forceMkdir(appCommand.getTempDir());
+			try {
+				forceMkdir(appCommand.getTempDir());
+			} catch (final IOException e) {
+				throw new UncheckedIOException("Can't create temp directory: " + appCommand.getTempDir(), e);
+			}
 		}
 	}
 
@@ -222,17 +226,15 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 	private void cleanTempDir(final File tempDir) {
 		if (tempDir.equals(FileUtils.getTempDirectory()) == false
-			&& tempDir.listFiles().length == 0) {
+			&& Optional.ofNullable(tempDir.listFiles()).map(f -> f.length).orElse(0) == 0) {
 			log.debug("Delete empty created temp dir {}", tempDir);
 			try {
 				FileUtils.forceDelete(tempDir);
 			} catch (final IOException e) {
-				throw new UncheckedIOException("Can't delete temp directory", e);
+				throw new UncheckedIOException("Can't delete temp directory: " + tempDir.getAbsolutePath(), e);
 			}
 		}
 	}
-
-	// TODO E2E test multiple source
 
 	private void verifyOptions() throws ParameterException {
 		final var inputFiles = appCommand.getInput();
@@ -243,7 +245,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 				.orElseThrow(() -> new ParameterException(commandLine,
 						"Nothing to do, missing an output action!"));
 
-		if (inputFiles.size() > 1 && outputCmd.getSingleExportCmd() != null) {// TODO test this case
+		if (inputFiles.size() > 1 && outputCmd.getSingleExportCmd() != null) {
 			throw new ParameterException(commandLine,
 					"Can't process multiple input sources on single export mode (only one in, one out)!");
 		}

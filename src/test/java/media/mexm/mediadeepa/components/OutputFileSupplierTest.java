@@ -147,20 +147,20 @@ class OutputFileSupplierTest {
 
 		@Test
 		void testMakeOutputFile_noBaseFileName() {
-			assertEquals(new File(export, suffix + "_" + inputFileName), ofs.makeOutputFile(result, suffix));
+			assertEquals(new File(export, inputFileName + "_" + suffix), ofs.makeOutputFile(result, suffix));
 		}
 
 		@Test
 		void testMakeOutputFile_simpleBaseFileName() {
 			when(exportToCmd.getBaseFileName()).thenReturn(baseFileName);
-			assertEquals(new File(export, baseFileName + "_" + suffix + "_" + inputFileName), ofs.makeOutputFile(result, suffix));
+			assertEquals(new File(export, inputFileName + "_" + baseFileName + "_" + suffix), ofs.makeOutputFile(result, suffix));
 		}
 
 		@ParameterizedTest
 		@ValueSource(strings = { "_", " ", "-", "|" })
 		void testMakeOutputFile_separatedBaseFileName(final String sep) {
 			when(exportToCmd.getBaseFileName()).thenReturn(baseFileName + sep);
-			assertEquals(new File(export, baseFileName + sep + suffix + "_" + inputFileName), ofs.makeOutputFile(result, suffix));
+			assertEquals(new File(export, inputFileName + "_" + baseFileName + sep + suffix), ofs.makeOutputFile(result, suffix));
 		}
 
 	}
