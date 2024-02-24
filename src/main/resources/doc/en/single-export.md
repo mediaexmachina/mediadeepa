@@ -1,12 +1,14 @@
 ## Single export option
 
-With the help of `--single-export` option, you can choose and select an uniq file to export, without the need to select an export format, or a directory.
+With the help of `--single-export` option, you can choose and select an unique file to export, without the need to select an export format, or a directory.
 
 The use of `--single-export` invalidate these options:  `-f/--format`,  `-e/--export` and `--export-base-filename`.
 
 It can be used with a media or ZIP archive input file.
 
-All filter options behaves the same way as full export: you should disable some analysing options if you don't need it. Like `-vn` if you just want to export an audio related format.
+All filter options behaves the same way as full export: you should disable some analyzing options if you don't need it. Like `-vn` if you just want to export an audio related format.
+
+Don't input (`-i`) more than one file.
 
 ### Syntax
 
@@ -28,6 +30,6 @@ Example:
 
 Will produce an `audio-loudness` graphic file on `/home/me/lufs.png` file.
 
-For information, `graphic` export format files has *no extention*. By default, it export **PNG** files. Change this with `--graphic-jpg`.
+For information, `graphic` export format files has *no extension*. By default, it export **PNG** files. Change this with `--graphic-jpg`.
 
-Here the full avaliable internal files that you can use (CSV FR format can't be selected):
+Here the full available internal files that you can use (CSV FR format can't be selected):
