@@ -108,6 +108,8 @@ class OutputFileSupplierTest {
 		verify(exportToCmd, atLeastOnce()).getBaseFileName();
 
 		verifyNoMoreInteractions(result, appCommand, outputCmd, exportToCmd);
+
+		appConfig.setAddSourceExtToOutputDirectories(false);
 	}
 
 	@Test
@@ -143,6 +145,7 @@ class OutputFileSupplierTest {
 		@AfterEach
 		void ends() {
 			verify(result, atLeastOnce()).getSource();
+			appConfig.setAddSourceExtToOutputDirectories(false);
 		}
 
 		@Test
