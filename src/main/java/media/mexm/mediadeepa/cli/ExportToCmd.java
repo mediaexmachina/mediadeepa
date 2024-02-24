@@ -40,7 +40,7 @@ public class ExportToCmd {
 			paramLabel = "FILENAME")
 	private String baseFileName;
 
-	public File makeOutputFile(final String suffix) {
+	public File makeOutputFile(final String suffix) {// TODO manage input file name in case of multiple
 		if (baseFileName != null && baseFileName.isEmpty() == false) {
 			if (baseFileName.endsWith("_")
 				|| baseFileName.endsWith(" ")

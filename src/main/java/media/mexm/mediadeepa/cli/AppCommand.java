@@ -19,6 +19,7 @@ package media.mexm.mediadeepa.cli;
 import static media.mexm.mediadeepa.App.NAME;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import lombok.Data;
@@ -70,7 +71,7 @@ public class AppCommand implements Callable<Integer> {
 	@Option(names = { "-i", "--input" },
 			description = "Input (media) file to process, or raw ffmpeg datas from a Mediadeepa archive file",
 			paramLabel = "FILE")
-	private File input;
+	private List<File> input;
 
 	@ArgGroup(exclusive = false,
 			  heading = "Process media file options%n")

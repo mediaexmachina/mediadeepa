@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,7 +153,7 @@ public class ImpExArchiveExtractionSession {
 		}
 	}
 
-	public ImpExArchiveExtractionSession readFromZip(final File zipFile) throws IOException {
+	public ImpExArchiveExtractionSession readFromZip(final File zipFile) {
 		final var buffer = new byte[TEN_MB];
 
 		log.info("Open and load {} zip file", zipFile);
@@ -168,14 +169,20 @@ public class ImpExArchiveExtractionSession {
 				}
 				add(zEntry.getName(), sb.toString());
 			}
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't open/read input file as ZIP file", e);
 		}
 		return this;
 	}
 
-	public void saveToZip(final File zipFile) throws IOException {
+	public void saveToZip(final File zipFile) {
 		if (zipFile.exists()) {
 			log.info("Overwrite {} file", zipFile);
-			FileUtils.forceDelete(zipFile);
+			try {
+				FileUtils.forceDelete(zipFile);
+			} catch (final IOException e) {
+				throw new UncheckedIOException("Can't overwrite", e);
+			}
 		}
 
 		final var entries = getEntries().iterator();
@@ -185,7 +192,11 @@ public class ImpExArchiveExtractionSession {
 		}
 
 		log.info("Save to archive file {}", zipFile);
-		forceMkdirParent(zipFile);
+		try {
+			forceMkdirParent(zipFile);
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't create sub dirs", e);
+		}
 
 		try (var fileOut = new BufferedOutputStream(new FileOutputStream(zipFile), TEN_MB)) {
 			try (var zipOut = new ZipOutputStream(fileOut)) {
@@ -198,6 +209,8 @@ public class ImpExArchiveExtractionSession {
 				}
 				zipOut.flush();
 			}
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't write ZIP file", e);
 		}
 	}
 
