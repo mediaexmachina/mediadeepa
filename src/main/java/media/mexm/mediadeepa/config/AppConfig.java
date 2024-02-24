@@ -89,5 +89,6 @@ public class AppConfig {
 	private String logtofilePattern = "%d{ISO8601} %-5level %msg%n";
 	private String ffmpegExecName = "ffmpeg";
 	private String ffprobeExecName = "ffprobe";
+	private boolean addSourceExtToOutputDirectories = false;
 
 }

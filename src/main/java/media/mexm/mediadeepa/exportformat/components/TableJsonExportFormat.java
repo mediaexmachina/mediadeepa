@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 
 import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.TableCellFloat;
@@ -51,8 +52,9 @@ public class TableJsonExportFormat extends TableExportFormat {
 
 	public TableJsonExportFormat(@Autowired final List<TableRendererEngine> engines,
 								 @Autowired final AppConfig appConfig,
-								 @Autowired final NumberUtils numberUtils) {
-		super(engines, numberUtils);
+								 @Autowired final NumberUtils numberUtils,
+								 @Autowired final OutputFileSupplier outputFileSupplier) {
+		super(engines, numberUtils, outputFileSupplier);
 		jsonFactory = new JsonFactory();
 		this.appConfig = appConfig;
 	}

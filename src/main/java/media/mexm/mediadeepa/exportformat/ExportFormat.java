@@ -21,11 +21,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import media.mexm.mediadeepa.cli.ExportToCmd;
-
 public interface ExportFormat {
 
-	Map<String, File> exportResult(DataResult result, ExportToCmd exportToCmd);
+	Map<String, File> exportResult(DataResult result);
 
 	String getFormatName();
 

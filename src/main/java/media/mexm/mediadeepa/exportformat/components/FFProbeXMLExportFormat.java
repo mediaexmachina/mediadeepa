@@ -32,7 +32,7 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
@@ -43,6 +43,8 @@ public class FFProbeXMLExportFormat implements ExportFormat {
 
 	@Autowired
 	private AppConfig appConfig;
+	@Autowired
+	private OutputFileSupplier outputFileSupplier;
 
 	@Override
 	public String getFormatName() {
@@ -55,10 +57,10 @@ public class FFProbeXMLExportFormat implements ExportFormat {
 	}
 
 	@Override
-	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
+	public Map<String, File> exportResult(final DataResult result) {
 		return result.getFFprobeResult()
 				.map(ffprobeJABX -> {
-					final var outFile = exportToCmd.makeOutputFile(appConfig.getFfprobexmlFileName());
+					final var outFile = outputFileSupplier.makeOutputFile(result, appConfig.getFfprobexmlFileName());
 					try {
 						FileUtils.write(
 								outFile,

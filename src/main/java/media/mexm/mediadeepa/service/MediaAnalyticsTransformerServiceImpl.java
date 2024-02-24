@@ -60,7 +60,7 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 		log.info("Start export result files...");
 		exportToCmd.getFormat().stream()
 				.map(this::getExportFormatByName)
-				.forEach(s -> doExportAnalytic(result, exportToCmd, s));
+				.forEach(s -> doExportAnalytic(result, s));
 	}
 
 	@Override
@@ -83,10 +83,10 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 				});
 	}
 
-	private void doExportAnalytic(final DataResult result, final ExportToCmd exportToCmd, final ExportFormat s) {
+	private void doExportAnalytic(final DataResult result, final ExportFormat s) {
 		final var now = System.currentTimeMillis();
 		log.info("Export with {} ({})...", s.getFormatLongName(), s.getFormatName());
-		final var producedFiles = s.exportResult(result, exportToCmd);
+		final var producedFiles = s.exportResult(result);
 		final var duration = (System.currentTimeMillis() - now) / 1000f;
 		if (producedFiles.isEmpty()) {
 			log.info("{} has not product files (it take to {} sec)", s.getFormatName(), duration);

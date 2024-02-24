@@ -232,18 +232,23 @@ public class AppSessionServiceImpl implements AppSessionService {
 		}
 	}
 
-	private void verifyOptions() throws ParameterException {
-		// TODO disable single output if multiple input + test
+	// TODO E2E test multiple source
 
+	private void verifyOptions() throws ParameterException {
 		final var inputFiles = appCommand.getInput();
 		if (inputFiles == null || inputFiles.isEmpty()) {
 			throw new ParameterException(commandLine, "You must set at least an input file");
 		}
-		inputFiles.forEach(this::validateInputFile);
-
 		final var outputCmd = Optional.ofNullable(appCommand.getOutputCmd())
 				.orElseThrow(() -> new ParameterException(commandLine,
 						"Nothing to do, missing an output action!"));
+
+		if (inputFiles.size() > 1 && outputCmd.getSingleExportCmd() != null) {// TODO test this case
+			throw new ParameterException(commandLine,
+					"Can't process multiple input sources on single export mode (only one in, one out)!");
+		}
+
+		inputFiles.forEach(this::validateInputFile);
 
 		Optional.ofNullable(outputCmd.getExtractToCmd())
 				.ifPresent(et -> Optional.ofNullable(et.getArchiveFile())

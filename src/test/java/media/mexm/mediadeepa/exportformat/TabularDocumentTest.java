@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyFloat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -40,8 +41,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import net.datafaker.Faker;
 
 class TabularDocumentTest {
@@ -49,7 +50,6 @@ class TabularDocumentTest {
 	final static Faker faker = Faker.instance();
 
 	TabularDocument doc;
-	ExportToCmd exportTo;
 	String fileName;
 	File exportDirectory;
 	List<String> row;
@@ -63,6 +63,10 @@ class TabularDocumentTest {
 	TabularDocumentExporter exporter;
 	@Mock
 	Object object;
+	@Mock
+	OutputFileSupplier outputFileSupplier;
+	@Mock
+	DataResult result;
 
 	@BeforeEach
 	void init() throws Exception {
@@ -78,15 +82,12 @@ class TabularDocumentTest {
 		prefixFileName = faker.numerify("prefix###");
 		expectedOutputFile = new File(exportDirectory.getPath(), prefixFileName + "_" + fileName + "." + fileExt);
 
-		exportTo = new ExportToCmd();
-		exportTo.setExport(exportDirectory);
-		exportTo.setBaseFileName(prefixFileName);
-
 		when(exporter.getDocument(any(), any())).thenReturn(document);
 		when(exporter.getDocumentFileExtension()).thenReturn(fileExt);
 		when(exporter.getNumberUtils()).thenReturn(new NumberUtils());
 		when(exporter.formatNumberHighPrecision(anyFloat()))
 				.thenAnswer(d -> String.valueOf(d.getArgument(0, Float.class)));
+		when(outputFileSupplier.makeOutputFile(eq(result), any())).thenReturn(expectedOutputFile);
 	}
 
 	@AfterEach
@@ -105,7 +106,7 @@ class TabularDocumentTest {
 	void testRowListOfString() {
 		doc.head(List.of(""));
 		doc.row(row);
-		assertEquals(expectedOutputFile, doc.exportToFile(exportTo).get());
+		assertEquals(expectedOutputFile, doc.exportToFile(outputFileSupplier, result).get());
 
 		verify(exporter, times(1)).getDocument(List.of(""), List.of(row));
 		verify(exporter, times(1)).getDocumentFileExtension();
@@ -115,14 +116,14 @@ class TabularDocumentTest {
 	void testRowListOfString_empty_noHeader() {
 		doc.row((List<String>) null);
 		doc.row(List.of());
-		assertTrue(doc.exportToFile(exportTo).isEmpty());
+		assertTrue(doc.exportToFile(outputFileSupplier, result).isEmpty());
 	}
 
 	@Test
 	void testRowListOfString_noHeader() {
 		final var empty = List.of("");
 		assertThrows(IllegalArgumentException.class, () -> doc.row(empty));
-		assertTrue(doc.exportToFile(exportTo).isEmpty());
+		assertTrue(doc.exportToFile(outputFileSupplier, result).isEmpty());
 	}
 
 	@Test
@@ -158,7 +159,7 @@ class TabularDocumentTest {
 				String.valueOf(numb),
 				url.toString());
 
-		assertEquals(expectedOutputFile, doc.exportToFile(exportTo).get());
+		assertEquals(expectedOutputFile, doc.exportToFile(outputFileSupplier, result).get());
 
 		verify(exporter, times(1)).getDocument(head, List.of(row));
 		verify(exporter, times(1)).getDocumentFileExtension();
@@ -168,14 +169,14 @@ class TabularDocumentTest {
 
 	@Test
 	void testExportToFile_empty() {
-		assertTrue(doc.exportToFile(exportTo).isEmpty());
+		assertTrue(doc.exportToFile(outputFileSupplier, result).isEmpty());
 	}
 
 	@Test
 	void testExportToFile() {
 		doc.head(List.of(head));
 		doc.row(row);
-		assertEquals(expectedOutputFile, doc.exportToFile(exportTo).get());
+		assertEquals(expectedOutputFile, doc.exportToFile(outputFileSupplier, result).get());
 		verify(exporter, times(1)).getDocument(List.of(head), List.of(row));
 		verify(exporter, times(1)).getDocumentFileExtension();
 	}

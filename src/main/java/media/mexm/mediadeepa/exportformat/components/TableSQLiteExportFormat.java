@@ -38,6 +38,7 @@ import org.sqlite.SQLiteConfig.TempStore;
 import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.TableCellFloat;
@@ -59,8 +60,9 @@ public class TableSQLiteExportFormat extends TableExportFormat {
 	public TableSQLiteExportFormat(@Autowired final List<TableRendererEngine> engines,
 								   @Autowired final AppConfig appConfig,
 								   @Autowired final NumberUtils numberUtils,
-								   @Autowired final AppCommand appCommand) {
-		super(engines, numberUtils);
+								   @Autowired final AppCommand appCommand,
+								   @Autowired final OutputFileSupplier outputFileSupplier) {
+		super(engines, numberUtils, outputFileSupplier);
 		this.appConfig = appConfig;
 		this.appCommand = appCommand;
 	}
