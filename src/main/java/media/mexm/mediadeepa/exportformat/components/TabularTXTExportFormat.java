@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 
@@ -35,8 +36,9 @@ public class TabularTXTExportFormat extends TabularExportFormat {
 	protected final NumberUtils numberUtils;
 
 	public TabularTXTExportFormat(@Autowired final List<TabularRendererEngine> engines,
-								  @Autowired final NumberUtils numberUtils) {
-		super(engines);
+								  @Autowired final NumberUtils numberUtils,
+								  @Autowired final OutputFileSupplier outputFileSupplier) {
+		super(engines, outputFileSupplier);
 		this.numberUtils = numberUtils;
 	}
 

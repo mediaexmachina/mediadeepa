@@ -35,6 +35,9 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.SpringApplication;
+
+import media.mexm.mediadeepa.App;
 
 class E2ESingleExportTest extends E2EUtils {
 
@@ -56,6 +59,26 @@ class E2ESingleExportTest extends E2EUtils {
 		assertThat(outputFile).exists().size().isNotZero();
 		checkFileHeader("89 50 4e 47"); // PNG
 		openImage();
+	}
+
+	@Test
+	void testSimpleExport_multipleSource() throws IOException {
+		rawData = prepareMpgForSimpleE2ETests();
+		if (rawData == null) {
+			return;
+		}
+
+		outputFile = new File("target/e2e-single-export", "thisCantExits.jpg");
+		forceMkdirParent(outputFile);
+		assertThat(outputFile).doesNotExist();
+
+		final var params = new String[] { "--temp", "target/e2e-temp",
+										  "-i", rawData.archive().getPath(),
+										  "-i", rawData.archive().getPath(),
+										  "--single-export", outputFile.getPath() };
+
+		assertThat(SpringApplication.exit(SpringApplication.run(App.class, params))).isEqualTo(2);
+		assertThat(outputFile).doesNotExist();
 	}
 
 	@Test

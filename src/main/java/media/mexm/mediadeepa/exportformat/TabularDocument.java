@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 
 /**
  * Manage structured header/cols/row document
@@ -98,10 +98,11 @@ public class TabularDocument {
 		return this;
 	}
 
-	public Optional<File> exportToFile(final ExportToCmd exportToCmd) {
+	public Optional<File> exportToFile(final OutputFileSupplier outputFileSupplier, final DataResult result) {
 		return exportToBytes()
 				.map(bytes -> {
-					final var outfile = exportToCmd.makeOutputFile(
+					final var outfile = outputFileSupplier.makeOutputFile(
+							result,
 							baseFileName + "." + exporter.getDocumentFileExtension());
 					try {
 						FileUtils.writeByteArrayToFile(outfile, bytes);

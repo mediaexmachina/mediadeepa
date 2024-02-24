@@ -31,14 +31,16 @@ import org.springframework.stereotype.Component;
 import com.opencsv.CSVWriterBuilder;
 
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 
 @Component
 public class TabularCSVExportFormat extends TabularTXTExportFormat {
 
 	public TabularCSVExportFormat(@Autowired final List<TabularRendererEngine> engines,
-								  @Autowired final NumberUtils numberUtils) {
-		super(engines, numberUtils);
+								  @Autowired final NumberUtils numberUtils,
+								  @Autowired final OutputFileSupplier outputFileSupplier) {
+		super(engines, numberUtils, outputFileSupplier);
 	}
 
 	@Override

@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -110,7 +111,7 @@ class AppSessionServiceTest {
 		when(ffmpegService.getMtdFiltersAvaliable()).thenReturn(Map.of());
 
 		processFileCmd = new ProcessFileCmd();
-		appCommand.setInput(File.createTempFile("mediadeepa", ".tmp"));
+		appCommand.setInput(List.of(File.createTempFile("mediadeepa", ".tmp")));
 		appCommand.setProcessFileCmd(null);
 	}
 
@@ -194,7 +195,7 @@ class AppSessionServiceTest {
 		assertThrows(UncheckedIOException.class,
 				() -> appSessionService.validateOutputDir(dirFile));
 
-		final var regularFile = appCommand.getInput();
+		final var regularFile = appCommand.getInput().get(0);
 		assertTrue(regularFile.exists());
 		assertThrows(ParameterException.class,
 				() -> appSessionService.validateOutputDir(regularFile));

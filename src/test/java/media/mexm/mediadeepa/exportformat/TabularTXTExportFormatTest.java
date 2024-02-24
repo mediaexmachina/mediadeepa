@@ -20,13 +20,16 @@ import static java.lang.System.lineSeparator;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.exportformat.components.TabularTXTExportFormat;
 import net.datafaker.Faker;
 
@@ -34,13 +37,15 @@ class TabularTXTExportFormatTest {
 	final static Faker faker = Faker.instance();
 
 	TabularTXTExportFormat t;
-
 	NumberUtils numberUtils;
+	@Mock
+	OutputFileSupplier outputFileSupplier;
 
 	@BeforeEach
-	void init() {
+	void init() throws Exception {
+		openMocks(this).close();
 		numberUtils = new NumberUtils();
-		t = new TabularTXTExportFormat(List.of(), numberUtils);
+		t = new TabularTXTExportFormat(List.of(), numberUtils, outputFileSupplier);
 	}
 
 	@Test

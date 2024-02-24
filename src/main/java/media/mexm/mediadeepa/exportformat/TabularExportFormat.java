@@ -28,15 +28,18 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import media.mexm.mediadeepa.cli.ExportToCmd;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 
 public abstract class TabularExportFormat implements ExportFormat, TabularDocumentExporter {
 
 	protected final List<TabularRendererEngine> engines;
+	protected final OutputFileSupplier outputFileSupplier;
 
-	protected TabularExportFormat(final List<TabularRendererEngine> engines) {
+	protected TabularExportFormat(final List<TabularRendererEngine> engines,
+								  final OutputFileSupplier outputFileSupplier) {
 		this.engines = Objects.requireNonNull(engines, "\"engines\" can't to be null");
+		this.outputFileSupplier = Objects.requireNonNull(outputFileSupplier, "\"outputFileSupplier\" can't to be null");
 	}
 
 	@Override
@@ -62,11 +65,11 @@ public abstract class TabularExportFormat implements ExportFormat, TabularDocume
 	}
 
 	@Override
-	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
+	public Map<String, File> exportResult(final DataResult result) {
 		return engines.stream()
 				.map(en -> en.toTabularDocument(result, this))
 				.flatMap(List::stream)
-				.map(tabular -> tabular.exportToFile(exportToCmd))
+				.map(tabular -> tabular.exportToFile(outputFileSupplier, result))
 				.flatMap(Optional::stream)
 				.collect(toUnmodifiableMap(f -> getBaseName(f.getName()), f -> f));
 	}

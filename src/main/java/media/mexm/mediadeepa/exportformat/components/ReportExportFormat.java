@@ -56,8 +56,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.ConstStrings;
-import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.components.RendererEngineComparator;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -78,6 +78,8 @@ public class ReportExportFormat implements ExportFormat, ConstStrings {
 	private AppConfig appConfig;
 	@Autowired
 	private NumberUtils numberUtils;
+	@Autowired
+	private OutputFileSupplier outputFileSupplier;
 
 	@Value("classpath:html-report-style.css")
 	private Resource cssHTMLReportResource;
@@ -179,10 +181,12 @@ public class ReportExportFormat implements ExportFormat, ConstStrings {
 	}
 
 	@Override
-	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
+	public Map<String, File> exportResult(final DataResult result) {
 		final var htmlDocument = makeHTMLPage(result);
 		try {
-			final var outFile = exportToCmd.makeOutputFile(appConfig.getReportConfig().getHtmlFilename());
+
+			final var outFile = outputFileSupplier.makeOutputFile(result, appConfig.getReportConfig()
+					.getHtmlFilename());
 			FileUtils.write(
 					outFile,
 					htmlDocument,

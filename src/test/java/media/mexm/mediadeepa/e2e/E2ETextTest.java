@@ -18,8 +18,10 @@ package media.mexm.mediadeepa.e2e;
 
 import static java.lang.Math.round;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static media.mexm.mediadeepa.e2e.E2ESpecificMediaFile.getFromMediaFile;
+import static org.apache.commons.io.FilenameUtils.wildcardMatch;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -29,6 +31,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -40,6 +43,7 @@ import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
@@ -542,6 +546,73 @@ class E2ETextTest extends E2EUtils {
 		assertEquals(3,
 				countLinesExportDir("long-mkv_video-siti-stats-ITU-T_P-910.txt"));
 		assertTrue(countLinesExportDir("long-mkv_about.txt") > 0);
+	}
+
+	static final int EXPECTED_OUT_FILES_COUNT_SOURCE_VID = 20;
+	static final int EXPECTED_OUT_FILES_COUNT_SOURCE_AUD = 12;
+
+	@Test
+	void testMultipleInputs() throws IOException {
+		final var inputs = ALL_MEDIA_FILE_NAME.stream()
+				.filter(File::exists)
+				.map(E2ERawOutDataFiles::create)
+				.toList();
+		if (inputs.isEmpty()) {
+			return;
+		}
+		for (final var rawData : inputs) {
+			extractRawTXT(rawData);
+			assertTrue(rawData.allOutExists());
+		}
+
+		final var exportBaseFilename = "e2e-multiple";
+		final var exportDir = new File("target/e2e-export");
+		FileUtils.forceMkdir(exportDir);
+
+		final var params = new ArrayList<>(List.of(
+				"--temp", "target/e2e-temp",
+				"-f", "txt",
+				"-e", exportDir.getPath(),
+				"--export-base-filename", exportBaseFilename));
+		params.addAll(inputs.stream()
+				.map(E2ERawOutDataFiles::archive)
+				.map(File::getPath)
+				.flatMap(fileName -> Stream.of("-i", fileName))
+				.toList());
+
+		System.setProperty("mediadeepa.addSourceExtToOutputDirectories", "true");
+
+		final var expectedFileCount = (int) inputs.stream()
+				.filter(E2ERawOutDataFiles::hasVideo)
+				.count() * EXPECTED_OUT_FILES_COUNT_SOURCE_VID + (int) inputs.stream()
+						.filter(not(E2ERawOutDataFiles::hasVideo))
+						.count() * EXPECTED_OUT_FILES_COUNT_SOURCE_AUD;
+		final var realFileCountBefore = getCurrentFileCountMultipleInputs(inputs, exportBaseFilename, exportDir);
+
+		runApp(() -> realFileCountBefore >= expectedFileCount,
+				params.toArray(new String[params.size()]));
+
+		final var realFileCountAfter = getCurrentFileCountMultipleInputs(inputs, exportBaseFilename, exportDir);
+		assertThat(realFileCountAfter).isGreaterThanOrEqualTo(expectedFileCount);
+	}
+
+	private int getCurrentFileCountMultipleInputs(final List<E2ERawOutDataFiles> inputs,
+									final String exportBaseFilename,
+									final File exportDir) {
+		final var totalFileCount = (int) inputs.stream()
+				.map(E2ERawOutDataFiles::mediaFile)
+				.map(File::getName)
+				.map(sourceName -> sourceName + "_" + exportBaseFilename)
+				.flatMap(fileNamePrefix -> Stream.of(
+						exportDir.listFiles(f -> wildcardMatch(f.getName(), fileNamePrefix + "*"))))
+				.filter(f -> f.length() > 0)
+				.count();
+		return totalFileCount;
+	}
+
+	@AfterEach
+	void ends() {
+		System.clearProperty("mediadeepa.addSourceExtToOutputDirectories");
 	}
 
 }

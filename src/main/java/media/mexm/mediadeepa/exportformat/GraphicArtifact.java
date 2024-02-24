@@ -29,6 +29,7 @@ import org.jfree.chart.JFreeChart;
 
 import lombok.Getter;
 import media.mexm.mediadeepa.cli.AppCommand;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.config.AppConfig;
 
 public class GraphicArtifact {
@@ -90,7 +91,10 @@ public class GraphicArtifact {
 		}
 	}
 
-	public File save(final AppCommand appCommand, final AppConfig appConfig) {
+	public File save(final AppCommand appCommand,
+					 final AppConfig appConfig,
+					 final OutputFileSupplier outputFileSupplier,
+					 final DataResult result) {
 		final var rawImage = getRawData(appCommand, appConfig);
 
 		String fileName;
@@ -100,7 +104,7 @@ public class GraphicArtifact {
 			fileName = fileNameWOExt + DOT_PNG;
 		}
 
-		final var outputFile = appCommand.getOutputCmd().getExportToCmd().makeOutputFile(fileName);
+		final var outputFile = outputFileSupplier.makeOutputFile(result, fileName);
 		try {
 			FileUtils.writeByteArrayToFile(outputFile, rawImage, false);
 		} catch (final IOException e) {

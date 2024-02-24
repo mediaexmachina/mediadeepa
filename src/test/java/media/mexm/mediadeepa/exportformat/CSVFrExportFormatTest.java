@@ -19,13 +19,16 @@ package media.mexm.mediadeepa.exportformat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.exportformat.components.TabularCSVFrExportFormat;
 import net.datafaker.Faker;
 
@@ -33,13 +36,15 @@ class CSVFrExportFormatTest {
 	final static Faker faker = Faker.instance();
 
 	TabularCSVFrExportFormat c;
-
 	NumberUtils numberUtils;
+	@Mock
+	OutputFileSupplier outputFileSupplier;
 
 	@BeforeEach
-	void init() {
+	void init() throws Exception {
+		openMocks(this).close();
 		numberUtils = new NumberUtils();
-		c = new TabularCSVFrExportFormat(List.of(), numberUtils);
+		c = new TabularCSVFrExportFormat(List.of(), numberUtils, outputFileSupplier);
 	}
 
 	@Test

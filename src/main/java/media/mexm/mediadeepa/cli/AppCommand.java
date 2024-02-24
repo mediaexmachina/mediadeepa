@@ -19,6 +19,7 @@ package media.mexm.mediadeepa.cli;
 import static media.mexm.mediadeepa.App.NAME;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import lombok.Data;
@@ -42,7 +43,7 @@ import picocli.CommandLine.Option;
 						  ExitCode.USAGE + ":Error" },
 		 customSynopsis = {
 							"mediadeepa [-hov] [--temp DIRECTORY]",
-							"           [-i FILE] [--import FILE]",
+							"           [-i FILE]...",
 							"           [-c] [-mn] [-an | -vn] [-fo FILTER] [-fn FILTER] [--filter-X VALUE]",
 							"           [-f FORMAT_TYPE] [-e DIRECTORY] [--extract FILE]"
 		 })
@@ -70,7 +71,7 @@ public class AppCommand implements Callable<Integer> {
 	@Option(names = { "-i", "--input" },
 			description = "Input (media) file to process, or raw ffmpeg datas from a Mediadeepa archive file",
 			paramLabel = "FILE")
-	private File input;
+	private List<File> input;
 
 	@ArgGroup(exclusive = false,
 			  heading = "Process media file options%n")

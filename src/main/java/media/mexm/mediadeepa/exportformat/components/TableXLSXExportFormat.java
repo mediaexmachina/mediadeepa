@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.TableCellFloat;
@@ -50,8 +51,9 @@ public class TableXLSXExportFormat extends TableExportFormat {
 
 	public TableXLSXExportFormat(@Autowired final List<TableRendererEngine> engines,
 								 @Autowired final AppConfig appConfig,
-								 @Autowired final NumberUtils numberUtils) {
-		super(engines, numberUtils);
+								 @Autowired final NumberUtils numberUtils,
+								 @Autowired final OutputFileSupplier outputFileSupplier) {
+		super(engines, numberUtils, outputFileSupplier);
 		this.appConfig = appConfig;
 	}
 

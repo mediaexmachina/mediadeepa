@@ -33,8 +33,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
-import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.exportformat.TableDocument.Table;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 
@@ -43,11 +43,14 @@ public abstract class TableExportFormat implements ExportFormat {
 
 	protected final List<TableRendererEngine> engines;
 	protected final NumberUtils numberUtils;
+	protected final OutputFileSupplier outputFileSupplier;
 
 	protected TableExportFormat(final List<TableRendererEngine> engines,
-								final NumberUtils numberUtils) {
+								final NumberUtils numberUtils,
+								final OutputFileSupplier outputFileSupplier) {
 		this.engines = Objects.requireNonNull(engines, "\"engines\" can't to be null");
 		this.numberUtils = Objects.requireNonNull(numberUtils, "\"numberUtils\" can't to be null");
+		this.outputFileSupplier = Objects.requireNonNull(outputFileSupplier, "\"outputFileSupplier\" can't to be null");
 	}
 
 	public abstract String getInternalFileName();
@@ -57,11 +60,11 @@ public abstract class TableExportFormat implements ExportFormat {
 									  OutputStream outputStream);
 
 	@Override
-	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
+	public Map<String, File> exportResult(final DataResult result) {
 		final var tableDocument = new TableDocument(numberUtils);
 		engines.forEach(en -> en.addToTable(result, tableDocument));
 
-		final var outputFile = exportToCmd.makeOutputFile(getInternalFileName());
+		final var outputFile = outputFileSupplier.makeOutputFile(result, getInternalFileName());
 		log.debug("Start export {} tables to {}...", tableDocument.getTables().size(), outputFile);
 
 		try (var outputStream = new BufferedOutputStream(new FileOutputStream(outputFile), 0XFFFFFF)) {

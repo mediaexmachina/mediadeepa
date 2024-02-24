@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
 
@@ -148,7 +149,7 @@ class ImpExArchiveExtractionSessionTest {
 
 		s = new ImpExArchiveExtractionSession();
 		final var notFile = new File("");
-		assertThrows(IOException.class, () -> s.readFromZip(notFile));
+		assertThrows(UncheckedIOException.class, () -> s.readFromZip(notFile));
 		s.readFromZip(zipFile);
 		final var entries = s.getEntries().toList();
 		assertEquals(List.of(efEntry), entries);

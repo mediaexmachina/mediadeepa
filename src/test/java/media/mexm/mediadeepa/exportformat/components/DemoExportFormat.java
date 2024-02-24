@@ -26,7 +26,6 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
-import media.mexm.mediadeepa.cli.ExportToCmd;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
 import net.datafaker.Faker;
@@ -70,7 +69,7 @@ public class DemoExportFormat implements ExportFormat {
 	}
 
 	@Override
-	public Map<String, File> exportResult(final DataResult result, final ExportToCmd exportToCmd) {
+	public Map<String, File> exportResult(final DataResult result) {
 		capturedResults.add(result);
 		return exportResult;
 	}
