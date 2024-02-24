@@ -62,7 +62,7 @@ public class AboutMeasureRendererEngine implements
 	@Override
 	public Optional<TabularDocument> toSingleTabularDocument(final String internalTabularBaseFileName,
 															 final DataResult result,
-															 final TabularExportFormat tabularExportFormat) {// TODO test
+															 final TabularExportFormat tabularExportFormat) {
 		if (ABOUT_NAME.equalsIgnoreCase(internalTabularBaseFileName)) {
 			return Optional.ofNullable(getAboutTabular(result, tabularExportFormat));
 		}
