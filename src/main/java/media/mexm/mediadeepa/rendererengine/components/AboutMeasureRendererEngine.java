@@ -50,8 +50,8 @@ public class AboutMeasureRendererEngine implements
 										TabularRendererEngine,
 										ConstStrings {
 
-	private static final String ABOUT_NAME = "about";
-	private static final String FILTERS = "filters";
+	static final String ABOUT_NAME = "about";
+	static final String FILTERS = "filters";
 
 	@Autowired
 	private RunnedJavaCmdLine runnedJavaCmdLine;

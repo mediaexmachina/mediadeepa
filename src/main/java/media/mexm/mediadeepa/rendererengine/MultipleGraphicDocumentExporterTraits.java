@@ -27,7 +27,7 @@ import org.springframework.beans.factory.InitializingBean;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.GraphicArtifact;
 
-public interface MultipleGraphicDocumentExporterTraits<T> extends InitializingBean, GraphicRendererEngine {// TODO test
+public interface MultipleGraphicDocumentExporterTraits<T> extends InitializingBean, GraphicRendererEngine {
 
 	Optional<T> makeGraphicReportItem(DataResult result);
 
