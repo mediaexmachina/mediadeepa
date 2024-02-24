@@ -59,7 +59,7 @@ class MultipleGraphicDocumentExporterTraitsTest {
 		@Override
 		public Optional<Object> makeGraphicReportItem(final DataResult r) {
 			assertThat(r).isEqualTo(result);
-			return Optional.of(graphicReportItem);
+			return Optional.ofNullable(graphicReportItem);
 		}
 
 		@Override
