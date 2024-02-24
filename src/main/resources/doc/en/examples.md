@@ -18,7 +18,7 @@ All available **Export formats type** are listed by:
 mediadeepa -o
 ```
 
-## Process to extract
+## Import or Process to extract
 
 Just:
 
@@ -32,10 +32,18 @@ You can setup FFmpeg, like with import, like:
 mediadeepa -i videofile.mov -c -an --extract analysing-archive.zip
 ```
 
-## Import to export
-
-Replace `-i` option by `--import`:
+Extracted (archive) ZIP file can be loaded simply by `-i`:
 
 ```
-mediadeepa --import analysing-archive.zip -f report -f graphic -e .
+mediadeepa -i analysing-archive.zip -f report -f graphic -e .
 ```
+
+## Multiple Import or Process
+
+Add `-i` options to works with multiple files, like:
+
+```
+mediadeepa -i analysing-archive.zip -i videofile.mov -i anotherfile.wav -f report -f graphic -e .
+```
+
+You can mix archive zip files and media files, but beware to not *import* with *extract* (zip to zip) or use single output file mode (`--single-export`).

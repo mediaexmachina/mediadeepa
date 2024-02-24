@@ -8,6 +8,8 @@ It can be used with a media or ZIP archive input file.
 
 All filter options behaves the same way as full export: you should disable some analysing options if you don't need it. Like `-vn` if you just want to export an audio related format.
 
+Don't input (`-i`) more than one file.
+
 ### Syntax
 
 ```
