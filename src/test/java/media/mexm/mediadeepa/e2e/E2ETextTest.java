@@ -17,8 +17,11 @@
 package media.mexm.mediadeepa.e2e;
 
 import static java.lang.Math.round;
+import static java.lang.System.lineSeparator;
+import static java.nio.charset.Charset.defaultCharset;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static media.mexm.mediadeepa.e2e.E2ESpecificMediaFile.getFromMediaFile;
 import static org.apache.commons.io.FilenameUtils.wildcardMatch;
@@ -43,8 +46,11 @@ import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
@@ -551,68 +557,112 @@ class E2ETextTest extends E2EUtils {
 	static final int EXPECTED_OUT_FILES_COUNT_SOURCE_VID = 20;
 	static final int EXPECTED_OUT_FILES_COUNT_SOURCE_AUD = 12;
 
-	@Test
-	void testMultipleInputs() throws IOException {
-		final var inputs = ALL_MEDIA_FILE_NAME.stream()
-				.filter(File::exists)
-				.map(E2ERawOutDataFiles::create)
-				.toList();
-		if (inputs.isEmpty()) {
-			return;
+	@Nested
+	class Multiple {
+
+		List<E2ERawOutDataFiles> inputs;
+		File exportDir;
+		List<String> params;
+		String exportBaseFilename;
+
+		@AfterAll
+		static void open() {
+			System.clearProperty("mediadeepa.addSourceExtToOutputDirectories");
 		}
-		for (final var rawData : inputs) {
-			extractRawTXT(rawData);
-			assertTrue(rawData.allOutExists());
+
+		@BeforeEach
+		void init() throws IOException {
+			System.setProperty("mediadeepa.addSourceExtToOutputDirectories", "true");
+
+			inputs = ALL_MEDIA_FILE_NAME.stream()
+					.filter(File::exists)
+					.map(E2ERawOutDataFiles::create)
+					.toList();
+			if (inputs.isEmpty() == false) {
+				for (final var rawData : inputs) {
+					extractRawTXT(rawData);
+					assertTrue(rawData.allOutExists());
+				}
+			}
+
+			exportDir = new File("target/e2e-export");
+			FileUtils.forceMkdir(exportDir);
 		}
 
-		final var exportBaseFilename = "e2e-multiple";
-		final var exportDir = new File("target/e2e-export");
-		FileUtils.forceMkdir(exportDir);
+		@Test
+		void testMultipleInputs() throws IOException {// NOSONAR S2699
+			if (inputs.isEmpty()) {
+				return;
+			}
 
-		final var params = new ArrayList<>(List.of(
-				"--temp", "target/e2e-temp",
-				"-f", "txt",
-				"-e", exportDir.getPath(),
-				"--export-base-filename", exportBaseFilename));
-		params.addAll(inputs.stream()
-				.map(E2ERawOutDataFiles::archive)
-				.map(File::getPath)
-				.flatMap(fileName -> Stream.of("-i", fileName))
-				.toList());
+			exportBaseFilename = "e2e-multiple";
+			params = new ArrayList<>(List.of(
+					"--temp", "target/e2e-temp",
+					"-f", "txt",
+					"-e", exportDir.getPath(),
+					"--export-base-filename", exportBaseFilename));
+			params.addAll(inputs.stream()
+					.map(E2ERawOutDataFiles::archive)
+					.map(File::getPath)
+					.flatMap(fileName -> Stream.of("-i", fileName))
+					.toList());
+		}
 
-		System.setProperty("mediadeepa.addSourceExtToOutputDirectories", "true");
+		@Test
+		void testListInput() throws IOException {// NOSONAR S2699
+			if (inputs.isEmpty()) {
+				return;
+			}
 
-		final var expectedFileCount = (int) inputs.stream()
-				.filter(E2ERawOutDataFiles::hasVideo)
-				.count() * EXPECTED_OUT_FILES_COUNT_SOURCE_VID + (int) inputs.stream()
-						.filter(not(E2ERawOutDataFiles::hasVideo))
-						.count() * EXPECTED_OUT_FILES_COUNT_SOURCE_AUD;
-		final var realFileCountBefore = getCurrentFileCountMultipleInputs(inputs, exportBaseFilename, exportDir);
+			final var textList = inputs.stream()
+					.map(E2ERawOutDataFiles::archive)
+					.map(File::getPath)
+					.collect(joining(lineSeparator()));
+			final var inputList = new File(exportDir, "input-list.txt");
+			FileUtils.write(inputList, textList + lineSeparator(), defaultCharset());
 
-		runApp(() -> realFileCountBefore >= expectedFileCount,
-				params.toArray(new String[params.size()]));
+			exportBaseFilename = "e2e-list-input";
+			params = new ArrayList<>(List.of(
+					"--temp", "target/e2e-temp",
+					"-f", "txt",
+					"-e", exportDir.getPath(),
+					"--export-base-filename", exportBaseFilename,
+					"--input-list", inputList.getPath()));
+		}
 
-		final var realFileCountAfter = getCurrentFileCountMultipleInputs(inputs, exportBaseFilename, exportDir);
-		assertThat(realFileCountAfter).isGreaterThanOrEqualTo(expectedFileCount);
-	}
+		@AfterEach
+		void ends() {
+			if (inputs.isEmpty()) {
+				return;
+			}
 
-	private int getCurrentFileCountMultipleInputs(final List<E2ERawOutDataFiles> inputs,
-									final String exportBaseFilename,
-									final File exportDir) {
-		final var totalFileCount = (int) inputs.stream()
-				.map(E2ERawOutDataFiles::mediaFile)
-				.map(File::getName)
-				.map(sourceName -> sourceName + "_" + exportBaseFilename)
-				.flatMap(fileNamePrefix -> Stream.of(
-						exportDir.listFiles(f -> wildcardMatch(f.getName(), fileNamePrefix + "*"))))
-				.filter(f -> f.length() > 0)
-				.count();
-		return totalFileCount;
-	}
+			final var expectedFileCount = (int) inputs.stream()
+					.filter(E2ERawOutDataFiles::hasVideo)
+					.count() * EXPECTED_OUT_FILES_COUNT_SOURCE_VID + (int) inputs.stream()
+							.filter(not(E2ERawOutDataFiles::hasVideo))
+							.count() * EXPECTED_OUT_FILES_COUNT_SOURCE_AUD;
+			final var realFileCountBefore = getCurrentFileCountMultipleInputs();
 
-	@AfterEach
-	void ends() {
-		System.clearProperty("mediadeepa.addSourceExtToOutputDirectories");
+			runApp(() -> realFileCountBefore >= expectedFileCount,
+					params.toArray(new String[params.size()]));
+
+			final var realFileCountAfter = getCurrentFileCountMultipleInputs();
+			assertThat(realFileCountAfter).isGreaterThanOrEqualTo(expectedFileCount);
+
+			System.clearProperty("mediadeepa.addSourceExtToOutputDirectories");
+		}
+
+		private int getCurrentFileCountMultipleInputs() {
+			final var totalFileCount = (int) inputs.stream()
+					.map(E2ERawOutDataFiles::mediaFile)
+					.map(File::getName)
+					.map(sourceName -> sourceName + "_" + exportBaseFilename)
+					.flatMap(fileNamePrefix -> Stream.of(
+							exportDir.listFiles(f -> wildcardMatch(f.getName(), fileNamePrefix + "*"))))
+					.filter(f -> f.length() > 0)
+					.count();
+			return totalFileCount;
+		}
 	}
 
 }

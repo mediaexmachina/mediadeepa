@@ -43,7 +43,7 @@ import picocli.CommandLine.Option;
 						  ExitCode.USAGE + ":Error" },
 		 customSynopsis = {
 							"mediadeepa [-hov] [--temp DIRECTORY]",
-							"           [-i FILE]...",
+							"           [-i FILE]... [--input-list TEXT_FILE_LIST]...",
 							"           [-c] [-mn] [-an | -vn] [-fo FILTER] [-fn FILTER] [--filter-X VALUE]",
 							"           [-f FORMAT_TYPE] [-e DIRECTORY] [--extract FILE]"
 		 })
@@ -72,6 +72,11 @@ public class AppCommand implements Callable<Integer> {
 			description = "Input (media) file to process, or raw ffmpeg datas from a Mediadeepa archive file",
 			paramLabel = "FILE")
 	private List<File> input;
+
+	@Option(names = { "-il", "--input-list" },
+			description = "Read input files from a text list",
+			paramLabel = "TEXT_FILE_LIST")
+	private List<String> inputList;
 
 	@ArgGroup(exclusive = false,
 			  heading = "Process media file options%n")

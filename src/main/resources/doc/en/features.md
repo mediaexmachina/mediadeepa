@@ -24,7 +24,7 @@ This application can run on three different "modes":
  - **Process to extract**: sometimes, you don't need to process data during the analysis session. So, Mediadeepa can just extract to raw text/xml files (zipped in one archive file) all the gathered data from FFmpeg.
  - **Import to export**: to load in Mediadeepa all gathered raw data files. Mediadeepa is **very tolerant** with the zip content, notably if they were not created by Mediadeepa (originally). **No one is mandatory in zip.**
 
-You can process multiple files in one run.
+You can process multiple files in one run, as well as load a text file as file list to process.
 
 ## Known limitations for Mediadeepa
 

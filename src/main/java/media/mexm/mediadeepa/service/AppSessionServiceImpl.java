@@ -17,6 +17,7 @@
 package media.mexm.mediadeepa.service;
 
 import static java.io.File.pathSeparator;
+import static java.nio.charset.Charset.defaultCharset;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.function.Predicate.not;
@@ -59,6 +60,7 @@ import media.mexm.mediadeepa.ImpExArchiveExtractionSession.ExtractedFileEntry;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.cli.AppCommand;
+import media.mexm.mediadeepa.cli.OutputCmd;
 import media.mexm.mediadeepa.cli.SingleExportCmd;
 import media.mexm.mediadeepa.components.ExportFormatComparator;
 import media.mexm.mediadeepa.config.AppConfig;
@@ -163,13 +165,37 @@ public class AppSessionServiceImpl implements AppSessionService {
 			return 0;
 		}
 
-		verifyOptions();
+		final var outputCmd = Optional.ofNullable(appCommand.getOutputCmd())
+				.orElseThrow(() -> new ParameterException(commandLine,
+						"Nothing to do, missing an output action!"));
+		verifyInputs(outputCmd);
+		verifyExtractToCmd(outputCmd);
+		verifyExportToCmd(outputCmd);
 
 		final var inputFiles = appCommand.getInput();
-		if (inputFiles.size() > 1) {
+		if (inputFiles != null && inputFiles.size() > 1) {
 			inputFiles.forEach(f -> log.info("Prepare to work on {}", f.getAbsolutePath()));
 		}
-		inputFiles.forEach(this::inputFileWorkChooser);
+
+		final var inputList = appCommand.getInputList();
+		List<File> inputListFile = List.of();
+		if (inputList != null && inputList.isEmpty() == false) {
+			inputListFile = inputList.stream()
+					.map(File::new)
+					.flatMap(il -> {
+						log.info("Load input file list: {}", il);
+						final var listFiles = readInputListFile(il);
+						listFiles.forEach(f -> log.info("Prepare to work on {}", f.getAbsolutePath()));
+						return listFiles.stream();
+					})
+					.toList();
+		}
+
+		Optional.ofNullable(inputFiles)
+				.stream()
+				.flatMap(List::stream)
+				.forEach(this::inputFileWorkChooser);
+		inputListFile.forEach(this::inputFileWorkChooser);
 
 		return 0;
 	}
@@ -236,26 +262,37 @@ public class AppSessionServiceImpl implements AppSessionService {
 		}
 	}
 
-	private void verifyOptions() throws ParameterException {
+	private void verifyInputs(final OutputCmd outputCmd) {
 		final var inputFiles = appCommand.getInput();
-		if (inputFiles == null || inputFiles.isEmpty()) {
+		if (inputFiles != null && inputFiles.isEmpty() == false) {
+			if (inputFiles.size() > 1 && outputCmd.getSingleExportCmd() != null) {
+				throw new ParameterException(commandLine,
+						"Can't process multiple input sources on single export mode (only one in, one out)!");
+			}
+
+			inputFiles.forEach(this::validateInputFile);
+		}
+
+		final var inputList = appCommand.getInputList();
+		if (inputList != null) {
+			inputList.stream()
+					.map(File::new)
+					.forEach(this::validateInputFile);
+		}
+
+		if ((inputFiles == null || inputFiles.isEmpty())
+			&& (inputList == null || inputList.isEmpty())) {
 			throw new ParameterException(commandLine, "You must set at least an input file");
 		}
-		final var outputCmd = Optional.ofNullable(appCommand.getOutputCmd())
-				.orElseThrow(() -> new ParameterException(commandLine,
-						"Nothing to do, missing an output action!"));
+	}
 
-		if (inputFiles.size() > 1 && outputCmd.getSingleExportCmd() != null) {
-			throw new ParameterException(commandLine,
-					"Can't process multiple input sources on single export mode (only one in, one out)!");
-		}
-
-		inputFiles.forEach(this::validateInputFile);
-
+	private void verifyExtractToCmd(final OutputCmd outputCmd) {
 		Optional.ofNullable(outputCmd.getExtractToCmd())
 				.ifPresent(et -> Optional.ofNullable(et.getArchiveFile())
 						.ifPresent(this::validateOutputFile));
+	}
 
+	private void verifyExportToCmd(final OutputCmd outputCmd) {
 		Optional.ofNullable(outputCmd.getExportToCmd())
 				.ifPresent(et -> {
 					validateOutputDir(et.getExport());
@@ -281,8 +318,33 @@ public class AppSessionServiceImpl implements AppSessionService {
 			throw new ParameterException(commandLine, "Can't found the provided input file: "
 													  + file.getPath(), new FileNotFoundException(file.getPath()));
 		} else if (file.isFile() == false) {
-			throw new ParameterException(commandLine, "The provided file is not a regular input file: "
+			throw new ParameterException(commandLine, "The provided file is not a regular file: "
 													  + file.getPath(), new FileNotFoundException(file.getPath()));
+		}
+	}
+
+	private List<File> readInputListFile(final File inputList) {
+		try {
+			final var lines = FileUtils.readLines(inputList, defaultCharset())
+					.stream()
+					.filter(not(String::isEmpty))
+					.map(File::new)
+					.toList();
+			final var errors = lines.stream()
+					.filter(not(File::exists)
+							.or(not(File::isFile))
+							.or(not(File::canRead))
+							.or(f -> f.length() == 0))
+					.map(File::getAbsolutePath)
+					.toList();
+			if (errors.isEmpty()) {
+				return lines;
+			}
+			log.error("Invalid file entries in list file: {}", inputList);
+			errors.forEach(e -> log.error("Can't found or invalid file: {}", e));
+			throw new ParameterException(commandLine, "Please check input list file: " + inputList.getPath());
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't open/read: " + inputList.getPath(), e);
 		}
 	}
 

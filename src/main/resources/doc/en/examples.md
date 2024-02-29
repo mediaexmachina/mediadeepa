@@ -47,3 +47,25 @@ mediadeepa -i analysing-archive.zip -i videofile.mov -i anotherfile.wav -f repor
 ```
 
 You can mix archive zip files and media files, but beware to not *import* with *extract* (zip to zip) or use single output file mode (`--single-export`).
+
+## Load files to process from a text file
+
+With the `-il`, as *input list* option:
+
+```
+mediadeepa -if my-medias.txt -f report -f graphic -e .
+```
+
+And the `my-medias.txt` file can just contain:
+
+```
+analysing-archive.zip
+videofile.mov
+anotherfile.wav
+```
+
+ * Any space lines are ignored.
+ * Charset load respect the current OS session.
+ * You can use Windows and Linux new lines symbols (and you can mix them).
+ * You can accumulate multiple `-i` and `-il` options, with the same limits as *Multiple Import or Process*.
+ * Before starts the imports and processing, the application will check and throw an error if a file is missing (in `-i`, `-il`, and in the lists itself).
