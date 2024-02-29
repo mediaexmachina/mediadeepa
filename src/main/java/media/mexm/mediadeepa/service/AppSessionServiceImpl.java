@@ -35,6 +35,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -169,7 +170,23 @@ public class AppSessionServiceImpl implements AppSessionService {
 		if (inputFiles.size() > 1) {
 			inputFiles.forEach(f -> log.info("Prepare to work on {}", f.getAbsolutePath()));
 		}
+
+		final var inputList = appCommand.getInputList();
+		List<File> inputListFile = List.of();
+		if (inputList.isEmpty() == false) {
+			inputListFile = inputList.stream()
+					.map(File::new)
+					.flatMap(il -> {
+						log.info("Load input file list: {}", il);
+						final var listFiles = readInputListFile(il);
+						listFiles.forEach(f -> log.info("Prepare to work on {}", f.getAbsolutePath()));
+						return listFiles.stream();
+					})
+					.toList();
+		}
+
 		inputFiles.forEach(this::inputFileWorkChooser);
+		inputListFile.forEach(this::inputFileWorkChooser);
 
 		return 0;
 	}
@@ -252,6 +269,13 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		inputFiles.forEach(this::validateInputFile);
 
+		final var inputList = appCommand.getInputList();
+		if (inputList != null) {
+			inputList.stream()
+					.map(File::new)
+					.forEach(this::validateInputFile);
+		}
+
 		Optional.ofNullable(outputCmd.getExtractToCmd())
 				.ifPresent(et -> Optional.ofNullable(et.getArchiveFile())
 						.ifPresent(this::validateOutputFile));
@@ -281,8 +305,32 @@ public class AppSessionServiceImpl implements AppSessionService {
 			throw new ParameterException(commandLine, "Can't found the provided input file: "
 													  + file.getPath(), new FileNotFoundException(file.getPath()));
 		} else if (file.isFile() == false) {
-			throw new ParameterException(commandLine, "The provided file is not a regular input file: "
+			throw new ParameterException(commandLine, "The provided file is not a regular file: "
 													  + file.getPath(), new FileNotFoundException(file.getPath()));
+		}
+	}
+
+	private List<File> readInputListFile(final File inputList) {
+		try {
+			final var lines = FileUtils.readLines(inputList, Charset.defaultCharset())
+					.stream()
+					.map(File::new)
+					.toList();
+			final var errors = lines.stream()
+					.filter(not(File::exists)
+							.or(not(File::isFile))
+							.or(not(File::canRead))
+							.or(f -> f.length() == 0))
+					.map(File::getAbsolutePath)
+					.toList();
+			if (errors.isEmpty()) {
+				return lines;
+			}
+			log.error("Invalid file entries in list file: {}", inputList);
+			errors.forEach(e -> log.error("Can't found or invalid file: {}", e));
+			throw new ParameterException(commandLine, "Please check input list file: " + inputList.getPath());
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't open/read: " + inputList.getPath(), e);
 		}
 	}
 

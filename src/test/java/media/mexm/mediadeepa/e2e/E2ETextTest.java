@@ -597,8 +597,8 @@ class E2ETextTest extends E2EUtils {
 	}
 
 	private int getCurrentFileCountMultipleInputs(final List<E2ERawOutDataFiles> inputs,
-									final String exportBaseFilename,
-									final File exportDir) {
+												  final String exportBaseFilename,
+												  final File exportDir) {
 		final var totalFileCount = (int) inputs.stream()
 				.map(E2ERawOutDataFiles::mediaFile)
 				.map(File::getName)
@@ -609,6 +609,8 @@ class E2ETextTest extends E2EUtils {
 				.count();
 		return totalFileCount;
 	}
+
+	// TODO e2e test --input-list
 
 	@AfterEach
 	void ends() {
