@@ -43,7 +43,7 @@ import picocli.CommandLine.Option;
 						  ExitCode.USAGE + ":Error" },
 		 customSynopsis = {
 							"mediadeepa [-hov] [--temp DIRECTORY]",
-							"           [-i FILE] [--import FILE]",
+							"           [-i FILE]...",
 							"           [-c] [-mn] [-an | -vn] [-fo FILTER] [-fn FILTER] [--filter-X VALUE]",
 							"           [-f FORMAT_TYPE] [-e DIRECTORY] [--extract FILE]"
 		 })
