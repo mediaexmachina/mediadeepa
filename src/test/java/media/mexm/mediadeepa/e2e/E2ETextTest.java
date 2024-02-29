@@ -611,6 +611,7 @@ class E2ETextTest extends E2EUtils {
 	}
 
 	// TODO e2e test --input-list
+	// TODO update doc
 
 	@AfterEach
 	void ends() {
