@@ -41,9 +41,9 @@ public class OutputFileSupplier {
 	private AppConfig appConfig;
 
 	public File makeOutputFile(final DataResult result, final String suffix) {
-		final var inputFiles = appCommand.getInput();
 		var filePrefix = "";
-		if (inputFiles.size() > 1) {
+		if (appCommand.getInput() != null && appCommand.getInput().size() > 1
+			|| appCommand.getInputList() != null && appCommand.getInputList().isEmpty() == false) {
 			final var rawSource = result.getSource();
 			var correctedSource = FilenameUtils.getBaseName(rawSource);
 			final var sourceExt = FilenameUtils.getExtension(rawSource);

@@ -18,6 +18,7 @@ package media.mexm.mediadeepa.components;
 
 import static java.io.File.separator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -102,6 +103,7 @@ class OutputFileSupplierTest {
 	@AfterEach
 	void ends() {
 		verify(appCommand, atLeastOnce()).getInput();
+		verify(appCommand, atLeast(0)).getInputList();
 		verify(appCommand, atLeastOnce()).getOutputCmd();
 		verify(outputCmd, atLeastOnce()).getExportToCmd();
 		verify(exportToCmd, atLeastOnce()).getExport();

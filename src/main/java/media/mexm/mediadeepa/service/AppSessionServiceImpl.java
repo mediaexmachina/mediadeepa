@@ -17,6 +17,7 @@
 package media.mexm.mediadeepa.service;
 
 import static java.io.File.pathSeparator;
+import static java.nio.charset.Charset.defaultCharset;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.function.Predicate.not;
@@ -35,7 +36,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -60,6 +60,7 @@ import media.mexm.mediadeepa.ImpExArchiveExtractionSession.ExtractedFileEntry;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.cli.AppCommand;
+import media.mexm.mediadeepa.cli.OutputCmd;
 import media.mexm.mediadeepa.cli.SingleExportCmd;
 import media.mexm.mediadeepa.components.ExportFormatComparator;
 import media.mexm.mediadeepa.config.AppConfig;
@@ -164,16 +165,21 @@ public class AppSessionServiceImpl implements AppSessionService {
 			return 0;
 		}
 
-		verifyOptions();
+		final var outputCmd = Optional.ofNullable(appCommand.getOutputCmd())
+				.orElseThrow(() -> new ParameterException(commandLine,
+						"Nothing to do, missing an output action!"));
+		verifyInputs(outputCmd);
+		verifyExtractToCmd(outputCmd);
+		verifyExportToCmd(outputCmd);
 
 		final var inputFiles = appCommand.getInput();
-		if (inputFiles.size() > 1) {
+		if (inputFiles != null && inputFiles.size() > 1) {
 			inputFiles.forEach(f -> log.info("Prepare to work on {}", f.getAbsolutePath()));
 		}
 
 		final var inputList = appCommand.getInputList();
 		List<File> inputListFile = List.of();
-		if (inputList.isEmpty() == false) {
+		if (inputList != null && inputList.isEmpty() == false) {
 			inputListFile = inputList.stream()
 					.map(File::new)
 					.flatMap(il -> {
@@ -185,7 +191,10 @@ public class AppSessionServiceImpl implements AppSessionService {
 					.toList();
 		}
 
-		inputFiles.forEach(this::inputFileWorkChooser);
+		Optional.ofNullable(inputFiles)
+				.stream()
+				.flatMap(List::stream)
+				.forEach(this::inputFileWorkChooser);
 		inputListFile.forEach(this::inputFileWorkChooser);
 
 		return 0;
@@ -253,21 +262,16 @@ public class AppSessionServiceImpl implements AppSessionService {
 		}
 	}
 
-	private void verifyOptions() throws ParameterException {
+	private void verifyInputs(final OutputCmd outputCmd) {
 		final var inputFiles = appCommand.getInput();
-		if (inputFiles == null || inputFiles.isEmpty()) {
-			throw new ParameterException(commandLine, "You must set at least an input file");
-		}
-		final var outputCmd = Optional.ofNullable(appCommand.getOutputCmd())
-				.orElseThrow(() -> new ParameterException(commandLine,
-						"Nothing to do, missing an output action!"));
+		if (inputFiles != null && inputFiles.isEmpty() == false) {
+			if (inputFiles.size() > 1 && outputCmd.getSingleExportCmd() != null) {
+				throw new ParameterException(commandLine,
+						"Can't process multiple input sources on single export mode (only one in, one out)!");
+			}
 
-		if (inputFiles.size() > 1 && outputCmd.getSingleExportCmd() != null) {
-			throw new ParameterException(commandLine,
-					"Can't process multiple input sources on single export mode (only one in, one out)!");
+			inputFiles.forEach(this::validateInputFile);
 		}
-
-		inputFiles.forEach(this::validateInputFile);
 
 		final var inputList = appCommand.getInputList();
 		if (inputList != null) {
@@ -276,10 +280,19 @@ public class AppSessionServiceImpl implements AppSessionService {
 					.forEach(this::validateInputFile);
 		}
 
+		if ((inputFiles == null || inputFiles.isEmpty())
+			&& (inputList == null || inputList.isEmpty())) {
+			throw new ParameterException(commandLine, "You must set at least an input file");
+		}
+	}
+
+	private void verifyExtractToCmd(final OutputCmd outputCmd) {
 		Optional.ofNullable(outputCmd.getExtractToCmd())
 				.ifPresent(et -> Optional.ofNullable(et.getArchiveFile())
 						.ifPresent(this::validateOutputFile));
+	}
 
+	private void verifyExportToCmd(final OutputCmd outputCmd) {
 		Optional.ofNullable(outputCmd.getExportToCmd())
 				.ifPresent(et -> {
 					validateOutputDir(et.getExport());
@@ -312,8 +325,9 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 	private List<File> readInputListFile(final File inputList) {
 		try {
-			final var lines = FileUtils.readLines(inputList, Charset.defaultCharset())
+			final var lines = FileUtils.readLines(inputList, defaultCharset())
 					.stream()
+					.filter(not(String::isEmpty))
 					.map(File::new)
 					.toList();
 			final var errors = lines.stream()
