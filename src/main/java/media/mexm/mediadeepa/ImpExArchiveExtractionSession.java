@@ -19,6 +19,7 @@ package media.mexm.mediadeepa;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
+import static java.lang.Integer.MAX_VALUE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Locale.ENGLISH;
 import static java.util.stream.Collectors.joining;
@@ -155,6 +156,12 @@ public class ImpExArchiveExtractionSession {
 
 	public ImpExArchiveExtractionSession readFromZip(final File zipFile) {
 		final var buffer = new byte[TEN_MB];
+		final var maxReadZipEntry = Integer.parseInt(System.getProperty(
+				"mediadeepa.maxReadZipEntry",
+				/**
+				 * Approx. 2 GB
+				 */
+				String.valueOf(MAX_VALUE)));
 
 		log.info("Open and load {} zip file", zipFile);
 		try (var zipIn = new ZipInputStream(
@@ -162,6 +169,12 @@ public class ImpExArchiveExtractionSession {
 			ZipEntry zEntry;
 			final var sb = new StringBuilder(10_000);
 			while ((zEntry = zipIn.getNextEntry()) != null) {
+				if (sb.length() > maxReadZipEntry) {
+					log.warn(
+							"Max zip entry allowed to readed: {} bytes. Change it with \"mediadeepa.maxReadZipEntry\" system property",
+							maxReadZipEntry);
+					throw new IllegalStateException("Max zip entry readed from an archive file");
+				}
 				int len;
 				sb.setLength(0);
 				while ((len = zipIn.read(buffer)) > 0) {

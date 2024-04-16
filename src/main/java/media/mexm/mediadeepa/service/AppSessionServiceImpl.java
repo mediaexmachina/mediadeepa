@@ -507,7 +507,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		log.debug("Try to load source {} as zip zip file", zipFile);
 		try (var zipIn = new ZipInputStream(
 				new BufferedInputStream(new FileInputStream(zipFile), TEN_MB))) {
-			return zipIn.getNextEntry() != null;
+			return zipIn.getNextEntry() != null;// NOSONAR S5042
 		} catch (final FileNotFoundException e) {
 			throw new UncheckedIOException("Can't found input file", e);
 		} catch (final IOException e) {
