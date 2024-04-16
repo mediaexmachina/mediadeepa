@@ -36,13 +36,14 @@ import lombok.EqualsAndHashCode;
 
 public class TimedDataGraphic extends DataGraphic {
 
+	private static final String RANGE_AXIS_CAN_T_TO_BE_NULL = "\"rangeAxis\" can't to be null";
 	private final List<Series> series;
 	private final List<FixedMillisecond> positions;
 
 	public TimedDataGraphic(final Stream<Long> positionsMs, final RangeAxis rangeAxis) {
 		this(
 				positionsMs.map(FixedMillisecond::new).toList(),
-				Objects.requireNonNull(rangeAxis, "\"rangeAxis\" can't to be null"));
+				Objects.requireNonNull(rangeAxis, RANGE_AXIS_CAN_T_TO_BE_NULL));
 	}
 
 	public static TimedDataGraphic create(final Stream<Float> positionsS, final RangeAxis rangeAxis) {
@@ -51,11 +52,11 @@ public class TimedDataGraphic extends DataGraphic {
 						.map(s -> s * 1000)
 						.map(Math::round)
 						.map(FixedMillisecond::new).toList(),
-				Objects.requireNonNull(rangeAxis, "\"rangeAxis\" can't to be null"));
+				Objects.requireNonNull(rangeAxis, RANGE_AXIS_CAN_T_TO_BE_NULL));
 	}
 
 	public TimedDataGraphic(final List<FixedMillisecond> positions, final RangeAxis rangeAxis) {
-		super(Objects.requireNonNull(rangeAxis, "\"rangeAxis\" can't to be null"));
+		super(Objects.requireNonNull(rangeAxis, RANGE_AXIS_CAN_T_TO_BE_NULL));
 		series = new ArrayList<>();
 		this.positions = positions;
 	}
