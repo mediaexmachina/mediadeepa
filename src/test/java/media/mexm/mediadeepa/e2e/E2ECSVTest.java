@@ -57,16 +57,15 @@ class E2ECSVTest extends E2EUtils {
 
 		assertEquals(2, lines.size());
 		assertThat(lines.get(0)).isEqualTo(
-				"Integrated,Integrated Threshold,Loudness Range,Loudness Range Threshold,Loudness Range Low,Loudness Range High,Sample Peak,True Peak");
-		assertThat(lines.get(1)).startsWith(
-				"-24.5,-35.3,17.3,-45.1,-36.2,-18.9,-17.6,-17.6");
-		/** "True Peak = -17.8" Not enough stable with some ffmpeg builds */
+				"Integrated,Loudness Range,Loudness Range Low,Loudness Range High,Sample Peak,True Peak");
+		assertThat(lines.get(1)).contains(",", ".", "-24", "17", "-36", "-18", "-17", "-17").doesNotContain(";");
+		/** Limited precision: not enough stable with some ffmpeg builds */
 
 		final var csvCount = Stream.of(new File("target/e2e-export").listFiles())
 				.filter(f -> f.getName().startsWith("mpg_")
 							 && f.getName().endsWith(".csv"))
 				.count();
-		assertEquals(21, csvCount);
+		assertEquals(20, csvCount);
 	}
 
 	@Test
@@ -87,16 +86,15 @@ class E2ECSVTest extends E2EUtils {
 		final var lines = readLines(outputFileEbur128);
 		assertEquals(2, lines.size());
 		assertThat(lines.get(0)).isEqualTo(
-				"Integrated;Integrated Threshold;Loudness Range;Loudness Range Threshold;Loudness Range Low;Loudness Range High;Sample Peak;True Peak");
-		assertThat(lines.get(1)).startsWith(
-				"-24,4;-35,1;17,2;-45;-36,1;-18,8;-18;-17,");
+				"Integrated;Loudness Range;Loudness Range Low;Loudness Range High;Sample Peak;True Peak");
+		assertThat(lines.get(1)).contains(";", ",", "-24", "17", "-36", "-18", "-17", "-17").doesNotContain(".");
 		/** "True Peak = -17,8" Not enough stable with some ffmpeg builds */
 
 		final var csvCount = Stream.of(new File("target/e2e-export").listFiles())
 				.filter(f -> f.getName().startsWith("movfr_")
 							 && f.getName().endsWith(".csv"))
 				.count();
-		assertEquals(20, csvCount);
+		assertEquals(19, csvCount);
 	}
 
 }

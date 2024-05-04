@@ -33,7 +33,7 @@
 
     <logger name="picocli.spring" level="error" />
     <logger name="media.mexm" level="info" />
-    <logger name="tv.hd3g" level="error" />
+    <logger name="tv.hd3g" level="warn" />
     <logger name="media.mexm.mediadeepa.components.RendererEngineComparator" level="error" />
     <logger name="media.mexm.mediadeepa.components.ExportFormatComparator" level="error" />
 

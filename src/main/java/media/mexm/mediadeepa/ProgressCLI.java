@@ -33,9 +33,11 @@ public class ProgressCLI {
 	private final PrintStream out;
 	private long startTime;
 	private String lastEntry;
+	private boolean ended;
 
 	public ProgressCLI(final PrintStream out) {
 		this.out = out;
+		ended = false;
 	}
 
 	private String makePercent(final double value) {
@@ -70,17 +72,11 @@ public class ProgressCLI {
 		out.flush();
 	}
 
-	public void start() {
-		startTime = System.currentTimeMillis();
-		write("|" + repeat(" ", WIDTH) + "|");
-	}
-
 	public void displayProgress(final double value, final float speed) {
-		if (value <= 0) {
-			start();
-			return;
+		if (startTime == 0) {
+			startTime = System.currentTimeMillis();
 		}
-		if (value >= 1) {
+		if (value >= 1 && ended == false) {
 			end();
 			return;
 		}
@@ -95,6 +91,7 @@ public class ProgressCLI {
 	}
 
 	public void end() {
+		ended = true;
 		if (lastEntry != null && lastEntry.isEmpty() == false) {
 			write(repeat(" ", lastEntry.length()));
 		}
@@ -103,7 +100,7 @@ public class ProgressCLI {
 							  StringUtils.right("0" + eta.toHoursPart(), 2) + ":" +
 							  StringUtils.right("0" + eta.toMinutesPart(), 2) + ":" +
 							  StringUtils.right("0" + eta.toSecondsPart(), 2);
-		write("|" + repeat(PROGRESS, WIDTH) + "| " + makePercent(1) + totalTime);
+		write("|" + repeat(PROGRESS, WIDTH) + "|" + makePercent(1) + totalTime);
 		out.println();
 	}
 }

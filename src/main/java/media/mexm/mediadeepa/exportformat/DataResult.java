@@ -16,12 +16,10 @@
  */
 package media.mexm.mediadeepa.exportformat;
 
-import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 
 import java.awt.Dimension;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -33,8 +31,6 @@ import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
-import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
-import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.ffprobejaxb.data.FFProbeFormat;
 
@@ -51,25 +47,11 @@ public class DataResult {
 	@Setter
 	private ContainerAnalyserResult containerAnalyserResult;
 	@Getter
-	private List<Ebur128StrErrFilterEvent> ebur128events;
-	@Getter
-	private List<RawStdErrFilterEvent> rawStdErrEvents;
-	@Getter
 	private final Map<String, String> versions;
 
 	public DataResult(final String source, final Map<String, String> versions) {
 		this.source = requireNonNull(source);
 		this.versions = versions;
-		ebur128events = List.of();
-		rawStdErrEvents = List.of();
-	}
-
-	public void setEbur128events(final List<Ebur128StrErrFilterEvent> ebur128events) {
-		this.ebur128events = unmodifiableList(requireNonNull(ebur128events));
-	}
-
-	public void setRawStdErrEvents(final List<RawStdErrFilterEvent> rawStdErrEvents) {
-		this.rawStdErrEvents = unmodifiableList(requireNonNull(rawStdErrEvents));
 	}
 
 	public Optional<MediaAnalyserResult> getMediaAnalyserResult() {

@@ -73,8 +73,6 @@ import picocli.CommandLine.ParameterException;
 import tv.hd3g.commons.version.EnvironmentVersion;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
-import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
-import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
@@ -405,22 +403,21 @@ public class AppSessionServiceImpl implements AppSessionService {
 				extractSession.add(zippedTxtFileNames.getFfprobeTxt(), probeResult.getXmlContent());
 			}
 			final var mediaS = probeResult.getMediaSummary();
-			extractSession.add(zippedTxtFileNames.getSummaryTxt(), concat(Stream.of(mediaS.format()),
-					mediaS
-							.streams().stream()).toList());
+			extractSession.add(
+					zippedTxtFileNames.getSummaryTxt(),
+					concat(Stream.of(mediaS.format()), mediaS.streams().stream()).toList());
 
 			final var stderrList = new ArrayList<String>();
 			final var lavfiList = new ArrayList<String>();
-			maSession.extract(lavfiList::add, stderrList::add);
+			final var ffmpegCommandLine = maSession.extract(lavfiList::add, stderrList::add);
 			extractSession.add(zippedTxtFileNames.getLavfiTxtBase() + "0.txt", lavfiList);
-			extractSession.add(zippedTxtFileNames.getStdErrTxt(), stderrList);
 
 			if (lavfiSecondaryFile.exists()) {
 				extractSession.add(zippedTxtFileNames.getLavfiTxtBase() + "1.txt", readLines(lavfiSecondaryFile));
 				FileUtils.deleteQuietly(lavfiSecondaryFile);
 			}
-			extractSession.addFilterContext(zippedTxtFileNames.getFiltersJson(), maSession
-					.getFilterContextList());
+			extractSession.addFilterContext(zippedTxtFileNames.getFiltersJson(), maSession.getFilterContextList());
+			extractSession.add(zippedTxtFileNames.getFfmpegCommandLineTxt(), ffmpegCommandLine);
 		}
 
 		if (processFileCmd.isContainerAnalysing()) {
@@ -429,9 +426,10 @@ public class AppSessionServiceImpl implements AppSessionService {
 			caSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
 
 			final var containerListLines = new ArrayList<String>();
-			caSession.extract(containerListLines::add);
+			final var ffprobeCommandLine = caSession.extract(containerListLines::add);
 			extractSession.add(zippedTxtFileNames.getContainerXml(),
 					containerListLines);
+			extractSession.add(zippedTxtFileNames.getFfprobeCommandLineTxt(), ffprobeCommandLine);
 		}
 
 		extractSession.add(zippedTxtFileNames.getSourceNameTxt(), inputFile.getName());
@@ -479,14 +477,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 			maSession.setFFprobeResult(ffprobeResult);
 			maSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
 
-			final var ebur128events = new ArrayList<Ebur128StrErrFilterEvent>();
-			maSession.setEbur128EventConsumer((s, event) -> ebur128events.add(event));
-			dataResult.setEbur128events(ebur128events);
-
-			final var rawStdErrEvents = new ArrayList<RawStdErrFilterEvent>();
-			maSession.setRawStdErrEventConsumer((s, event) -> rawStdErrEvents.add(event));
-			dataResult.setRawStdErrEvents(rawStdErrEvents);
-
 			log.debug("Start media analysing session...");
 			dataResult.setMediaAnalyserResult(maSession.process(
 					Optional.ofNullable(() -> openFileToLineStream(lavfiSecondaryFile))));
@@ -532,6 +522,13 @@ public class AppSessionServiceImpl implements AppSessionService {
 						getBaseName(archiveFile.getName())),
 				extractSession.getVersions(zippedTxtFileNames.getVersionJson()));
 
+		final var zipAppVersion = dataResult.getVersions().getOrDefault(NAME, "Unknown");
+		final var currentAppVersion = environmentVersion.appVersion();
+		if (currentAppVersion.equalsIgnoreCase(zipAppVersion) == false) {
+			log.warn("Mismatch Zip archive version ({}) and current app version ({}).",
+					zipAppVersion, currentAppVersion);
+		}
+
 		runnedJavaCmdLine.setArchiveJavaCmdLine(
 				extractSession.getRunnedJavaCmdLine(zippedTxtFileNames.getCommandLineJson()));
 
@@ -548,25 +545,12 @@ public class AppSessionServiceImpl implements AppSessionService {
 				.map(extractEntries::get)
 				.flatMap(String::lines);
 
-		log.debug("Try to load stdErrLines");
-		final var stdErrLines = Optional.ofNullable(extractEntries.get(zippedTxtFileNames.getStdErrTxt()))
-				.stream()
-				.flatMap(String::lines);
-
-		final var ebur128events = new ArrayList<Ebur128StrErrFilterEvent>();
-		final var rawStdErrEvents = new ArrayList<RawStdErrFilterEvent>();
-
 		log.debug("Load MediaAnalyserSession");
 
 		final var filters = extractSession.getFilterContext(zippedTxtFileNames.getFiltersJson());
 		dataResult.setMediaAnalyserResult(MediaAnalyserSession.importFromOffline(
 				stdOutLines,
-				stdErrLines,
-				ebur128events::add,
-				rawStdErrEvents::add,
 				filters));
-		dataResult.setEbur128events(ebur128events);
-		dataResult.setRawStdErrEvents(rawStdErrEvents);
 
 		log.debug("Try to load container offline");
 		Optional.ofNullable(extractEntries.get(zippedTxtFileNames.getContainerXml()))

@@ -16,10 +16,10 @@
  */
 package media.mexm.mediadeepa.rendererengine.components;
 
+import static java.util.function.Predicate.not;
 import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.AUDIO;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
@@ -35,6 +35,8 @@ import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 
 @Component
@@ -47,9 +49,7 @@ public class Ebur128SummaryRendererEngine implements
 
 	public static final List<String> HEAD_EBUR128_SUMMARY = List.of(
 			INTEGRATED,
-			INTEGRATED_THRESHOLD,
 			LOUDNESS_RANGE,
-			LOUDNESS_RANGE_THRESHOLD,
 			LOUDNESS_RANGE_LOW,
 			LOUDNESS_RANGE_HIGH,
 			SAMPLE_PEAK,
@@ -64,20 +64,21 @@ public class Ebur128SummaryRendererEngine implements
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
 		return result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::ebur128Summary)
-				.flatMap(Optional::ofNullable)
+				.map(MediaAnalyserResult::lavfiMetadatas)
+				.map(LavfiMetadataFilterParser::getR128Report)
+				.filter(not(List::isEmpty))
+				.map(l -> l.get(l.size() - 1))
+				.map(LavfiMtdValue::value)
 				.map(ebu -> {
 					final var t = new TabularDocument(tabularExportFormat, getSingleUniqTabularDocumentBaseFileName())
 							.head(HEAD_EBUR128_SUMMARY);
 					t.row(
-							tabularExportFormat.formatNumberLowPrecision(ebu.getIntegrated()),
-							tabularExportFormat.formatNumberLowPrecision(ebu.getIntegratedThreshold()),
-							tabularExportFormat.formatNumberLowPrecision(ebu.getLoudnessRange()),
-							tabularExportFormat.formatNumberLowPrecision(ebu.getLoudnessRangeThreshold()),
-							tabularExportFormat.formatNumberLowPrecision(ebu.getLoudnessRangeLow()),
-							tabularExportFormat.formatNumberLowPrecision(ebu.getLoudnessRangeHigh()),
-							tabularExportFormat.formatNumberLowPrecision(ebu.getSamplePeak()),
-							tabularExportFormat.formatNumberLowPrecision(ebu.getTruePeak()));
+							tabularExportFormat.formatNumberLowPrecision(ebu.integrated()),
+							tabularExportFormat.formatNumberLowPrecision(ebu.loudnessRange()),
+							tabularExportFormat.formatNumberLowPrecision(ebu.loudnessRangeLow()),
+							tabularExportFormat.formatNumberLowPrecision(ebu.loudnessRangeHigh()),
+							tabularExportFormat.formatNumberLowPrecision(ebu.samplePeak()),
+							tabularExportFormat.formatNumberLowPrecision(ebu.truePeak()));
 					return t;
 				})
 				.stream()
@@ -87,34 +88,38 @@ public class Ebur128SummaryRendererEngine implements
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
 		result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::ebur128Summary)
-				.flatMap(Optional::ofNullable)
+				.map(MediaAnalyserResult::lavfiMetadatas)
+				.map(LavfiMetadataFilterParser::getR128Report)
+				.filter(not(List::isEmpty))
+				.map(l -> l.get(l.size() - 1))
+				.map(LavfiMtdValue::value)
 				.ifPresent(ebu -> {
 					final var t = tableDocument.createTable("EBU R 128 Summary").head(HEAD_EBUR128_SUMMARY);
 					t.addRow()
-							.addCell(ebu.getIntegrated())
-							.addCell(ebu.getIntegratedThreshold())
-							.addCell(ebu.getLoudnessRange())
-							.addCell(ebu.getLoudnessRangeThreshold())
-							.addCell(ebu.getLoudnessRangeLow())
-							.addCell(ebu.getLoudnessRangeHigh())
-							.addCell(ebu.getSamplePeak())
-							.addCell(ebu.getTruePeak());
+							.addCell(ebu.integrated())
+							.addCell(ebu.loudnessRange())
+							.addCell(ebu.loudnessRangeLow())
+							.addCell(ebu.loudnessRangeHigh())
+							.addCell(ebu.samplePeak())
+							.addCell(ebu.truePeak());
 				});
 	}
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
 		result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::ebur128Summary)
-				.flatMap(Optional::ofNullable)
+				.map(MediaAnalyserResult::lavfiMetadatas)
+				.map(LavfiMetadataFilterParser::getR128Report)
+				.filter(not(List::isEmpty))
+				.map(l -> l.get(l.size() - 1))
+				.map(LavfiMtdValue::value)
 				.ifPresent(ebu -> {
 					final var section = new ReportSection(AUDIO, LOUDNESS_EBU_R128);
-					section.add(new NumericUnitValueReportEntry("Integrated", ebu.getIntegrated(), DBFS));
-					section.add(new NumericUnitValueReportEntry("Range (LRA)", ebu.getLoudnessRange(), "dB"));
-					section.add(new NumericUnitValueReportEntry("High range", ebu.getLoudnessRangeHigh(), DBFS));
-					section.add(new NumericUnitValueReportEntry("Low range", ebu.getLoudnessRangeLow(), DBFS));
-					section.add(new NumericUnitValueReportEntry("True peak", ebu.getTruePeak(), "dBTPK"));
+					section.add(new NumericUnitValueReportEntry("Integrated", ebu.integrated(), DBFS));
+					section.add(new NumericUnitValueReportEntry("Range (LRA)", ebu.loudnessRange(), "dB"));
+					section.add(new NumericUnitValueReportEntry("High range", ebu.loudnessRangeHigh(), DBFS));
+					section.add(new NumericUnitValueReportEntry("Low range", ebu.loudnessRangeLow(), DBFS));
+					section.add(new NumericUnitValueReportEntry("True peak", ebu.truePeak(), "dBTPK"));
 					document.add(section);
 				});
 	}

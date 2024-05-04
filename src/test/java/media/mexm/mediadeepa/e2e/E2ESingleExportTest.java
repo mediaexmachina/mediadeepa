@@ -18,8 +18,8 @@ package media.mexm.mediadeepa.e2e;
 
 import static java.io.File.pathSeparatorChar;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.compress.utils.FileNameUtils.getExtension;
 import static org.apache.commons.io.FileUtils.forceMkdirParent;
+import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

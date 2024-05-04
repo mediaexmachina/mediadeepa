@@ -38,9 +38,10 @@ public class AppConfig {
 		private String filtersJson = "filters.json";
 		private String commandLineJson = "commandline.json";
 		private String containerXml = "container.xml";
-		private String stdErrTxt = "stderr.txt";
 		private String lavfiTxtBase = "lavfi";
 		private String ffprobeTxt = "ffprobe.xml";
+		private String ffmpegCommandLineTxt = "ffmpeg-cmdline.txt";
+		private String ffprobeCommandLineTxt = "ffprobe-cmdline.txt";
 	}
 
 	private String jsontableFileName = "media-datas.json";

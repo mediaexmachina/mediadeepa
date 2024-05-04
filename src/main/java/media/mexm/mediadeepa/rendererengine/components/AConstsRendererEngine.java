@@ -56,8 +56,8 @@ public class AConstsRendererEngine implements
 			REF_PKT_DTS_TIME,
 			REF_BEST_EFFORT_TIMESTAMP,
 			REF_BEST_EFFORT_TIMESTAMP_TIME,
-			REF_PKT_DURATION,
-			REF_PKT_DURATION_TIME,
+			REF_DURATION,
+			REF_DURATION_TIME,
 			REF_PKT_POS);
 
 	@Override
@@ -88,8 +88,8 @@ public class AConstsRendererEngine implements
 										frame.pktDtsTime(),
 										frame.bestEffortTimestamp(),
 										frame.bestEffortTimestampTime(),
-										frame.pktDuration(),
-										frame.pktDurationTime(),
+										frame.duration(),
+										frame.durationTime(),
 										frame.pktPos());
 							});
 					return aConsts;
@@ -118,8 +118,8 @@ public class AConstsRendererEngine implements
 										.addCell(frame.pktDtsTime())
 										.addCell(frame.bestEffortTimestamp())
 										.addCell(frame.bestEffortTimestampTime())
-										.addCell(frame.pktDuration())
-										.addCell(frame.pktDurationTime())
+										.addCell(frame.duration())
+										.addCell(frame.durationTime())
 										.addCell(frame.pktPos());
 							});
 				});

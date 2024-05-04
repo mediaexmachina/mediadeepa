@@ -19,6 +19,7 @@ package media.mexm.mediadeepa.service;
 import static java.lang.Math.round;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static tv.hd3g.fflauncher.recipes.MediaAnalyserResult.R128_DEFAULT_LUFS_TARGET;
 
 import java.io.File;
 import java.net.SocketException;
@@ -262,17 +263,21 @@ public class FFmpegServiceImpl implements FFmpegService {
 			silence.setMono(true);
 			countFilter.add(addFilter(ma, fIgnore, fOnly, silence));
 
-			if (countFilter(countFilter)) {
+			final var ebur128 = new AudioFilterEbur128();
+			Optional.ofNullable(options.getEbur128Target())
+					.ifPresentOrElse(
+							ebur128::setTarget,
+							() -> ebur128.setTarget(R128_DEFAULT_LUFS_TARGET));
+			ebur128.setPeakMode(new TreeSet<>(List.of(Peak.SAMPLE, Peak.TRUE)));
+			ebur128.setMetadata(true);
+			countFilter.add(addFilter(ma, fIgnore, fOnly, ebur128));
+
+			useMtdAudio = countFilter(countFilter);
+			if (useMtdAudio) {
 				final var aMetadata = new AudioFilterAMetadata(AbstractFilterMetadata.Mode.PRINT);
 				aMetadata.setFile("-");
 				addFilter(ma, fIgnore, fOnly, aMetadata);
 			}
-
-			final var ebur128 = filterSetup(new AudioFilterEbur128(), options);
-			ebur128.setPeakMode(new TreeSet<>(List.of(Peak.SAMPLE, Peak.TRUE)));
-			countFilter.add(addFilter(ma, fIgnore, fOnly, ebur128));
-
-			useMtdAudio = countFilter(countFilter);
 		}
 
 		if (sourceHasVideo && videoNo == false) {
@@ -306,12 +311,6 @@ public class FFmpegServiceImpl implements FFmpegService {
 				addFilter(ma, fIgnore, fOnly, vMetadata);
 			}
 		}
-	}
-
-	private AudioFilterEbur128 filterSetup(final AudioFilterEbur128 audioFilterEbur128, final FilterCmd options) {
-		Optional.ofNullable(options.getEbur128Target())
-				.ifPresent(audioFilterEbur128::setTarget);
-		return audioFilterEbur128;
 	}
 
 	private VideoFilterFreezedetect filterSetup(final VideoFilterFreezedetect videoFilterFreezedetect,

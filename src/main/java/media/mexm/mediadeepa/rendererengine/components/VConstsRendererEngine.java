@@ -64,16 +64,14 @@ public class VConstsRendererEngine implements
 			COLOR_PRIMARIES,
 			COLOR_TRANSFER,
 			COLOR_SPACE,
-			CODED_PICTURE_NUMBER,
-			DISPLAY_PICTURE_NUMBER,
 			REF_PTS,
 			REF_PTS_TIME,
 			REF_PKT_DTS,
 			REF_PKT_DTS_TIME,
 			REF_BEST_EFFORT_TIMESTAMP,
 			REF_BEST_EFFORT_TIMESTAMP_TIME,
-			REF_PKT_DURATION,
-			REF_PKT_DURATION_TIME,
+			REF_DURATION,
+			REF_DURATION_TIME,
 			REF_PKT_POS);
 
 	@Override
@@ -106,16 +104,14 @@ public class VConstsRendererEngine implements
 										c.colorPrimaries(),
 										c.colorTransfer(),
 										c.colorSpace(),
-										c.codedPictureNumber(),
-										c.displayPictureNumber(),
 										frame.pts(),
 										frame.ptsTime(),
 										frame.pktDts(),
 										frame.pktDtsTime(),
 										frame.bestEffortTimestamp(),
 										frame.bestEffortTimestampTime(),
-										frame.pktDuration(),
-										frame.pktDurationTime(),
+										frame.duration(),
+										frame.durationTime(),
 										frame.pktPos());
 							});
 					return vConsts;
@@ -146,16 +142,14 @@ public class VConstsRendererEngine implements
 										.addCell(c.colorPrimaries())
 										.addCell(c.colorTransfer())
 										.addCell(c.colorSpace())
-										.addCell(c.codedPictureNumber())
-										.addCell(c.displayPictureNumber())
 										.addCell(frame.pts())
 										.addCell(frame.ptsTime())
 										.addCell(frame.pktDts())
 										.addCell(frame.pktDtsTime())
 										.addCell(frame.bestEffortTimestamp())
 										.addCell(frame.bestEffortTimestampTime())
-										.addCell(frame.pktDuration())
-										.addCell(frame.pktDurationTime())
+										.addCell(frame.duration())
+										.addCell(frame.durationTime())
 										.addCell(frame.pktPos());
 							});
 				});

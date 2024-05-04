@@ -18,7 +18,7 @@ package media.mexm.mediadeepa.e2e;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.function.Predicate.not;
-import static org.apache.commons.compress.utils.FileNameUtils.getExtension;
+import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

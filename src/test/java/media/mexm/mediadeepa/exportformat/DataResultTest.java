@@ -16,10 +16,8 @@
  */
 package media.mexm.mediadeepa.exportformat;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
@@ -37,15 +35,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import net.datafaker.Faker;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
-import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
-import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 
@@ -66,10 +61,6 @@ class DataResultTest {
 	FFprobeJAXB ffprobeResult;
 	@Mock
 	ContainerAnalyserResult containerAnalyserResult;
-	@Mock
-	List<Ebur128StrErrFilterEvent> ebur128events;
-	@Mock
-	List<RawStdErrFilterEvent> rawStdErrEvents;
 	@Mock
 	Map<String, String> versions;
 	@Mock
@@ -93,29 +84,9 @@ class DataResultTest {
 				sourceDuration,
 				ffprobeResult,
 				containerAnalyserResult,
-				ebur128events,
-				rawStdErrEvents,
 				versions,
 				streamType,
 				ffprobeVideoFrameConst);
-	}
-
-	@Test
-	void testSetEbur128events() {
-		dr.setEbur128events(ebur128events);
-		final var result = dr.getEbur128events();
-		assertThat(Mockito.mockingDetails(result).isMock()).isFalse();
-		assertThrows(UnsupportedOperationException.class,
-				() -> result.clear());
-	}
-
-	@Test
-	void testSetRawStdErrEvents() {
-		dr.setRawStdErrEvents(rawStdErrEvents);
-		final var result = dr.getRawStdErrEvents();
-		assertThat(Mockito.mockingDetails(result).isMock()).isFalse();
-		assertThrows(UnsupportedOperationException.class,
-				() -> result.clear());
 	}
 
 	@Test

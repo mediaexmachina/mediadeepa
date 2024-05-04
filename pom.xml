@@ -15,15 +15,16 @@
     <parent>
         <groupId>tv.hd3g.commons</groupId>
         <artifactId>app</artifactId>
-        <version>19.0.0</version>
+        <version>20.0.0</version>
         <relativePath />
     </parent>
 
     <properties>
-        <prodlib.version>19.0.0</prodlib.version>
-        <medialib.version>15.0.0</medialib.version>
+        <prodlib.version>20.0.0</prodlib.version>
+        <medialib.version>16.0.0</medialib.version>
 
         <linux-springboot-packager.kind>cli</linux-springboot-packager.kind>
+        <opencsv.version>5.9</opencsv.version>
         <jaxb-runtime.version>2.3.8</jaxb-runtime.version>
         <picocli.version>4.7.0</picocli.version>
         <apache.poi.version>5.2.3</apache.poi.version>

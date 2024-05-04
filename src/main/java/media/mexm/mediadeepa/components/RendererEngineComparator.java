@@ -40,7 +40,6 @@ import media.mexm.mediadeepa.rendererengine.components.GopStatsRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.IdetRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.MediaSummaryRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.PacketsRendererEngine;
-import media.mexm.mediadeepa.rendererengine.components.RawstderrfiltersRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.SITIRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.SITIReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.VConstsRendererEngine;
@@ -78,8 +77,6 @@ public class RendererEngineComparator implements Comparator<ReportRendererEngine
 			AFramesRendererEngine.class,
 			GopStatsRendererEngine.class,
 			VFramesRendererEngine.class,
-
-			RawstderrfiltersRendererEngine.class,
 
 			AboutMeasureRendererEngine.class);
 

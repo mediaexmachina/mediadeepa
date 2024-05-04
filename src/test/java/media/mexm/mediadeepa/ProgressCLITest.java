@@ -50,36 +50,17 @@ class ProgressCLITest {
 	}
 
 	@Test
-	void testStart() {
-		c.start();
-		assertThat(outputStream).asString()
-				.contains(" |                    |");
-	}
-
-	@Test
-	void testStart_twice() {
-		c.start();
-		c.start();
-		assertThat(outputStream).asString()
-				.contains(" |                    |");
-	}
-
-	@Test
 	void testDisplayProgress_simple() {
-		c.start();
 		c.displayProgress(value, speed);
 		assertThat(outputStream).asString()
-				.contains(" |                    |")
 				.contains(" |======              | 33% ETA 00:00:00, x0.7");
 	}
 
 	@Test
 	void testDisplayProgress_lastIsSame() {
-		c.start();
 		c.displayProgress(value, speed);
 		c.displayProgress(value, speed);
 		assertThat(outputStream).asString()
-				.contains(" |                    |")
 				.contains(" |======              | 33% ETA 00:00:00, x0.7");
 	}
 
@@ -87,7 +68,7 @@ class ProgressCLITest {
 	void testEnd() {
 		c.end();
 		assertThat(outputStream).asString()
-				.contains(" |====================| 100%, total time:");
+				.contains(" |====================|100%, total time:");
 	}
 
 	@Test
@@ -95,7 +76,7 @@ class ProgressCLITest {
 		c.end();
 		c.end();
 		assertThat(outputStream).asString()
-				.contains(" |====================| 100%, total time:");
+				.contains(" |====================|100%, total time:");
 	}
 
 	@Test
@@ -107,11 +88,9 @@ class ProgressCLITest {
 
 	@Test
 	void testDisplayProgress_rude_end() {
-		c.start();
 		c.displayProgress(1, speed);
 		assertThat(outputStream).asString()
-				.contains(" |                    |")
-				.contains(" |====================| 100%, total time:");
+				.contains(" |====================|100%, total time:");
 	}
 
 }

@@ -83,8 +83,8 @@ public interface ConstStrings {// NOSONAR
 	String DBFS = "dBFS";
 
 	String REF_PKT_POS = "Ref pkt pos";
-	String REF_PKT_DURATION_TIME = "Ref pkt duration time";
-	String REF_PKT_DURATION = "Ref pkt duration";
+	String REF_DURATION_TIME = "Ref duration time";
+	String REF_DURATION = "Ref duration";
 	String REF_BEST_EFFORT_TIMESTAMP_TIME = "Ref best effort timestamp time";
 	String REF_BEST_EFFORT_TIMESTAMP = "Ref best effort timestamp";
 	String REF_PKT_DTS_TIME = "Ref pkt dts time";

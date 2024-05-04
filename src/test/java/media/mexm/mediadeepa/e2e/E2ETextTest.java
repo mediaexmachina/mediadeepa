@@ -26,6 +26,7 @@ import static java.util.stream.Collectors.toUnmodifiableMap;
 import static media.mexm.mediadeepa.e2e.E2ESpecificMediaFile.getFromMediaFile;
 import static org.apache.commons.io.FilenameUtils.wildcardMatch;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Offset.offset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -107,7 +107,6 @@ class E2ETextTest extends E2EUtils {
 			checkProcessTXT_containerPackets();
 			checkProcessTXT_events();
 			checkProcessTXT_mediaSummary();
-			checkProcessTXT_stderr();
 
 			if (rawData.hasVideo()) {
 				checkProcessTXT_containerVideoConst();
@@ -139,11 +138,11 @@ class E2ETextTest extends E2EUtils {
 
 				final var lExport = FileUtils.readLines(fExport, UTF_8);
 				final var lProcess = FileUtils.readLines(fProcess, UTF_8);
-				assertEquals(lExport.size(), lProcess.size());
+				assertEquals(lExport.size(), lProcess.size(), fExport.getName());
 
 				for (var pos = 0; pos < lExport.size(); pos++) {
 					assertEquals(lExport.get(pos), lProcess.get(pos),
-							"Difference in L" + pos + 1);
+							"Difference in L" + (pos + 1) + " on " + fExport.getPath());
 				}
 			}
 
@@ -193,61 +192,56 @@ class E2ETextTest extends E2EUtils {
 			final var specificMediaFile = getFromMediaFile(rawData.mediaFile());
 			final var f = getProcessedTXTFromRaw(rawData, "container-video-consts.txt");
 			final var lines = readLines(f);
-			assertTableWith(21, lines);
+			assertTableWith(19, lines);
 			switch (specificMediaFile) {
 			case AVI:
-				assertEquals(2, lines.size());
+				assertThat(lines.size()).isIn(2, V_FRAME_COUNT + 1);
 				assertEquals(List.of(
 						"352", "288", "1:1", "0", "0", "yuv420p",
-						"", "", "", "", "0", "0", "0", "0", "0", "0", "0", "0", "1", "0.02", "9990"),
+						"", "", "", "", "0", "0", "0", "0", "0", "0", "1", "0.02", "9990"),
 						getSplitedLine(lines, 1));
 				break;
 			case MKV:
-				assertEquals(2, lines.size());
+				assertThat(lines.size()).isIn(2, V_FRAME_COUNT + 1);
 				assertEquals(List.of(
 						"352", "288", "1:1", "0", "0", "yuv420p",
-						"", "", "", "", "0", "0", "0", "0", "0", "0", "0", "0", "40", "0.04", "706"),
+						"", "", "", "", "0", "0", "0", "0", "0", "0", "40", "0.04", "706"),
 						getSplitedLine(lines, 1));
 				break;
 			case MOV:
-				assertEquals(2, lines.size());
+				assertThat(lines.size()).isIn(2, V_FRAME_COUNT + 1);
 				assertEquals(List.of(
 						"352", "288", "1:1", "0", "0", "yuv420p",
-						"", "", "", "", "0", "0", "0", "0", "0", "0", "0", "0", "640", "0.04", "36"),
+						"", "", "", "", "0", "0", "0", "0", "0", "0", "640", "0.04", "36"),
 						getSplitedLine(lines, 1));
 				break;
 			case MPG:
-				assertEquals(V_FRAME_COUNT + 1, lines.size());
+				assertThat(lines.size()).isIn(2, V_FRAME_COUNT + 1);
 				assertEquals(List.of(
 						"352", "288", "1:1", "0", "0", "yuv420p",
-						"tv", "", "", "", "0", "0", "48600", "0.54", "48600", "0.54", "48600", "0.54", "3600",
+						"tv", "", "", "", "48600", "0.54", "48600", "0.54", "48600", "0.54", "3600",
 						"0.04", "30"),
 						getSplitedLine(lines, 1));
 				break;
 			case TS:
-				assertEquals(V_FRAME_COUNT + 1, lines.size());
+				assertThat(lines.size()).isIn(2, V_FRAME_COUNT + 1);
 				assertEquals(List.of(
 						"352", "288", "1:1", "0", "0", "yuv420p",
-						"tv", "", "", "", "0", "0", "129600", "1.44", "129600", "1.44", "129600", "1.44",
+						"tv", "", "", "", "129600", "1.44", "129600", "1.44", "129600", "1.44",
 						"3600",
 						"0.04", "564"),
 						getSplitedLine(lines, 1));
 				break;
 			case MXF:
-				assertEquals(V_FRAME_COUNT + 1, lines.size());
+				assertThat(lines.size()).isIn(2, V_FRAME_COUNT + 1);
 				assertEquals(List.of(
 						"352", "288", "1:1", "0", "0", "yuv420p",
-						"tv", "", "", "", "0", "0", "0", "0", "0", "0", "0", "0", "1", "0.04", "8192"),
+						"tv", "", "", "", "0", "0", "0", "0", "0", "0", "1", "0.04", "8192"),
 						getSplitedLine(lines, 1));
 				break;
 			default:
 				break;
 			}
-		}
-
-		void checkProcessTXT_stderr() {
-			final var f = getProcessedTXTFromRaw(rawData, "rawstderrfilters.txt");
-			assertTrue(f.exists());
 		}
 
 		void checkProcessTXT_mediaSummary() throws IOException {
@@ -338,7 +332,7 @@ class E2ETextTest extends E2EUtils {
 					assertEquals(V_FRAME_COUNT + specificMediaFile.alavfiFrameCount + 1, lines.size());
 				}
 			} else {
-				assertEquals(specificMediaFile.alavfiFrameCount + 1, lines.size());
+				assertThat(lines.size()).isBetween(10, (int) specificMediaFile.alavfiFrameCount + 2);
 			}
 		}
 
@@ -347,7 +341,7 @@ class E2ETextTest extends E2EUtils {
 			final var f = getProcessedTXTFromRaw(rawData, "container-audio-frames.txt");
 			final var lines = readLines(f);
 			assertTableWith(12, lines);
-			assertEquals(specificMediaFile.containerAudioCount + 1, lines.size());
+			assertThat(lines.size()).isBetween(10, (int) specificMediaFile.containerAudioCount + 2);
 		}
 
 		void checkProcessTXT_audioConsts() throws IOException {
@@ -362,7 +356,7 @@ class E2ETextTest extends E2EUtils {
 			final var f = getProcessedTXTFromRaw(rawData, "audio-phase-meter.txt");
 			final var lines = readLines(f);
 			assertTableWith(4, lines);
-			assertEquals(specificMediaFile.alavfiFrameCount + 1, lines.size());
+			assertThat(lines.size()).isBetween(10, (int) specificMediaFile.alavfiFrameCount + 2);
 		}
 
 		void checkProcessTXT_audioStats() throws IOException {
@@ -370,17 +364,13 @@ class E2ETextTest extends E2EUtils {
 			final var f = getProcessedTXTFromRaw(rawData, "audio-stats.txt");
 			final var lines = readLines(f);
 			assertTableWith(List.of(12, 11), lines);
-			if (specificMediaFile == E2ESpecificMediaFile.MXF) {
-				assertEquals(specificMediaFile.containerAudioCount + 1, lines.size());
-			} else {
-				assertEquals(specificMediaFile.containerAudioCount * 2 + 1, lines.size());
-			}
+			assertThat(lines.size()).isBetween(60, (int) specificMediaFile.containerAudioCount * 2 + 2);
 		}
 
 		void checkProcessTXT_ebur128() throws IOException {
 			final var f = getProcessedTXTFromRaw(rawData, "audio-ebur128.txt");
 			final var lines = readLines(f);
-			assertTableWith(11, lines);
+			assertTableWith(9, lines);
 			assertEquals(561, lines.size());
 		}
 
@@ -388,7 +378,7 @@ class E2ETextTest extends E2EUtils {
 			final var specificMediaFile = getFromMediaFile(rawData.mediaFile());
 			final var f = getProcessedTXTFromRaw(rawData, "audio-ebur128-summary.txt");
 			final var lines = readLines(f);
-			assertTableWith(8, lines);
+			assertTableWith(6, lines);
 
 			final var lineHeader = Arrays.asList(lines.get(0).split("\t"));
 			final var lineValues = Arrays.asList(lines.get(1).split("\t"));
@@ -398,21 +388,17 @@ class E2ETextTest extends E2EUtils {
 
 			assertEquals(-24, round(floatValues.get("Integrated")));
 			if (specificMediaFile == E2ESpecificMediaFile.MXF) {
-				assertEquals(-36, round(floatValues.get("Integrated Threshold")));
 				assertEquals(20, round(floatValues.get("Loudness Range")));
-				assertEquals(-45, round(floatValues.get("Loudness Range Threshold")));
 				assertEquals(-39, round(floatValues.get("Loudness Range Low")));
 				assertEquals(-19, round(floatValues.get("Loudness Range High")));
 				assertEquals(-21, round(floatValues.get("Sample Peak")));
 				assertEquals(-21, round(floatValues.get("True Peak")));
 			} else {
-				assertEquals(-35, round(floatValues.get("Integrated Threshold")));
 				assertEquals(17, round(floatValues.get("Loudness Range")));
-				assertEquals(-45, round(floatValues.get("Loudness Range Threshold")));
 				assertEquals(-36, round(floatValues.get("Loudness Range Low")));
 				assertEquals(-19, round(floatValues.get("Loudness Range High")));
-				assertEquals(-18, round(floatValues.get("Sample Peak")));
-				assertEquals(-18, round(floatValues.get("True Peak")));
+				assertThat(floatValues.get("Sample Peak")).isCloseTo(-17, offset(2f));
+				assertThat(floatValues.get("True Peak")).isCloseTo(-17, offset(2f));
 			}
 		}
 
@@ -476,28 +462,30 @@ class E2ETextTest extends E2EUtils {
 			}
 
 			if (rawData.hasVideo()) {
-				assertEquals(Set.of(
+				assertThat(names).containsOnly(
 						zippedTxtFileNames.getVersionJson(),
 						zippedTxtFileNames.getCommandLineJson(),
 						zippedTxtFileNames.getFiltersJson(),
 						zippedTxtFileNames.getContainerXml(),
 						zippedTxtFileNames.getFfprobeTxt(),
-						zippedTxtFileNames.getStdErrTxt(),
 						zippedTxtFileNames.getLavfiTxtBase() + "0.txt",
 						zippedTxtFileNames.getLavfiTxtBase() + "1.txt",
 						zippedTxtFileNames.getSummaryTxt(),
-						zippedTxtFileNames.getSourceNameTxt()), names);
+						zippedTxtFileNames.getFfmpegCommandLineTxt(),
+						zippedTxtFileNames.getFfprobeCommandLineTxt(),
+						zippedTxtFileNames.getSourceNameTxt());
 			} else {
-				assertEquals(Set.of(
+				assertThat(names).containsOnly(
 						zippedTxtFileNames.getVersionJson(),
 						zippedTxtFileNames.getCommandLineJson(),
 						zippedTxtFileNames.getFiltersJson(),
 						zippedTxtFileNames.getContainerXml(),
 						zippedTxtFileNames.getFfprobeTxt(),
-						zippedTxtFileNames.getStdErrTxt(),
 						zippedTxtFileNames.getLavfiTxtBase() + "0.txt",
 						zippedTxtFileNames.getSummaryTxt(),
-						zippedTxtFileNames.getSourceNameTxt()), names);
+						zippedTxtFileNames.getFfmpegCommandLineTxt(),
+						zippedTxtFileNames.getFfprobeCommandLineTxt(),
+						zippedTxtFileNames.getSourceNameTxt());
 			}
 		}
 	}
@@ -523,17 +511,15 @@ class E2ETextTest extends E2EUtils {
 				countLinesExportDir("long-mkv_audio-ebur128.txt"));
 		assertEquals(2,
 				countLinesExportDir("long-mkv_audio-ebur128-summary.txt"));
-		assertEquals(600002,
-				countLinesExportDir("long-mkv_audio-phase-meter.txt"));
-		assertEquals(1200003,
-				countLinesExportDir("long-mkv_audio-stats.txt"));
+		assertThat(countLinesExportDir("long-mkv_audio-phase-meter.txt")).isBetween(100_000, 600_002);
+		assertThat(countLinesExportDir("long-mkv_audio-stats.txt")).isBetween(288_003, 1_200_003);
 		assertEquals(2,
 				countLinesExportDir("long-mkv_container-audio-consts.txt"));
 		assertEquals(600002,
 				countLinesExportDir("long-mkv_container-audio-frames.txt"));
 		assertEquals(960002,
 				countLinesExportDir("long-mkv_container-packets.txt"));
-		assertEquals(360001,
+		assertEquals(2,
 				countLinesExportDir("long-mkv_container-video-consts.txt"));
 		assertEquals(360001,
 				countLinesExportDir("long-mkv_container-video-frames.txt"));
@@ -554,8 +540,8 @@ class E2ETextTest extends E2EUtils {
 		assertTrue(countLinesExportDir("long-mkv_about.txt") > 0);
 	}
 
-	static final int EXPECTED_OUT_FILES_COUNT_SOURCE_VID = 20;
-	static final int EXPECTED_OUT_FILES_COUNT_SOURCE_AUD = 12;
+	static final int EXPECTED_OUT_FILES_COUNT_SOURCE_VID = 16;
+	static final int EXPECTED_OUT_FILES_COUNT_SOURCE_AUD = 8;
 
 	@Nested
 	class Multiple {

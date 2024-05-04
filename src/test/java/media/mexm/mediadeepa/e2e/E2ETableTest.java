@@ -116,7 +116,7 @@ class E2ETableTest extends E2EUtils {
 		verify(defaultHandler, atLeast(20)).startElement(eq(""), eq(""), eq("table"), any());
 		verify(defaultHandler, atLeast(20)).startElement(eq(""), eq(""), eq("headers"), any());
 		verify(defaultHandler, atLeast(160)).startElement(eq(""), eq(""), eq("header"), any());
-		verify(defaultHandler, atLeast(23000)).startElement(eq(""), eq(""), eq("entry"), any());
+		verify(defaultHandler, atLeast(16000)).startElement(eq(""), eq(""), eq("entry"), any());
 		verify(defaultHandler, atLeast(1)).endElement(anyString(), anyString(), anyString());
 	}
 

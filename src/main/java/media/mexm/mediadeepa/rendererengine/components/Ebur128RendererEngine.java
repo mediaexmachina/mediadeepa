@@ -19,8 +19,10 @@ package media.mexm.mediadeepa.rendererengine.components;
 import static java.awt.Color.BLUE;
 import static java.awt.Color.GREEN;
 import static java.awt.Color.RED;
+import static java.util.function.Predicate.not;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THICK_STROKE;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
+import static tv.hd3g.fflauncher.recipes.MediaAnalyserResult.R128_DEFAULT_LUFS_TARGET;
 
 import java.awt.Color;
 import java.util.List;
@@ -48,10 +50,11 @@ import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.Ebur128RendererEngine.EBUR128ReportItem;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdR128;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
+import tv.hd3g.fflauncher.filtering.lavfimtd.Stereo;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
-import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
-import tv.hd3g.fflauncher.resultparser.Ebur128Summary;
-import tv.hd3g.fflauncher.resultparser.Stereo;
 
 @Component
 public class Ebur128RendererEngine implements
@@ -76,7 +79,6 @@ public class Ebur128RendererEngine implements
 			SHORT_TERM,
 			LOUDNESS_RANGE,
 			SAMPLE_PEAK_L, SAMPLE_PEAK_R,
-			TRUE_PEAK_PER_FRAME_L, TRUE_PEAK_PER_FRAME_R,
 			TRUE_PEAK_L, TRUE_PEAK_R);
 
 	@Override
@@ -89,62 +91,53 @@ public class Ebur128RendererEngine implements
 												   final TabularExportFormat tabularExportFormat) {
 		final var t = new TabularDocument(tabularExportFormat, getSingleUniqTabularDocumentBaseFileName()).head(
 				HEAD_EBUR128);
-		result.getEbur128events()
+		result.getMediaAnalyserResult()
+				.map(MediaAnalyserResult::lavfiMetadatas)
+				.map(LavfiMetadataFilterParser::getR128Report)
+				.stream()
+				.flatMap(List::stream)
 				.forEach(ebu -> t.row(
-						tabularExportFormat.formatNumberLowPrecision(ebu.getT()),
-						tabularExportFormat.formatNumberLowPrecision(ebu.getI()),
-						tabularExportFormat.formatNumberLowPrecision(ebu.getM()),
-						tabularExportFormat.formatNumberLowPrecision(ebu.getS()),
-						tabularExportFormat.formatNumberLowPrecision(ebu.getLra()),
-						tabularExportFormat.formatNumberLowPrecision(ebu.getSpk().left()),
-						tabularExportFormat.formatNumberLowPrecision(ebu.getSpk().right()),
-						tabularExportFormat.formatNumberLowPrecision(ebu.getFtpk().left()),
-						tabularExportFormat.formatNumberLowPrecision(ebu.getFtpk().right()),
-						tabularExportFormat.formatNumberLowPrecision(ebu.getTpk().left()),
-						tabularExportFormat.formatNumberLowPrecision(ebu.getTpk().right())));
+						tabularExportFormat.formatNumberLowPrecision(ebu.ptsTime()),
+						tabularExportFormat.formatNumberLowPrecision(ebu.value().integrated()),
+						tabularExportFormat.formatNumberLowPrecision(ebu.value().momentary()),
+						tabularExportFormat.formatNumberLowPrecision(ebu.value().shortTerm()),
+						tabularExportFormat.formatNumberLowPrecision(ebu.value().loudnessRange()),
+						tabularExportFormat.formatNumberLowPrecision(ebu.value().samplePeaks().left()),
+						tabularExportFormat.formatNumberLowPrecision(ebu.value().samplePeaks().right()),
+						tabularExportFormat.formatNumberLowPrecision(ebu.value().truePeaks().left()),
+						tabularExportFormat.formatNumberLowPrecision(ebu.value().truePeaks().right())));
 		return List.of(t);
 	}
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
 		final var t = tableDocument.createTable("EBU R 128").head(HEAD_EBUR128);
-		result.getEbur128events().forEach(ebu -> t.addRow()
-				.addCell(ebu.getT())
-				.addCell(ebu.getI())
-				.addCell(ebu.getM())
-				.addCell(ebu.getS())
-				.addCell(ebu.getLra())
-				.addCell(ebu.getSpk().left())
-				.addCell(ebu.getSpk().right())
-				.addCell(ebu.getFtpk().left())
-				.addCell(ebu.getFtpk().right())
-				.addCell(ebu.getTpk().left())
-				.addCell(ebu.getTpk().right()));
-	}
-
-	static record EBUR128ReportItem(
-									List<Ebur128StrErrFilterEvent> r128events,
-									Optional<Ebur128Summary> oEbur128Sum,
-									List<FixedMillisecond> positions) {
-
-		static EBUR128ReportItem make(final List<Ebur128StrErrFilterEvent> r128events,
-									  final Optional<Ebur128Summary> oEbur128Sum) {
-			final var positions = r128events.stream()
-					.map(Ebur128StrErrFilterEvent::getT)
-					.map(t -> t * 1000f)
-					.map(Math::ceil)
-					.map(Math::round)
-					.map(FixedMillisecond::new)
-					.toList();
-
-			return new EBUR128ReportItem(r128events, oEbur128Sum, positions);
-		}
-
+		result.getMediaAnalyserResult()
+				.map(MediaAnalyserResult::lavfiMetadatas)
+				.map(LavfiMetadataFilterParser::getR128Report)
+				.stream()
+				.flatMap(List::stream)
+				.forEach(ebu -> t.addRow()
+						.addCell(ebu.ptsTime())
+						.addCell(ebu.value().integrated())
+						.addCell(ebu.value().momentary())
+						.addCell(ebu.value().shortTerm())
+						.addCell(ebu.value().loudnessRange())
+						.addCell(ebu.value().samplePeaks().left())
+						.addCell(ebu.value().samplePeaks().right())
+						.addCell(ebu.value().truePeaks().left())
+						.addCell(ebu.value().truePeaks().right()));
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		graphicMakerList = List.of(new LUFSGraphicMaker(), new TPKGraphicMaker());
+	}
+
+	static record EBUR128ReportItem(List<LavfiMtdR128> r128events,
+									LavfiMtdR128 summary,
+									List<FixedMillisecond> positions,
+									float target) {
 	}
 
 	@Override
@@ -154,13 +147,25 @@ public class Ebur128RendererEngine implements
 
 	@Override
 	public Optional<EBUR128ReportItem> makeGraphicReportItem(final DataResult result) {
-		final var r128events = result.getEbur128events();
-		if (r128events.isEmpty()) {
-			return Optional.empty();
-		}
-		return Optional.ofNullable(EBUR128ReportItem.make(
-				r128events,
-				result.getMediaAnalyserResult().map(MediaAnalyserResult::ebur128Summary)));
+		return result.getMediaAnalyserResult()
+				.map(MediaAnalyserResult::lavfiMetadatas)
+				.map(LavfiMetadataFilterParser::getR128Report)
+				.filter(not(List::isEmpty))
+				.map(r128Report -> new EBUR128ReportItem(
+						r128Report.stream()
+								.map(LavfiMtdValue::value)
+								.toList(),
+						r128Report.get(r128Report.size() - 1).value(),
+						r128Report.stream()
+								.map(LavfiMtdValue::ptsTime)
+								.map(t -> t * 1000f)
+								.map(Math::ceil)
+								.map(Math::round)
+								.map(FixedMillisecond::new)
+								.toList(),
+						result.getMediaAnalyserResult()
+								.flatMap(MediaAnalyserResult::r128Target)
+								.orElse(R128_DEFAULT_LUFS_TARGET)));
 	}
 
 	class LUFSGraphicMaker implements SingleGraphicMaker<EBUR128ReportItem> {
@@ -177,31 +182,30 @@ public class Ebur128RendererEngine implements
 					RangeAxis.createFromValueSet("dB LU", -40, 10, 1,
 							item.r128events.stream()
 									.flatMap(event -> Stream.of(
-											event.getI(),
-											event.getM(),
-											event.getS(),
-											event.getTarget()))));
+											event.integrated(),
+											event.momentary(),
+											event.shortTerm(),
+											item.target()))));
 
 			dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
 					"Integrated",
 					BLUE,
 					THICK_STROKE,
-					item.r128events.stream().map(Ebur128StrErrFilterEvent::getI)));
+					item.r128events.stream().map(LavfiMtdR128::integrated)));
 			dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
 					"Short term",
 					GREEN.darker(),
 					THIN_STROKE,
-					item.r128events.stream().map(Ebur128StrErrFilterEvent::getS)));
+					item.r128events.stream().map(LavfiMtdR128::shortTerm)));
 			dataGraphicLUFS.addSeries(dataGraphicLUFS.new Series(
 					"Momentary",
 					Color.getHSBColor(0.5f, 1f, 0.3f),
 					THIN_STROKE,
-					item.r128events.stream().map(Ebur128StrErrFilterEvent::getM)));
+					item.r128events.stream().map(LavfiMtdR128::momentary)));
 			dataGraphicLUFS
-					.addValueMarker(item.oEbur128Sum.map(Ebur128Summary::getIntegrated))
-					.addValueMarker(item.oEbur128Sum.map(Ebur128Summary::getLoudnessRangeHigh))
-					.addValueMarker(item.oEbur128Sum.map(Ebur128Summary::getLoudnessRangeLow))
-					.addValueMarker(item.r128events.get(item.r128events.size() - 1).getI());
+					.addValueMarker(item.summary().integrated())
+					.addValueMarker(item.summary().loudnessRangeHigh())
+					.addValueMarker(item.summary().loudnessRangeLow());
 			return new GraphicArtifact(
 					getBaseFileName(),
 					dataGraphicLUFS.makeLogarithmicAxisGraphic(numberUtils),
@@ -222,30 +226,30 @@ public class Ebur128RendererEngine implements
 			final var dataGraphicTPK = new TimedDataGraphic(
 					item.positions,
 					RangeAxis.createFromValueSet("dB LU",
-							item.oEbur128Sum.map(Ebur128Summary::getIntegrated).orElse(-23f), 10, 1,
+							item.summary.integrated(), 10, 1,
 							item.r128events.stream()
 									.flatMap(event -> Stream.of(
-											event.getFtpk().left(),
-											event.getFtpk().right(),
-											event.getSpk().left(),
-											event.getSpk().right()))));
+											event.truePeaks().left(),
+											event.truePeaks().right(),
+											event.samplePeaks().left(),
+											event.samplePeaks().right()))));
 
 			dataGraphicTPK.addSeries(dataGraphicTPK.new Series(
 					"True peak left (per frame)", BLUE, THIN_STROKE,
-					item.r128events.stream().map(Ebur128StrErrFilterEvent::getFtpk).map(Stereo::left)));
+					item.r128events.stream().map(LavfiMtdR128::truePeaks).map(Stereo::left)));
 			dataGraphicTPK.addSeries(dataGraphicTPK.new Series(
 					"True peak right (per frame)", RED, THICK_STROKE,
-					item.r128events.stream().map(Ebur128StrErrFilterEvent::getFtpk).map(Stereo::right)));
+					item.r128events.stream().map(LavfiMtdR128::truePeaks).map(Stereo::right)));
 			dataGraphicTPK
-					.addValueMarker(item.oEbur128Sum.map(Ebur128Summary::getTruePeak))
-					.addValueMarker(item.oEbur128Sum.map(Ebur128Summary::getSamplePeak))
+					.addValueMarker(item.summary.truePeak())
+					.addValueMarker(item.summary().samplePeak())
 					.addValueMarker(-3)
 					.addValueMarker(item.r128events.stream()
 							.flatMap(event -> Stream.of(
-									event.getFtpk().left(),
-									event.getFtpk().right(),
-									event.getSpk().left(),
-									event.getSpk().right()))
+									event.truePeaks().left(),
+									event.truePeaks().right(),
+									event.samplePeaks().left(),
+									event.samplePeaks().right()))
 							.mapToDouble(Float::doubleValue)
 							.summaryStatistics().getAverage());
 			return new GraphicArtifact(

@@ -7,3 +7,6 @@ spring:
         log-startup-info: false
         allow-bean-definition-overriding: true
         web-application-type: NONE
+#mediadeepa:
+#    ffmpegExecName: "C:\\Users\\X\\App\\bin\\ffmpeg-6.exe"
+#    ffprobeExecName: "C:\\Users\\X\\App\\bin\\ffprobe-6.exe"

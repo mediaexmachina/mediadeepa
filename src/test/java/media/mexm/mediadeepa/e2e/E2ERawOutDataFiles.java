@@ -18,7 +18,6 @@ package media.mexm.mediadeepa.e2e;
 
 import java.io.File;
 
-import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
 
 public record E2ERawOutDataFiles(File mediaFile,
@@ -41,7 +40,7 @@ public record E2ERawOutDataFiles(File mediaFile,
 		final var baseDirName = "target/e2e/" + mediaFile.getName().replace(".", "-");
 		return new E2ERawOutDataFiles(
 				mediaFile,
-				FileNameUtils.getExtension(mediaFile.getName()).equals("wav") == false,
+				FilenameUtils.getExtension(mediaFile.getName()).equals("wav") == false,
 				new File(baseDirName + ".zip"));
 	}
 }

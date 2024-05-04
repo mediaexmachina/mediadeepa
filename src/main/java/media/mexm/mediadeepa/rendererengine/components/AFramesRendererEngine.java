@@ -106,8 +106,8 @@ public class AFramesRendererEngine implements
 								frame.pktDtsTime(),
 								frame.bestEffortTimestamp(),
 								frame.bestEffortTimestampTime(),
-								frame.pktDuration(),
-								frame.pktDurationTime(),
+								frame.duration(),
+								frame.durationTime(),
 								frame.pktPos(),
 								frame.pktSize());
 					});
@@ -133,8 +133,8 @@ public class AFramesRendererEngine implements
 								.addCell(frame.pktDtsTime())
 								.addCell(frame.bestEffortTimestamp())
 								.addCell(frame.bestEffortTimestampTime())
-								.addCell(frame.pktDuration())
-								.addCell(frame.pktDurationTime())
+								.addCell(frame.duration())
+								.addCell(frame.durationTime())
 								.addCell(frame.pktPos())
 								.addCell(frame.pktSize());
 					});
@@ -222,7 +222,7 @@ public class AFramesRendererEngine implements
 							FRAME_DURATION,
 							audioFrames.stream()
 									.map(FFprobeAudioFrame::frame)
-									.map(FFprobeBaseFrame::pktDurationTime)
+									.map(FFprobeBaseFrame::durationTime)
 									.filter(f -> f > 0f)
 									.filter(f -> f.isNaN() == false)
 									.map(d -> d * 1000f), MILLISECONDS, numberUtils::formatDecimalFull1En));
