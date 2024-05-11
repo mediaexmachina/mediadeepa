@@ -2,10 +2,10 @@
 .\"     Title: mediadeepa
 .\"    Author: Media ex Machina / hdsdi3g 
 .\" Generator: mediadeepa
-.\"      Date: 01/19/2024
-.\"    Source: mediadeepa 0.0.30
+.\"      Date: 05/12/2024
+.\"    Source: mediadeepa 0.0.32
 .\"  Language: English
-.TH "MEDIADEEPA" "1" "01/19/2024" "mediadeepa 0\&.0\&.30" ""
+.TH "MEDIADEEPA" "1" "05/12/2024" "mediadeepa 0\&.0\&.32" ""
 .\" -----------------------------------------------------------------
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
@@ -25,7 +25,7 @@
 mediadeepa \- Extract/process technical informations from audio/videos files/streams
 .SH "SYNOPSIS"
 mediadeepa [\-hov] [\-\-temp DIRECTORY]
-           [\-i FILE] [\-\-import FILE]
+           [\-i FILE]\&.\&.\&. [\-\-input\-list TEXT_FILE_LIST]\&.\&.\&.
            [\-c] [\-mn] [\-an | \-vn] [\-fo FILTER] [\-fn FILTER] [\-\-filter\-X VALUE]
            [\-f FORMAT_TYPE] [\-e DIRECTORY] [\-\-extract FILE]
 .SH "DESCRIPTION"
@@ -82,7 +82,7 @@ Analysis scope is currently based on FFmpeg filters and tools:
 .RE
 And it can export to file the FFprobe XML with media headers (container and A/V streams)\&.
 .PP
-This application can run on three different modes:
+This application can run on three different "modes":
 .PP
 .RS 4
 \- \fIProcess to export\fR: this is the classical mode\&. Mediadeepa will drive FFmpeg to produce analysis data from your source file, and export the result a the end\&.
@@ -92,15 +92,21 @@ This application can run on three different modes:
 \- \fIImport to export\fR: to load in Mediadeepa all gathered raw data files\&. Mediadeepa is \fIvery tolerant\fR with the zip content, notably if they were not created by Mediadeepa (originally)\&. \fINo one is mandatory in zip\&.\fR
 .PP
 .RE
+You can process multiple files in one run, as well as load a text file as file list to process\&.
+.PP
 Known limitations for Mediadeepa
 .RS 4
 \- It only support the first video, and the first founded audio stream of a file\&.
 .PP
 \- Audio mono and stereo only\&.
 .PP
-\- Some process take (long) time to do, like SITI and container analyzing, caused by poor FFmpeg/FFprobe performances with \fIthis\fR filters\&.
+\- Some process take (long) time to do, like SITI and container analyzing, caused by poor FFmpeg/FFprobe performances with \fIthese\fR filters\&.
+.PP
+\- Loudness EBU R\-128 measure works correctly with FFmpeg v7+, due to internal bugs/limitations with the previous versions\&.
 .PP
 .RE
+An internal warning will by displayed if you try to works with a Zip archive created by a different Mediadeepa version\&.
+.PP
 
 .SH "EXAMPLES"
 Process to export
@@ -122,7 +128,7 @@ All available \fIExport formats type\fR are listed by:
 mediadeepa \-o
 .RE
 .PP
-Process to extract
+Import or Process to extract
 Just:
 .PP
 .RS 4
@@ -135,13 +141,48 @@ You can setup FFmpeg, like with import, like:
 mediadeepa \-i videofile\&.mov \-c \-an \-\-extract analysing\-archive\&.zip
 .RE
 .PP
-Import to export
-Replace \fB\-i\fR option by \fB\-\-import\fR:
+Extracted (archive) ZIP file can be loaded simply by \fB\-i\fR:
 .PP
 .RS 4
-mediadeepa \-\-import analysing\-archive\&.zip \-f report \-f graphic \-e \&.
+mediadeepa \-i analysing\-archive\&.zip \-f report \-f graphic \-e \&.
 .RE
 .PP
+Multiple Import or Process
+Add \fB\-i\fR options to works with multiple files, like:
+.PP
+.RS 4
+mediadeepa \-i analysing\-archive\&.zip \-i videofile\&.mov \-i anotherfile\&.wav \-f report \-f graphic \-e \&.
+.RE
+.PP
+You can mix archive zip files and media files, but beware to not import with extract (zip to zip) or use single output file mode (\fB\-\-single\-export\fR)\&.
+.PP
+Load files to process from a text file
+With the \fB\-il\fR, as input list option:
+.PP
+.RS 4
+mediadeepa \-if my\-medias\&.txt \-f report \-f graphic \-e \&.
+.RE
+.PP
+And the \fBmy\-medias\&.txt\fR file can just contain:
+.PP
+.RS 4
+analysing\-archive\&.zip
+videofile\&.mov
+anotherfile\&.wav
+.RE
+.PP
+.RS 4
+\- Any space lines are ignored\&.
+.PP
+\- Charset load respect the current OS session\&.
+.PP
+\- You can use Windows and Linux new lines symbols (and you can mix them)\&.
+.PP
+\- You can accumulate multiple \fB\-i\fR and \fB\-il\fR options, with the same limits as Multiple Import or Process\&.
+.PP
+\- Before starts the imports and processing, the application will check and throw an error if a file is missing (in \fB\-i\fR, \fB\-il\fR, and in the lists itself)\&.
+.PP
+.RE
 
 .SH "OPTIONS"
 \fB\-h\fR, \fB\-\-help\fR
@@ -169,6 +210,20 @@ Show the avaliable options on this system
 .PP
 .RS 4
 Show the autocomplete bash script for this application
+.PP
+.RE
+
+\fB\-i\fR, \fB\-\-input\fR \fIFILE\fR [can be used multiple times]
+.PP
+.RS 4
+Input (media) file to process, or raw ffmpeg datas from a Mediadeepa archive file
+.PP
+.RE
+
+\fB\-il\fR, \fB\-\-input\-list\fR \fITEXT_FILE_LIST\fR [can be used multiple times]
+.PP
+.RS 4
+Read input files from a text list
 .PP
 .RE
 
@@ -200,15 +255,15 @@ Redirect all log messages to text file
 .PP
 .RE
 
-==== Process file ====
-.PP
-\fB\-i\fR, \fB\-\-input\fR \fIFILE\fR
+\fB\-\-graphic\-jpg\fR
 .PP
 .RS 4
-Input (media) file to process
+Export to JPEG instead to PNG the produced graphic images
 .PP
 .RE
 
+==== Process media file options ====
+.PP
 \fB\-c\fR, \fB\-\-container\fR
 .PP
 .RS 4
@@ -435,21 +490,14 @@ Ignore all audio filters
 .RS 4
 .RE
 
+==== Output options ====
+.PP
 ==== Extract to archive ====
 .PP
-\fB\-\-extract\fR \fIMEDIADEEPA_FILE\fR
+\fB\-\-extract\fR \fIMEDIADEEPA_FILE\fR (required)
 .PP
 .RS 4
 Extract all raw ffmpeg datas to a Mediadeepa archive file
-.PP
-.RE
-
-==== Import from archive ====
-.PP
-\fB\-\-import\fR \fIMEDIADEEPA_FILE\fR
-.PP
-.RS 4
-Import raw ffmpeg datas from a Mediadeepa archive file
 .PP
 .RE
 
@@ -462,7 +510,7 @@ Format to export datas
 .PP
 .RE
 
-\fB\-e\fR, \fB\-\-export\fR \fIDIRECTORY\fR (required)
+\fB\-e\fR, \fB\-\-export\fR \fIDIRECTORY\fR
 .PP
 .RS 4
 Export datas to this directory
@@ -476,12 +524,12 @@ Base file name for exported data file(s)
 .PP
 .RE
 
-==== Export options ====
+==== Single export option ====
 .PP
-\fB\-\-graphic\-jpg\fR
+\fB\-\-single\-export\fR (required)
 .PP
 .RS 4
-Export to JPEG instead to PNG the produced graphic images
+Export only this file, as: "internal\-file\-name:outputfilename\&.ext"
 .PP
 .RE
 
@@ -567,7 +615,7 @@ Send bug reports on GitHub project page \fIhttps://github\&.com/mediaexmachina/m
 If you have any questions, feel free to reach out via any contact method listed on https://mexm\&.media \fIhttps://mexm\&.media\fR\&.
 .PP
 
-Mediadeepa 0\&.0\&.30
+Mediadeepa 0\&.0\&.32
 .PP
 Copyright (C) 2022\-2024 Media ex Machina, under the GNU General Public License\&.
 .PP

@@ -51,23 +51,28 @@ Analysis scope is currently based on FFmpeg filters and tools:
 
 And it can export to file the FFprobe XML with media headers (container and A/V streams).
 
-This application can run on three different modes:
+This application can run on three different "modes":
  - **Process to export**: this is the classical mode. Mediadeepa will drive FFmpeg to produce analysis data from your source file, and export the result a the end.
  - **Process to extract**: sometimes, you don't need to process data during the analysis session. So, Mediadeepa can just extract to raw text/xml files (zipped in one archive file) all the gathered data from FFmpeg.
  - **Import to export**: to load in Mediadeepa all gathered raw data files. Mediadeepa is **very tolerant** with the zip content, notably if they were not created by Mediadeepa (originally). **No one is mandatory in zip.**
+
+You can process multiple files in one run, as well as load a text file as file list to process.
 
 ## Known limitations for Mediadeepa
 
  - It only support the first video, and the first founded audio stream of a file.
  - Audio mono and stereo only.
- - Some process take (long) time to do, like SITI and container analyzing, caused by poor FFmpeg/FFprobe performances with **this** filters.
+ - Some process take (long) time to do, like SITI and container analyzing, caused by poor FFmpeg/FFprobe performances with **these** filters.
+ - Loudness EBU R-128 measure works correctly with FFmpeg v7+, due to internal bugs/limitations with the previous versions.
+
+An internal warning will by displayed if you try to works with a Zip archive created by a different Mediadeepa version.
 
 <h2 id="gettingstarted">⚡ Getting started</h2>
 
 ## Dependencies needed for run Mediadeepa
 
   - Java/JRE/JDK 17+
-  - FFmpeg/FFprobe v5+
+  - FFmpeg/FFprobe v5+ (v7+ highly recommended)
 
 Declared on OS (Windows/Linux/macOS) PATH.
 
@@ -79,10 +84,10 @@ Install/update  with
 
 ```bash
 # DEB file on Debian/Ubuntu Linux distribs
-sudo dpkg -i mediadeepa-0.0.30.deb
+sudo dpkg -i mediadeepa-0.0.32.deb
 
 # RPM file on RHEL/CentOS Linux distribs
-sudo rpm -U mediadeepa-0.0.30.rpm
+sudo rpm -U mediadeepa-0.0.32.rpm
 ```
 
 Remove with `sudo dpkg -r mediadeepa` or `rpm -e mediadeepa`.
@@ -91,13 +96,13 @@ After, on Linux, run `mediadeepa [parameters]`, and `man mediadeepa` for the int
 
 ### Run simple JAR file
 
-On Windows/macOS, just run `java -jar mediadeepa-0.0.30.jar [options]`.
+On Windows/macOS, just run `java -jar mediadeepa-0.0.32.jar [options]`.
 
-And simply run the application with `java -jar mediadeepa-0.0.30.jar`.
+And simply run the application with `java -jar mediadeepa-0.0.32.jar`.
 
 Mediadeepa contain embedded help, displayed with the `-h` parameter.
 
-You can set the command line parameters with `java -jar mediadeepa-0.0.30.jar [parameters]`.
+You can set the command line parameters with `java -jar mediadeepa-0.0.32.jar [parameters]`.
 
 ### Make a Java executable JAR file
 
@@ -111,7 +116,7 @@ cd mediadeepa
 mvn install -DskipTests
 ```
 
-Build jar will be founded on `target` directory as `mediadeepa-0.0.30.jar`
+Build jar will be founded on `target` directory as `mediadeepa-0.0.32.jar`
 
 <h2 id="examples">🛫 Examples</h2>
 
@@ -135,7 +140,7 @@ All available **Export formats type** are listed by:
 mediadeepa -o
 ```
 
-## Process to extract
+## Import or Process to extract
 
 Just:
 
@@ -149,13 +154,43 @@ You can setup FFmpeg, like with import, like:
 mediadeepa -i videofile.mov -c -an --extract analysing-archive.zip
 ```
 
-## Import to export
-
-Replace `-i` option by `--import`:
+Extracted (archive) ZIP file can be loaded simply by `-i`:
 
 ```
-mediadeepa --import analysing-archive.zip -f report -f graphic -e .
+mediadeepa -i analysing-archive.zip -f report -f graphic -e .
 ```
+
+## Multiple Import or Process
+
+Add `-i` options to works with multiple files, like:
+
+```
+mediadeepa -i analysing-archive.zip -i videofile.mov -i anotherfile.wav -f report -f graphic -e .
+```
+
+You can mix archive zip files and media files, but beware to not *import* with *extract* (zip to zip) or use single output file mode (`--single-export`).
+
+## Load files to process from a text file
+
+With the `-il`, as *input list* option:
+
+```
+mediadeepa -if my-medias.txt -f report -f graphic -e .
+```
+
+And the `my-medias.txt` file can just contain:
+
+```
+analysing-archive.zip
+videofile.mov
+anotherfile.wav
+```
+
+ * Any space lines are ignored.
+ * Charset load respect the current OS session.
+ * You can use Windows and Linux new lines symbols (and you can mix them).
+ * You can accumulate multiple `-i` and `-il` options, with the same limits as *Multiple Import or Process*.
+ * Before starts the imports and processing, the application will check and throw an error if a file is missing (in `-i`, `-il`, and in the lists itself).
 
 You can read the [FFmpeg filter documentation](https://ffmpeg.org/ffmpeg-filters.html) to know the behavior for each used filters, and the kind of returned values.
 
