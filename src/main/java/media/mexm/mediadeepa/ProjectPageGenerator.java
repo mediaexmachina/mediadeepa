@@ -16,8 +16,11 @@
  */
 package media.mexm.mediadeepa;
 
+import static j2html.TagCreator.a;
 import static j2html.TagCreator.body;
 import static j2html.TagCreator.each;
+import static j2html.TagCreator.footer;
+import static j2html.TagCreator.h1;
 import static j2html.TagCreator.head;
 import static j2html.TagCreator.header;
 import static j2html.TagCreator.html;
@@ -67,18 +70,25 @@ import org.commonmark.node.Text;
 import org.commonmark.node.ThematicBreak;
 import org.commonmark.node.Visitor;
 
-import j2html.TagCreator;
 import j2html.tags.DomContent;
+import j2html.tags.UnescapedText;
+import j2html.tags.specialized.ATag;
+import j2html.tags.specialized.SectionTag;
 import lombok.Getter;
 import media.mexm.mediadeepa.service.DocumentParserService;
 import picocli.CommandLine.Model.OptionSpec;
 
 public class ProjectPageGenerator {
 
+	private static final String TOP_LINK = "top";
+	private static final String TYPE_IMAGE_PNG = "image/png";
 	private static final String NEW_LINE = "\r\n";
+	private static final String BASE_URL = "https://mexm.media/a-propos/";
+
 	private final DocumentParserService documentParserService;
 	private final List<String> mdDocumentLines;
 	private final MdVisitor mdVisitor;
+	private UnescapedText footer;
 
 	public ProjectPageGenerator(final DocumentParserService documentParserService) {
 		this.documentParserService = documentParserService;
@@ -132,24 +142,28 @@ public class ProjectPageGenerator {
 		mdDocumentLines.add("");
 	}
 
+	public void setFooter(final String fileName, final UnaryOperator<String> textTransform) {
+		footer = rawHtml(
+				documentParserService.htmlRender(
+						documentParserService.markdownParse(
+								textTransform.apply(
+										documentParserService.getDocContent(fileName)))));
+	}
+
 	public void writeDoc(final PrintStream ps) {
 		final var strMdDocument = mdDocumentLines.stream().collect(joining(lineSeparator()));
 		final var mdDocument = documentParserService.markdownParse(strMdDocument);
 		mdDocument.accept(mdVisitor);
 
-		final var navContent = nav(each(mdVisitor.getSections()
+		final var sections = mdVisitor.getSections();
+		final var navContent = nav(each(sections
 				.stream()
-				.map(s -> TagCreator.a(s.title)
-						.withHref("#" + s.getTitleToId()))));
+				.skip(1)
+				.map(DocSection::getSynopsisEntry)));
 
-		final var mainContent = main(each(
-				mdVisitor.getSections()
-						.stream()
-						.map(s -> {
-							final var content = rawHtml(s.content().stream().collect(joining(NEW_LINE)));
-							return section(s.levelToHtag(), content)
-									.withId(s.getTitleToId());
-						})));
+		final var firstSection = sections.get(0).getSectionTag();
+		final var synopsisSection = section(h1("Synopsis"), navContent).withId(TOP_LINK);
+		final var otherSections = each(sections.stream().skip(1).map(DocSection::getSectionTag));
 
 		final var htmlDocument = html(head(
 				title("Mediadeepa project documentation page"),
@@ -162,10 +176,32 @@ public class ProjectPageGenerator {
 				link()
 						.withMedia("all")
 						.withRel("stylesheet")
-						.withHref("style.css")),
+						.withHref("style.css"),
+				link()
+						.withRel("apple-touch-icon").withType(TYPE_IMAGE_PNG).withSizes("180x180")
+						.withHref(BASE_URL + "apple-touch-icon.png"),
+				link()
+						.withRel("manifest")
+						.withHref(BASE_URL + "site.webmanifest"),
+				link()
+						.withRel("mask-icon")
+						.withHref(BASE_URL + "safari-pinned-tab.svg"),
+				meta()
+						.withName("msapplication-TileColor")
+						.withContent("#000000"),
+				meta()
+						.withName("theme-color")
+						.withContent("#ffffff"),
+				link()
+						.withRel("icon").withType(TYPE_IMAGE_PNG).withSizes("16x16")
+						.withHref(BASE_URL + "favicon-16x16.png"),
+				link()
+						.withRel("icon").withType(TYPE_IMAGE_PNG).withSizes("32x32")
+						.withHref(BASE_URL + "favicon-32x32.png")),
 				body(
-						header(navContent),
-						mainContent))
+						header(firstSection, synopsisSection),
+						main(otherSections),
+						footer(footer)))
 								.withLang("en");
 
 		ps.print(String.join(NEW_LINE, "<!DOCTYPE html>", htmlDocument.render()));
@@ -178,7 +214,19 @@ public class ProjectPageGenerator {
 		}
 
 		DomContent levelToHtag() {
-			return TagCreator.h1(title);
+			return a(h1(title))
+					.withClass("anchor")
+					.withHref("#" + TOP_LINK);
+		}
+
+		SectionTag getSectionTag() {
+			final var content = rawHtml(content().stream().collect(joining(NEW_LINE)));
+			return section(levelToHtag(), content)
+					.withId(getTitleToId());
+		}
+
+		ATag getSynopsisEntry() {
+			return a(title).withHref("#" + getTitleToId());
 		}
 	}
 
