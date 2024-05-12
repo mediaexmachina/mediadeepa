@@ -87,10 +87,10 @@ Install/update  with
 
 ```bash
 # DEB file on Debian/Ubuntu Linux distribs
-sudo dpkg -i mediadeepa-0.0.33.deb
+sudo dpkg -i mediadeepa-0.0.34.deb
 
 # RPM file on RHEL/CentOS Linux distribs
-sudo rpm -U mediadeepa-0.0.33.rpm
+sudo rpm -U mediadeepa-0.0.34.rpm
 ```
 
 Remove with `sudo dpkg -r mediadeepa` or `rpm -e mediadeepa`.
@@ -99,13 +99,13 @@ After, on Linux, run `mediadeepa [parameters]`, and `man mediadeepa` for the int
 
 ### Run simple JAR file
 
-On Windows/macOS, just run `java -jar mediadeepa-0.0.33.jar [options]`.
+On Windows/macOS, just run `java -jar mediadeepa-0.0.34.jar [options]`.
 
-And simply run the application with `java -jar mediadeepa-0.0.33.jar`.
+And simply run the application with `java -jar mediadeepa-0.0.34.jar`.
 
 Mediadeepa contain embedded help, displayed with the `-h` parameter.
 
-You can set the command line parameters with `java -jar mediadeepa-0.0.33.jar [parameters]`.
+You can set the command line parameters with `java -jar mediadeepa-0.0.34.jar [parameters]`.
 
 ### Make a Java executable JAR file
 
@@ -119,7 +119,7 @@ cd mediadeepa
 mvn install -DskipTests
 ```
 
-Build jar will be founded on `target` directory as `mediadeepa-0.0.33.jar`
+Build jar will be founded on `target` directory as `mediadeepa-0.0.34.jar`
 
 <h2 id="examples">🛫 Examples</h2>
 
@@ -197,7 +197,7 @@ anotherfile.wav
 
 You can read the [FFmpeg filter documentation](https://ffmpeg.org/ffmpeg-filters.html) to know the behavior for each used filters, and the kind of returned values.
 
-The [project website](https://gh.mexm.media/) contain the full documentation regarding the internal variables to specify produced filenames, image sizes...
+The [project website](https://gh.mexm.media/mediadeepa) contain the full documentation regarding the internal variables to specify produced filenames, image sizes...
 
 <h2 id="documentationcontributingandsupport">📕 Documentation, contributing and support</h2>
 
