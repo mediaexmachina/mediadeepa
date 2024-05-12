@@ -16,8 +16,8 @@
  */
 package media.mexm.mediadeepa.e2e;
 
-import static java.io.File.pathSeparatorChar;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.function.Predicate.not;
 import static org.apache.commons.io.FileUtils.forceMkdirParent;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,9 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
@@ -35,10 +35,14 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import media.mexm.mediadeepa.App;
 
+@ExtendWith(OutputCaptureExtension.class)
 class E2ESingleExportTest extends E2EUtils {
 
 	File outputFile;
@@ -218,7 +222,7 @@ class E2ESingleExportTest extends E2EUtils {
 		runApp(
 				"--temp", "target/e2e-temp",
 				"-i", rawData.archive().getPath(),
-				"--single-export", what + pathSeparatorChar + outputFile.getAbsolutePath());
+				"--single-export", what + ":" + outputFile.getAbsolutePath());
 	}
 
 	private void runAppJPEGSingleExport(final String what) {
@@ -226,10 +230,10 @@ class E2ESingleExportTest extends E2EUtils {
 				"--temp", "target/e2e-temp",
 				"-i", rawData.archive().getPath(),
 				"--graphic-jpg",
-				"--single-export", what + pathSeparatorChar + outputFile.getAbsolutePath());
+				"--single-export", what + ":" + outputFile.getAbsolutePath());
 	}
 
-	private void checkFileHeader(final String hex) throws IOException, FileNotFoundException {
+	private void checkFileHeader(final String hex) throws IOException {
 		final var ref = HexFormat.ofDelimiter(" ").parseHex(hex);
 		try (var fis = new FileInputStream(outputFile)) {
 			final var buffer = new byte[ref.length];
@@ -241,6 +245,29 @@ class E2ESingleExportTest extends E2EUtils {
 	private void openImage() throws IOException {
 		final var image = ImageIO.read(outputFile);
 		assertThat(image).isNotNull();
+	}
+
+	@Test
+	void testAbout_stdout(final CapturedOutput output) throws IOException {
+		rawData = prepareMpgForSimpleE2ETests();
+		if (rawData == null) {
+			return;
+		}
+		runApp(
+				"--temp", "target/e2e-temp",
+				"-i", rawData.archive().getPath(),
+				"--single-export", "media-summary.txt:-");
+
+		assertThat(output.getErr()
+				.lines()
+				.filter(not(f -> f.startsWith("WARN")))
+				.toList()).isEmpty();
+		assertThat(output.getOut().lines().toList())
+				.isEqualTo(List.of(
+						"Type\tValue",
+						"Stream	video: mpeg2video 352×288 Main/Main with B frames @ 25 fps yuv420p/colRange:TV",
+						"Stream	audio: mp2 stereo @ 48000 Hz [256 kbps]",
+						"Format\tMPEG-PS (MPEG-2 Program Stream), 00:00:56, 17 MB"));
 	}
 
 }

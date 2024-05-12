@@ -16,7 +16,6 @@
  */
 package media.mexm.mediadeepa.service;
 
-import static java.io.File.pathSeparator;
 import static java.nio.charset.Charset.defaultCharset;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableMap;
@@ -566,16 +565,21 @@ public class AppSessionServiceImpl implements AppSessionService {
 				.flatMap(Optional::ofNullable)
 				.filter(not(String::isBlank));
 		if (oSingleExportParam.isPresent()) {
-			final var exportOnlyParams = StringUtils.split(oSingleExportParam.get(), pathSeparator, 2);
+			final var exportOnlyParams = StringUtils.split(oSingleExportParam.get(), ":", 2);
 			if (exportOnlyParams.length == 1) {
 				throw new ParameterException(commandLine,
-						"Can't manage singleExport param: missing path separator \"" + pathSeparator + "\"");
+						"Can't manage singleExport param: missing path separator \":\"");
 			}
 			final var internalFileName = exportOnlyParams[0];
-			final var outputFile = new File(exportOnlyParams[1]);
-
-			log.debug("Single export analytics {} file to {}...", internalFileName, outputFile);
-			mediaAnalyticsTransformerService.singleExportAnalytics(internalFileName, dataResult, outputFile);
+			if (exportOnlyParams[1].equals("-")) {
+				log.debug("Single export analytics {} file to stdout...", internalFileName);
+				mediaAnalyticsTransformerService.singleExportAnalyticsToOutputStream(
+						internalFileName, dataResult, System.out);// NOSONAR S106
+			} else {
+				final var outputFile = new File(exportOnlyParams[1]);
+				log.debug("Single export analytics {} file to {}...", internalFileName, outputFile);
+				mediaAnalyticsTransformerService.singleExportAnalytics(internalFileName, dataResult, outputFile);
+			}
 		} else {
 			log.debug("Export analytics");
 			mediaAnalyticsTransformerService.exportAnalytics(dataResult, appCommand.getOutputCmd().getExportToCmd());

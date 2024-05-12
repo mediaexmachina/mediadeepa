@@ -14,13 +14,14 @@ Don't input (`-i`) more than one file.
 
 ```
 --single-export <internal-file-name>:<outputfilename.ext>
+--single-export <internal-file-name>:-
 ```
 
 With `<internal-file-name>`, the internal app file name "linked" to a export format. See below the full list.
 
-With `<outputfilename.ext>`, the full path file to produce as result.
+With `<outputfilename.ext>`, the full path file to produce as result, **or** set `-` to send the result to _std out_.
 
-> Use `;` instead on `:` in Windows as path separator.
+> The `-` output option will silent log messages output in std out
 
 Example:
 
@@ -30,6 +31,12 @@ Example:
 
 Will produce an `audio-loudness` graphic file on `/home/me/lufs.png` file.
 
-For information, `graphic` export format files has *no extension*. By default, it export **PNG** files. Change this with `--graphic-jpg`.
+```
+--single-export audio-loudness:-
+```
+
+Will produce and send the same file to _std out_, ready to be piped to another command.
+
+> For information, `graphic` export format files has *no extension*. By default, it export **PNG** files. Change this with `--graphic-jpg`.
 
 Here the full available internal files that you can use (CSV FR format can't be selected):

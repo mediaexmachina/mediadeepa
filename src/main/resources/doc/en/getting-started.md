@@ -9,7 +9,7 @@ Declared on OS (Windows/Linux/macOS) PATH.
 
 Download the last application release, as a Linux RPM or DEB package, or as an executable JAR (autonomous *fat* JAR file), downloaded directly from [GitHub releases page](https://github.com/mediaexmachina/mediadeepa/releases), and build at each releases.
 
-Install/update  with 
+Install/update with 
 
 ```bash
 # DEB file on Debian/Ubuntu Linux distribs

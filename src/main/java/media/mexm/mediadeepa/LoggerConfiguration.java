@@ -89,7 +89,7 @@ public class LoggerConfiguration {
 				osa.setImmediateFlush(true);
 				osa.start();
 
-				rootLogger.addAppender(osa);
+				rootLogger.addAppender(osa);// NOSONAR S4792
 			}
 
 			if (appCommand.isVerbose()) {
@@ -97,14 +97,14 @@ public class LoggerConfiguration {
 						.map(LoggerFactory::getLogger)
 						.distinct()
 						.map(l -> (ch.qos.logback.classic.Logger) l)
-						.forEach(l -> l.setLevel(ch.qos.logback.classic.Level.TRACE));
+						.forEach(l -> l.setLevel(ch.qos.logback.classic.Level.TRACE));// NOSONAR S4792
 				log.trace("Switch to verbose logger CLI mode");
 
-			} else if (appCommand.isQuiet()) {
+			} else if (appCommand.isQuiet() || isSingleExportToStdOut()) {
 				final var rootLogger = (ch.qos.logback.classic.Logger) getILoggerFactory().getLogger(ROOT_LOGGER_NAME);
 				rootLogger.getLoggerContext()
 						.getLoggerList()
-						.forEach(l -> l.setLevel(ch.qos.logback.classic.Level.ERROR));
+						.forEach(l -> l.setLevel(ch.qos.logback.classic.Level.ERROR));// NOSONAR S4792
 
 				externalCommandLine.setOut(new PrintWriter(new OutputStream() {
 					@Override
@@ -119,6 +119,14 @@ public class LoggerConfiguration {
 			return 0;
 		});
 		internalCommandLine.execute(args);
+	}
+
+	private boolean isSingleExportToStdOut() {
+		try {
+			return appCommand.getOutputCmd().getSingleExportCmd().getSingleExport().endsWith(":-");
+		} catch (final NullPointerException e) {
+			return false;
+		}
 	}
 
 }

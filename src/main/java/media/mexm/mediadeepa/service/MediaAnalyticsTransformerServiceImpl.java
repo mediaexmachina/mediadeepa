@@ -18,11 +18,14 @@ package media.mexm.mediadeepa.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -63,22 +66,45 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 				.forEach(s -> doExportAnalytic(result, s));
 	}
 
-	@Override
-	public void singleExportAnalytics(final String internalFileName,
-									  final DataResult result,
-									  final File outputFile) {
+	private void singleExportAnalytics(final String internalFileName,
+									   final DataResult result,
+									   final Consumer<? super byte[]> action) {
 		exportFormatList.stream()
 				.sorted(exportFormatComparator)
 				.filter(f -> f.getInternalProducedFileNames().contains(internalFileName))
 				.findFirst()
 				.flatMap(d -> d.makeSingleExport(result, internalFileName))
-				.ifPresent(bytes -> {
+				.ifPresent(action);
+	}
+
+	@Override
+	public void singleExportAnalytics(final String internalFileName,
+									  final DataResult result,
+									  final File outputFile) {
+		singleExportAnalytics(internalFileName, result,
+				bytes -> {
 					log.info("Single export result {} file produce {} bytes, save to {}",
 							internalFileName, bytes.length, outputFile);
 					try {
 						FileUtils.writeByteArrayToFile(outputFile, bytes, false);
 					} catch (final IOException e) {
 						throw new UncheckedIOException("Can't write to " + outputFile, e);
+					}
+				});
+	}
+
+	@Override
+	public void singleExportAnalyticsToOutputStream(final String internalFileName,
+													final DataResult result,
+													final OutputStream out) {
+		singleExportAnalytics(internalFileName, result,
+				bytes -> {
+					try {
+						log.info("Single export result {} file produce {} bytes, save to stream",
+								internalFileName, bytes.length);
+						IOUtils.write(bytes, out);
+					} catch (final IOException e) {
+						throw new UncheckedIOException("Can't write to stream", e);
 					}
 				});
 	}

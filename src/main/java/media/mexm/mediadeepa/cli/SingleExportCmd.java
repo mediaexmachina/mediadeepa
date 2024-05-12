@@ -23,7 +23,7 @@ import picocli.CommandLine.Option;
 public class SingleExportCmd {
 
 	@Option(names = { "--single-export" },
-			description = "Export only this file, as: \"internal-file-name:outputfilename.ext\"",
+			description = "Export only this file, as: \"internal-file-name:outputfilename.ext\" or \"internal-file-name:-\" to stdout",
 			required = true)
 	private String singleExport;
 
