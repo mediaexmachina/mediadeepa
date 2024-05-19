@@ -2,10 +2,10 @@
 .\"     Title: mediadeepa
 .\"    Author: Media ex Machina / hdsdi3g 
 .\" Generator: mediadeepa
-.\"      Date: 05/12/2024
-.\"    Source: mediadeepa 0.0.34
+.\"      Date: 05/20/2024
+.\"    Source: mediadeepa 0.0.35
 .\"  Language: English
-.TH "MEDIADEEPA" "1" "05/12/2024" "mediadeepa 0\&.0\&.34" ""
+.TH "MEDIADEEPA" "1" "05/20/2024" "mediadeepa 0\&.0\&.35" ""
 .\" -----------------------------------------------------------------
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
@@ -531,7 +531,7 @@ Base file name for exported data file(s)
 \fB\-\-single\-export\fR (required)
 .PP
 .RS 4
-Export only this file, as: "internal\-file\-name:outputfilename\&.ext"
+Export only this file, as: "internal\-file\-name:outputfilename\&.ext" or "internal\-file\-name:\-" to stdout
 .PP
 .RE
 
@@ -552,6 +552,8 @@ To inject a new logback configuration file, add in application command line:
 .RS 4
 \-Dlogging\&.config="path/to/new/logback\&.xml"
 .RE
+.PP
+For information, the use of \fB\-\-single\-export\fR option to \fB\-\fR (std out) will cut all std out log messages, but you will stay able to send log messages to text file via \fB\-\-log\fR option\&.
 .PP
 
 Search path binaries
@@ -617,7 +619,7 @@ Send bug reports on GitHub project page \fIhttps://github\&.com/mediaexmachina/m
 If you have any questions, feel free to reach out via any contact method listed on https://mexm\&.media \fIhttps://mexm\&.media\fR\&.
 .PP
 
-Mediadeepa 0\&.0\&.34
+Mediadeepa 0\&.0\&.35
 .PP
 Copyright (C) 2022\-2024 Media ex Machina, under the GNU General Public License\&.
 .PP
