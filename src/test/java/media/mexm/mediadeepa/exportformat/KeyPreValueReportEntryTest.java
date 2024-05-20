@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import j2html.tags.specialized.DivTag;
+import media.mexm.mediadeepa.exportformat.report.KeyPreValueReportEntry;
 
 class KeyPreValueReportEntryTest extends BaseReportEntryTest {
 

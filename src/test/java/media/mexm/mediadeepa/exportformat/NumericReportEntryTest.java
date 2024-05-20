@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import media.mexm.mediadeepa.exportformat.report.NumericReportEntry;
 import net.datafaker.Faker;
 
 class NumericReportEntryTest {

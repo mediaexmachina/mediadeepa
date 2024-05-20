@@ -16,7 +16,7 @@
  */
 package media.mexm.mediadeepa.rendererengine.components;
 
-import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.CONTAINER;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.CONTAINER;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,12 +26,12 @@ import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.ConstStrings;
 import media.mexm.mediadeepa.exportformat.DataResult;
-import media.mexm.mediadeepa.exportformat.ReportDocument;
-import media.mexm.mediadeepa.exportformat.ReportSection;
-import media.mexm.mediadeepa.exportformat.SimpleKeyValueReportEntry;
 import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
+import media.mexm.mediadeepa.exportformat.report.SimpleKeyValueReportEntry;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;

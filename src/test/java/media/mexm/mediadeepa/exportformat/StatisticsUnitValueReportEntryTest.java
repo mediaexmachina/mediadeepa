@@ -20,8 +20,8 @@ import static media.mexm.mediadeepa.ConstStrings.LABEL_AVERAGE;
 import static media.mexm.mediadeepa.ConstStrings.LABEL_MAXIMUM;
 import static media.mexm.mediadeepa.ConstStrings.LABEL_MEDIAN;
 import static media.mexm.mediadeepa.ConstStrings.LABEL_MINIMUM;
-import static media.mexm.mediadeepa.exportformat.StatisticsUnitValueReportEntry.createFromInteger;
-import static media.mexm.mediadeepa.exportformat.StatisticsUnitValueReportEntry.createFromLong;
+import static media.mexm.mediadeepa.exportformat.report.StatisticsUnitValueReportEntry.createFromInteger;
+import static media.mexm.mediadeepa.exportformat.report.StatisticsUnitValueReportEntry.createFromLong;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 
 import j2html.tags.specialized.DivTag;
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.exportformat.report.StatisticsUnitValueReportEntry;
 import net.datafaker.Faker;
 
 class StatisticsUnitValueReportEntryTest {

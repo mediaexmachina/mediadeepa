@@ -39,7 +39,7 @@ public class AppConfig {
 		private String commandLineJson = "commandline.json";
 		private String containerXml = "container.xml";
 		private String lavfiTxtBase = "lavfi";
-		private String ffprobeTxt = "ffprobe.xml";
+		private String ffprobeXml = "ffprobe.xml";
 		private String ffmpegCommandLineTxt = "ffmpeg-cmdline.txt";
 		private String ffprobeCommandLineTxt = "ffprobe-cmdline.txt";
 	}
@@ -55,7 +55,9 @@ public class AppConfig {
 	@Data
 	public class ReportConfig {
 		private String htmlFilename = "report.html";
+		private String jsonFilename = "report.json";
 		private int maxCropEventsDisplay = 20;
+		private boolean jsonIdentOutput = true;
 	}
 
 	private GraphicConfig graphicConfig = new GraphicConfig();

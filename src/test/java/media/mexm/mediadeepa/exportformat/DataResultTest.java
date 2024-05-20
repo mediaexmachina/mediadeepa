@@ -95,6 +95,7 @@ class DataResultTest {
 		dr.setMediaAnalyserResult(mediaAnalyserResult);
 		assertTrue(dr.getMediaAnalyserResult().isPresent());
 		assertEquals(mediaAnalyserResult, dr.getMediaAnalyserResult().get());
+		verify(mediaAnalyserResult, atLeast(1)).ffmpegCommandLine();
 	}
 
 	@Test
@@ -120,6 +121,7 @@ class DataResultTest {
 		dr.setContainerAnalyserResult(containerAnalyserResult);
 		assertTrue(dr.getContainerAnalyserResult().isPresent());
 		assertEquals(containerAnalyserResult, dr.getContainerAnalyserResult().get());
+		verify(containerAnalyserResult, atLeast(1)).ffprobeCommandLine();
 	}
 
 	@Test
@@ -171,6 +173,7 @@ class DataResultTest {
 		assertEquals(new Dimension(width, height), dr.getVideoResolution().get());
 
 		verify(containerAnalyserResult, atLeast(1)).videoConst();
+		verify(containerAnalyserResult, atLeast(1)).ffprobeCommandLine();
 		verify(ffprobeVideoFrameConst, atLeast(1)).width();
 		verify(ffprobeVideoFrameConst, atLeast(1)).height();
 	}
@@ -187,6 +190,7 @@ class DataResultTest {
 
 		verify(containerAnalyserResult, atLeast(1)).videoConst();
 		verify(containerAnalyserResult, atLeast(1)).olderVideoConsts();
+		verify(containerAnalyserResult, atLeast(1)).ffprobeCommandLine();
 		verify(ffprobeVideoFrameConst, atLeast(1)).width();
 		verify(ffprobeVideoFrameConst, atLeast(1)).height();
 	}

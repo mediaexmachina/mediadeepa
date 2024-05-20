@@ -25,7 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
 import media.mexm.mediadeepa.exportformat.components.FFProbeXMLExportFormat;
 import media.mexm.mediadeepa.exportformat.components.GraphicExportFormat;
-import media.mexm.mediadeepa.exportformat.components.ReportExportFormat;
+import media.mexm.mediadeepa.exportformat.components.ReportHTMLExportFormat;
+import media.mexm.mediadeepa.exportformat.components.ReportJsonExportFormat;
 import media.mexm.mediadeepa.exportformat.components.TableJsonExportFormat;
 import media.mexm.mediadeepa.exportformat.components.TableSQLiteExportFormat;
 import media.mexm.mediadeepa.exportformat.components.TableXLSXExportFormat;
@@ -47,7 +48,8 @@ public class ExportFormatComparator implements Comparator<ExportFormat> {
 			TableXLSXExportFormat.class,
 			TableSQLiteExportFormat.class,
 			GraphicExportFormat.class,
-			ReportExportFormat.class,
+			ReportHTMLExportFormat.class,
+			ReportJsonExportFormat.class,
 			FFProbeXMLExportFormat.class);
 
 	@Override

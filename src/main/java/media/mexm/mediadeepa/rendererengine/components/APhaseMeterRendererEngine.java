@@ -19,7 +19,7 @@ package media.mexm.mediadeepa.rendererengine.components;
 import static java.util.function.Predicate.not;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.FULL_PINK;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
-import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.AUDIO;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.AUDIO;
 
 import java.util.List;
 
@@ -32,13 +32,13 @@ import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.GraphicArtifact;
 import media.mexm.mediadeepa.exportformat.RangeAxis;
-import media.mexm.mediadeepa.exportformat.ReportDocument;
-import media.mexm.mediadeepa.exportformat.ReportSection;
-import media.mexm.mediadeepa.exportformat.StatisticsUnitValueReportEntry;
 import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
+import media.mexm.mediadeepa.exportformat.report.StatisticsUnitValueReportEntry;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;

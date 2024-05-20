@@ -27,6 +27,8 @@ import java.util.function.Function;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.SimpleKeyValueReportEntry;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
@@ -39,19 +41,35 @@ public class DataResult {
 
 	@Getter
 	private final String source;
-	@Setter
 	private MediaAnalyserResult mediaAnalyserResult;
 	@Setter
 	private Duration sourceDuration;
 	private FFprobeJAXB ffprobeResult;
-	@Setter
 	private ContainerAnalyserResult containerAnalyserResult;
 	@Getter
 	private final Map<String, String> versions;
+	@Setter
+	private String ffmpegCommandLine;
+	@Setter
+	private String ffprobeCommandLine;
 
 	public DataResult(final String source, final Map<String, String> versions) {
 		this.source = requireNonNull(source);
 		this.versions = versions;
+	}
+
+	public void setMediaAnalyserResult(final MediaAnalyserResult mediaAnalyserResult) {
+		this.mediaAnalyserResult = mediaAnalyserResult;
+		if (mediaAnalyserResult != null && ffmpegCommandLine == null) {
+			ffmpegCommandLine = mediaAnalyserResult.ffmpegCommandLine();
+		}
+	}
+
+	public void setContainerAnalyserResult(final ContainerAnalyserResult containerAnalyserResult) {
+		this.containerAnalyserResult = containerAnalyserResult;
+		if (containerAnalyserResult != null && ffprobeCommandLine == null) {
+			ffprobeCommandLine = containerAnalyserResult.ffprobeCommandLine();
+		}
 	}
 
 	public Optional<MediaAnalyserResult> getMediaAnalyserResult() {
@@ -64,6 +82,14 @@ public class DataResult {
 
 	public Optional<FFprobeJAXB> getFFprobeResult() {
 		return Optional.ofNullable(ffprobeResult);
+	}
+
+	public Optional<String> getFfmpegCommandLine() {
+		return Optional.ofNullable(ffmpegCommandLine);
+	}
+
+	public Optional<String> getFfprobeCommandLine() {
+		return Optional.ofNullable(ffprobeCommandLine);
 	}
 
 	public Optional<ContainerAnalyserResult> getContainerAnalyserResult() {
@@ -108,6 +134,12 @@ public class DataResult {
 				.map(FFProbeFormat::duration)
 				.map(LavfiMtdEvent::secFloatToDuration)
 				.orElse(null);
+	}
+
+	public void resultMetadatasToReportDocument(final ReportDocument document) {
+		versions.entrySet().stream()
+				.map(entry -> new SimpleKeyValueReportEntry(entry.getKey(), entry.getValue()))
+				.forEach(document::addAboutSection);
 	}
 
 }

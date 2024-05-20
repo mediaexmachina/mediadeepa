@@ -14,27 +14,13 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
-
-import static j2html.TagCreator.attrs;
-import static j2html.TagCreator.div;
-import static j2html.TagCreator.pre;
-import static j2html.TagCreator.span;
+package media.mexm.mediadeepa.exportformat.report;
 
 import j2html.tags.DomContent;
 import media.mexm.mediadeepa.components.NumberUtils;
 
-public record KeyPreValueReportEntry(String key, String value) implements ReportEntry {
+public interface DomContentProvider {
 
-	@Override
-	public DomContent toDomContent(final NumberUtils numberUtils) {
-		return div(attrs(".entry"),
-				span(attrs(".key"), key), span(attrs(".value"), pre(value)));
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return value == null || value.isEmpty();
-	}
+	DomContent toDomContent(NumberUtils numberUtils);
 
 }

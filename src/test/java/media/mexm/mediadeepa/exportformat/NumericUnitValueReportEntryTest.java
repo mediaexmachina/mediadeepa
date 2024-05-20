@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 
 import j2html.tags.specialized.DivTag;
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.exportformat.report.NumericUnitValueReportEntry;
 
 class NumericUnitValueReportEntryTest extends BaseReportEntryTest {
 

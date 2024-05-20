@@ -23,7 +23,7 @@ import static java.awt.Color.RED;
 import static java.util.function.Predicate.not;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THICK_STROKE;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
-import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.VIDEO;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.VIDEO;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
@@ -38,17 +38,17 @@ import org.springframework.stereotype.Component;
 import media.mexm.mediadeepa.ConstStrings;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
-import media.mexm.mediadeepa.exportformat.CropEventTableReportEntry;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.GraphicArtifact;
-import media.mexm.mediadeepa.exportformat.NumericUnitValueReportEntry;
 import media.mexm.mediadeepa.exportformat.RangeAxis;
-import media.mexm.mediadeepa.exportformat.ReportDocument;
-import media.mexm.mediadeepa.exportformat.ReportSection;
 import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
+import media.mexm.mediadeepa.exportformat.report.CropEventTableReportEntry;
+import media.mexm.mediadeepa.exportformat.report.NumericUnitValueReportEntry;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
@@ -226,7 +226,8 @@ public class CropRendererEngine implements
 					section.add(new CropEventTableReportEntry(cropEvents.stream()
 							.limit(appConfig.getReportConfig().getMaxCropEventsDisplay())
 							.toList(),
-							sourceResolution));
+							sourceResolution,
+							appConfig.getReportConfig().getMaxCropEventsDisplay()));
 					document.add(section);
 				});
 	}

@@ -18,9 +18,9 @@ package media.mexm.mediadeepa.rendererengine.components;
 
 import static java.awt.Color.BLUE;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
-import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.CONTAINER;
-import static media.mexm.mediadeepa.exportformat.StatisticsUnitValueReportEntry.createFromDouble;
-import static media.mexm.mediadeepa.exportformat.StatisticsUnitValueReportEntry.createFromFloat;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.CONTAINER;
+import static media.mexm.mediadeepa.exportformat.report.StatisticsUnitValueReportEntry.createFromDouble;
+import static media.mexm.mediadeepa.exportformat.report.StatisticsUnitValueReportEntry.createFromFloat;
 import static tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType.VIDEO;
 
 import java.util.Arrays;
@@ -37,15 +37,15 @@ import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.GraphicArtifact;
-import media.mexm.mediadeepa.exportformat.NumericUnitValueReportEntry;
 import media.mexm.mediadeepa.exportformat.RangeAxis;
-import media.mexm.mediadeepa.exportformat.ReportDocument;
-import media.mexm.mediadeepa.exportformat.ReportSection;
-import media.mexm.mediadeepa.exportformat.StatisticsUnitValueReportEntry;
 import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
+import media.mexm.mediadeepa.exportformat.report.NumericUnitValueReportEntry;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
+import media.mexm.mediadeepa.exportformat.report.StatisticsUnitValueReportEntry;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
@@ -231,7 +231,7 @@ public class VFramesRendererEngine implements
 							.count();
 					if (keyFrameCount == frameCount) {
 						section.add(new NumericUnitValueReportEntry(COUNT, frameCount,
-								"frames (all are key frames, no GOP)"));
+								FRAMES_ALL_ARE_KEY_FRAMES_NO_GOP));
 						return;
 					}
 					section.add(new NumericUnitValueReportEntry(COUNT, frameCount, FRAMES));
@@ -248,7 +248,7 @@ public class VFramesRendererEngine implements
 					}
 
 					section.add(createFromFloat(
-							"Frame duration (declared)",
+							FRAME_DURATION_DECLARED,
 							allFrames.stream()
 									.map(FFprobeBaseFrame::durationTime)
 									.filter(f -> f > 0f)

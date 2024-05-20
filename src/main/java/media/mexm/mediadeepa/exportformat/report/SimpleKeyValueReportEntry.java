@@ -14,17 +14,21 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.exportformat.report;
 
 import static j2html.TagCreator.attrs;
 import static j2html.TagCreator.div;
 import static j2html.TagCreator.span;
 
+import java.io.IOException;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+
 import j2html.tags.DomContent;
-import media.mexm.mediadeepa.NumberFormator;
 import media.mexm.mediadeepa.components.NumberUtils;
 
-public record SimpleKeyValueReportEntry(String key, String value) implements ReportEntry {
+public record SimpleKeyValueReportEntry(String key, String value) implements ReportEntry, JsonContentProvider {
 
 	@Override
 	public DomContent toDomContent(final NumberUtils numberUtils) {
@@ -37,28 +41,9 @@ public record SimpleKeyValueReportEntry(String key, String value) implements Rep
 		return value == null || value.isEmpty();
 	}
 
-	private static int gcd(final int l, final int r) {
-		if (r == 0) {
-			return l;
-		} else {
-			return gcd(r, l % r);
-		}
+	@Override
+	public void toJson(final JsonGenerator gen,
+					   final SerializerProvider provider) throws IOException {
+		gen.writeStringField(jsonHeader(key), value);
 	}
-
-	public static SimpleKeyValueReportEntry getFromRatio(final String key,
-														 final int x,
-														 final int y,
-														 final NumberFormator formator) {
-		if (x < 1) {
-			throw new IllegalArgumentException("Invalid x: " + x);
-		}
-		if (y < 1) {
-			throw new IllegalArgumentException("Invalid y: " + y);
-		}
-		final var ratio = formator.format((double) x / (double) y);// NOSONAR S3518
-		final var gcd = gcd(x, y);
-		return new SimpleKeyValueReportEntry(key,
-				x / gcd + ":" + y / gcd + " (" + ratio + ")");
-	}
-
 }

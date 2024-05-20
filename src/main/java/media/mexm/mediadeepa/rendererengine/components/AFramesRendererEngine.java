@@ -17,9 +17,9 @@
 package media.mexm.mediadeepa.rendererengine.components;
 
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
-import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.CONTAINER;
-import static media.mexm.mediadeepa.exportformat.StatisticsUnitValueReportEntry.createFromFloat;
-import static media.mexm.mediadeepa.exportformat.StatisticsUnitValueReportEntry.createFromInteger;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.CONTAINER;
+import static media.mexm.mediadeepa.exportformat.report.StatisticsUnitValueReportEntry.createFromFloat;
+import static media.mexm.mediadeepa.exportformat.report.StatisticsUnitValueReportEntry.createFromInteger;
 
 import java.awt.Color;
 import java.util.List;
@@ -34,14 +34,14 @@ import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.GraphicArtifact;
-import media.mexm.mediadeepa.exportformat.NumericUnitValueReportEntry;
 import media.mexm.mediadeepa.exportformat.RangeAxis;
-import media.mexm.mediadeepa.exportformat.ReportDocument;
-import media.mexm.mediadeepa.exportformat.ReportSection;
 import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
+import media.mexm.mediadeepa.exportformat.report.NumericUnitValueReportEntry;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;

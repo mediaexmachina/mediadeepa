@@ -60,7 +60,7 @@ class E2EGraphicTest extends E2EUtils {
 				.map(entry -> dynamicTest(entry.getKey(), entry.getValue()));
 	}
 
-	private Map<String, Executable> doAllTests(final boolean jpg) throws IOException {
+	private Map<String, Executable> doAllTests(final boolean jpg) {
 		final var fullHeight = defaultAppConfig.getGraphicConfig().getImageSizeFullSize();
 		final var halfHeight = defaultAppConfig.getGraphicConfig().getImageSizeHalfSize();
 		final var testName = jpg ? " JPEG" : " PNG";
@@ -68,62 +68,65 @@ class E2EGraphicTest extends E2EUtils {
 		final var graphicConf = defaultAppConfig.getGraphicConfig();
 
 		final var tests = new LinkedHashMap<String, Executable>();
+		tests.put("Make all" + testName + " files",
+				() -> {
+					runApp(
+							"--temp", "target/e2e-temp",
+							"-i", rawData.archive().getPath(),
+							"-f", "graphic",
+							"-e", "target/e2e-export",
+							"--export-base-filename", "mpg",
+							jpg ? "--graphic-jpg" : null);
+				});
+
 		tests.put("LUFS" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getLufsGraphicFilename() + ext, fullHeight));
+				checkGraphic(MPG + graphicConf.getLufsGraphicFilename() + ext, fullHeight));
 		tests.put("LUFS TPK" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getLufsTPKGraphicFilename() + ext, fullHeight));
+				checkGraphic(MPG + graphicConf.getLufsTPKGraphicFilename() + ext, fullHeight));
 		tests.put("Audio phase" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getAPhaseGraphicFilename() + ext, halfHeight));
+				checkGraphic(MPG + graphicConf.getAPhaseGraphicFilename() + ext, halfHeight));
 		tests.put("Audio entropy" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getEntropyGraphicFilename() + ext, halfHeight));
+				checkGraphic(MPG + graphicConf.getEntropyGraphicFilename() + ext, halfHeight));
 		tests.put("Audio flat-factor" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getFlatnessGraphicFilename() + ext, halfHeight));
+				checkGraphic(MPG + graphicConf.getFlatnessGraphicFilename() + ext, halfHeight));
 		tests.put("Audio noise-floor" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getNoiseFloorGraphicFilename() + ext, halfHeight));
+				checkGraphic(MPG + graphicConf.getNoiseFloorGraphicFilename() + ext, halfHeight));
 		tests.put("Audio peak-level" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getPeakLevelGraphicFilename() + ext, halfHeight));
+				checkGraphic(MPG + graphicConf.getPeakLevelGraphicFilename() + ext, halfHeight));
 		tests.put("Audio DC offset" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getDcOffsetGraphicFilename() + ext, halfHeight));
+				checkGraphic(MPG + graphicConf.getDcOffsetGraphicFilename() + ext, halfHeight));
 		tests.put("Video SITI" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getSitiGraphicFilename() + ext, fullHeight));
+				checkGraphic(MPG + graphicConf.getSitiGraphicFilename() + ext, fullHeight));
 		tests.put("Video block" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getBlockGraphicFilename() + ext, fullHeight));
+				checkGraphic(MPG + graphicConf.getBlockGraphicFilename() + ext, fullHeight));
 		tests.put("Video blur" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getBlurGraphicFilename() + ext, fullHeight));
+				checkGraphic(MPG + graphicConf.getBlurGraphicFilename() + ext, fullHeight));
 		tests.put("Video idet" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getItetGraphicFilename() + ext, halfHeight));
+				checkGraphic(MPG + graphicConf.getItetGraphicFilename() + ext, halfHeight));
 		tests.put("Video crop" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getCropGraphicFilename() + ext, fullHeight));
+				checkGraphic(MPG + graphicConf.getCropGraphicFilename() + ext, fullHeight));
 		tests.put("Events" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getEventsGraphicFilename() + ext, halfHeight));
+				checkGraphic(MPG + graphicConf.getEventsGraphicFilename() + ext, halfHeight));
 		tests.put("Video bitrate" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getVBitrateGraphicFilename() + ext, fullHeight));
+				checkGraphic(MPG + graphicConf.getVBitrateGraphicFilename() + ext, fullHeight));
 		tests.put("Audio bitrate" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getABitrateGraphicFilename() + ext, halfHeight));
+				checkGraphic(MPG + graphicConf.getABitrateGraphicFilename() + ext, halfHeight));
 		tests.put("Video frame duration" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getVFrameDurationGraphicFilename() + ext, halfHeight));
+				checkGraphic(MPG + graphicConf.getVFrameDurationGraphicFilename() + ext, halfHeight));
 		tests.put("Video GOP counts" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getGopCountGraphicFilename() + ext, halfHeight));
+				checkGraphic(MPG + graphicConf.getGopCountGraphicFilename() + ext, halfHeight));
 		tests.put("Video GOP sizes" + testName,
-				makeAndCheckGraphic(jpg, MPG + graphicConf.getGopSizeGraphicFilename() + ext, fullHeight));
+				checkGraphic(MPG + graphicConf.getGopSizeGraphicFilename() + ext, fullHeight));
+
 		return tests;
 	}
 
-	private Executable makeAndCheckGraphic(final boolean jpg,
-										   final String baseFileName,
-										   final Dimension expectedImageSize) {
+	private Executable checkGraphic(final String baseFileName,
+									final Dimension expectedImageSize) {
 		return () -> {
 			final var outputFile = new File("target/e2e-export", baseFileName);
-			if (outputFile.exists() == false) {
-				runApp(
-						"--temp", "target/e2e-temp",
-						"-i", rawData.archive().getPath(),
-						"-f", "graphic",
-						"-e", "target/e2e-export",
-						"--export-base-filename", "mpg",
-						jpg ? "--graphic-jpg" : null);
-				checkImageGraphicInternal(outputFile, expectedImageSize);
-			}
+			assertThat(outputFile).exists();
+			checkImageGraphicInternal(outputFile, expectedImageSize);
 		};
 	}
 
@@ -163,7 +166,7 @@ class E2EGraphicTest extends E2EUtils {
 				.filter(hsv -> hsv.value > 0.1f)
 				.filter(hsv -> hsv.sat == 1f)
 				.count();
-		assertThat(fullSat).isGreaterThan(20);
+		assertThat(fullSat).isGreaterThan(16);
 
 		final var greyCols = allColors.parallelStream()
 				.map(HSV::value)

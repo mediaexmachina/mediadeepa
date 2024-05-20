@@ -14,11 +14,16 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.exportformat.report;
 
 import static j2html.TagCreator.attrs;
 import static j2html.TagCreator.div;
 import static j2html.TagCreator.span;
+
+import java.io.IOException;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 import j2html.tags.DomContent;
 import media.mexm.mediadeepa.components.NumberUtils;
@@ -26,7 +31,7 @@ import media.mexm.mediadeepa.components.NumberUtils;
 public record NumericUnitValueReportEntry(
 										  String key,
 										  Number value,
-										  String unit) implements ReportEntry, NumericReportEntry {
+										  String unit) implements ReportEntry, NumericReportEntry, JsonContentProvider {
 
 	@Override
 	public boolean isEmpty() {
@@ -47,6 +52,15 @@ public record NumericUnitValueReportEntry(
 				span(attrs(".key"), getKeyWithPlurial(plurial)),
 				span(attrs(".value"), numberUtils.valueToString(value)),
 				span(attrs(".unit"), " " + getUnitWithPlurial(plurial)));
+	}
+
+	@Override
+	public void toJson(final JsonGenerator gen,
+					   final SerializerProvider provider) throws IOException {
+		gen.writeObjectFieldStart(jsonHeader(key));
+		gen.writeObjectField("val", value);
+		gen.writeObjectField("unit", getUnitWithPlurial(false));
+		gen.writeEndObject();
 	}
 
 }

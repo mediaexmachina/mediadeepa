@@ -17,7 +17,7 @@
 package media.mexm.mediadeepa.rendererengine;
 
 import media.mexm.mediadeepa.exportformat.DataResult;
-import media.mexm.mediadeepa.exportformat.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
 
 public interface ReportRendererEngine {
 

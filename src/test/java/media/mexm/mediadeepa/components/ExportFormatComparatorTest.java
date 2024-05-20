@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import media.mexm.mediadeepa.exportformat.ExportFormat;
-import media.mexm.mediadeepa.exportformat.components.ReportExportFormat;
+import media.mexm.mediadeepa.exportformat.components.ReportHTMLExportFormat;
 import media.mexm.mediadeepa.exportformat.components.TableXMLExportFormat;
 
 class ExportFormatComparatorTest {
@@ -36,7 +36,7 @@ class ExportFormatComparatorTest {
 	@Mock
 	TableXMLExportFormat lower;
 	@Mock
-	ReportExportFormat higher;
+	ReportHTMLExportFormat higher;
 	@Mock
 	ExportFormat newer;
 

@@ -18,6 +18,7 @@ package media.mexm.mediadeepa.exportformat;
 
 import org.junit.jupiter.api.BeforeEach;
 
+import media.mexm.mediadeepa.exportformat.report.ReportEntry;
 import net.datafaker.Faker;
 
 public abstract class BaseReportEntryTest {

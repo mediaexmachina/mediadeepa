@@ -26,6 +26,8 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import media.mexm.mediadeepa.ConstStrings;
 
 class E2EReportTest extends E2EUtils implements ConstStrings {
@@ -36,7 +38,7 @@ class E2EReportTest extends E2EUtils implements ConstStrings {
 		if (rawData == null) {
 			return;
 		}
-		final var outputFile = makeOutputFile("mpg_report.html");
+		final var outputFile = makeOutputFile("mpg_report.html", "report");
 		assertTrue(outputFile.exists());
 		assertThat(outputFile.length()).isGreaterThan(30_000);
 		final var content = E2EUtils.readLines(outputFile);
@@ -77,15 +79,28 @@ class E2EReportTest extends E2EUtils implements ConstStrings {
 				.forEach(f -> assertThat(strContent).contains(f));
 	}
 
-	File makeOutputFile(final String baseFileName) throws IOException {
+	File makeOutputFile(final String baseFileName, final String f) {
 		final var outputFile = new File("target/e2e-export", baseFileName);
 		runApp(
 				"--temp", "target/e2e-temp",
 				"-i", rawData.archive().getPath(),
-				"-f", "report",
+				"-f", f,
 				"-e", "target/e2e-export",
 				"--export-base-filename", "mpg");
 		return outputFile;
+	}
+
+	@Test
+	void testJSON() throws IOException {
+		rawData = prepareTsForSimpleE2ETests();
+		if (rawData == null) {
+			return;
+		}
+		final var outputFile = makeOutputFile("mpg_report.json", "jsonreport");
+		assertTrue(outputFile.exists());
+		assertThat(outputFile.length()).isGreaterThan(1);
+		final var content = E2EUtils.readLines(outputFile).stream().collect(joining(" "));
+		assertThat(new ObjectMapper().readTree(content)).isNotEmpty();
 	}
 
 }

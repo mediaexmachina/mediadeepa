@@ -14,7 +14,7 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.exportformat.report;
 
 import static j2html.TagCreator.attrs;
 import static j2html.TagCreator.div;
@@ -22,15 +22,21 @@ import static j2html.TagCreator.each;
 import static j2html.TagCreator.span;
 import static java.util.Collections.unmodifiableSet;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 import j2html.tags.DomContent;
 import media.mexm.mediadeepa.components.NumberUtils;
 
-public class ReportEntryStreamList implements ReportEntry {
+public final class ReportEntryStreamList implements ReportEntry, JsonContentProvider {
 
 	private final List<ReportEntryStream> streamList;
 
@@ -58,19 +64,57 @@ public class ReportEntryStreamList implements ReportEntry {
 		return unmodifiableSet(reducedList);
 	}
 
+	private Stream<ReportEntryStream> getSortedStream() {
+		return streamList.stream()
+				.sorted((l, r) -> Integer.compare(l.getIndex(), r.getIndex()));
+	}
+
 	@Override
 	public DomContent toDomContent(final NumberUtils numberUtils) {
 		return div(attrs(".entry.streamentries"),
 				span(attrs(".key"), "Stream list:"),
 				div(attrs(".streamlist"),
-						each(streamList.stream()
-								.sorted((l, r) -> Integer.compare(l.getIndex(), r.getIndex()))
+						each(getSortedStream()
 								.map(r -> r.toDomContent(numberUtils)))));
 	}
 
 	@Override
 	public boolean isEmpty() {
 		return streamList.isEmpty();
+	}
+
+	@Override
+	public void toJson(final JsonGenerator gen,
+					   final SerializerProvider provider) throws IOException {
+		gen.writeObjectFieldStart("streams");
+
+		final var streamsByCodecType = getSortedStream().reduce(new LinkedHashMap<String, List<ReportEntryStream>>(),
+				(map, mStream) -> {
+					final var codecType = mStream.getCodecType();
+					if (map.containsKey(codecType) == false) {
+						map.put(codecType, new ArrayList<>(List.of(mStream)));
+					} else {
+						map.get(codecType).add(mStream);
+					}
+					return map;
+				}, (l, r) -> {
+					l.putAll(r);
+					return l;
+				});
+
+		for (final var entry : streamsByCodecType.entrySet()) {
+			final var codecType = entry.getKey();
+			final var streams = entry.getValue();
+
+			gen.writeArrayFieldStart(jsonHeader(codecType));
+			for (final var stream : streams) {
+				gen.writeStartObject();
+				gen.writeObject(stream);
+				gen.writeEndObject();
+			}
+			gen.writeEndArray();
+		}
+		gen.writeEndObject();
 	}
 
 }

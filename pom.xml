@@ -21,7 +21,7 @@
 
     <properties>
         <prodlib.version>20.0.0</prodlib.version>
-        <medialib.version>16.0.0</medialib.version>
+        <medialib.version>16.1.0</medialib.version>
 
         <linux-springboot-packager.kind>cli</linux-springboot-packager.kind>
         <opencsv.version>5.9</opencsv.version>
@@ -100,6 +100,10 @@
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jfree</groupId>

@@ -14,7 +14,7 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.exportformat.report;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,7 +52,6 @@ class ReportEntryStreamTest {
 	@Mock
 	ReportEntryStreamList reportList;
 
-	@Deprecated
 	NumberUtils numberUtils;
 
 	@BeforeEach

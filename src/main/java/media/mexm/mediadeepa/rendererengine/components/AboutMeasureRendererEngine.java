@@ -17,7 +17,7 @@
 package media.mexm.mediadeepa.rendererengine.components;
 
 import static java.util.function.Predicate.not;
-import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.ABOUT;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.ABOUT;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,13 +31,13 @@ import org.springframework.stereotype.Component;
 import media.mexm.mediadeepa.ConstStrings;
 import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.exportformat.DataResult;
-import media.mexm.mediadeepa.exportformat.KeyPreValueReportEntry;
-import media.mexm.mediadeepa.exportformat.ReportDocument;
-import media.mexm.mediadeepa.exportformat.ReportSection;
-import media.mexm.mediadeepa.exportformat.SimpleKeyValueReportEntry;
 import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
+import media.mexm.mediadeepa.exportformat.report.KeyPreValueReportEntry;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
+import media.mexm.mediadeepa.exportformat.report.SimpleKeyValueReportEntry;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
@@ -151,6 +151,11 @@ public class AboutMeasureRendererEngine implements
 				.ifPresent(cmdLine -> section.add(new KeyPreValueReportEntry(ANALYSIS_CREATED_BY, cmdLine)));
 		section.add(new KeyPreValueReportEntry(REPORT_CREATED_BY,
 				runnedJavaCmdLine.makeFullExtendedCommandline()));
+
+		result.getFfmpegCommandLine()
+				.ifPresent(c -> section.add(new SimpleKeyValueReportEntry("ffmpeg", c)));
+		result.getFfprobeCommandLine()
+				.ifPresent(c -> section.add(new SimpleKeyValueReportEntry("ffprobe", c)));
 		document.add(section);
 	}
 

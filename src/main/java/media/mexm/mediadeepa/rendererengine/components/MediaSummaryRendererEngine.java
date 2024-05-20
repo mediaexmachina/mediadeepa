@@ -18,7 +18,7 @@ package media.mexm.mediadeepa.rendererengine.components;
 
 import static java.lang.Boolean.TRUE;
 import static java.util.function.Function.identity;
-import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.CONTAINER;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.CONTAINER;
 import static tv.hd3g.ffprobejaxb.MediaSummary.getLevelTag;
 
 import java.time.Duration;
@@ -31,17 +31,17 @@ import org.springframework.stereotype.Component;
 import media.mexm.mediadeepa.ConstStrings;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.exportformat.DataResult;
-import media.mexm.mediadeepa.exportformat.NumericUnitValueReportEntry;
-import media.mexm.mediadeepa.exportformat.ReportDocument;
-import media.mexm.mediadeepa.exportformat.ReportEntry;
-import media.mexm.mediadeepa.exportformat.ReportEntryStream;
-import media.mexm.mediadeepa.exportformat.ReportEntryStreamList;
-import media.mexm.mediadeepa.exportformat.ReportSection;
-import media.mexm.mediadeepa.exportformat.SimpleKeyValueListReportEntry;
-import media.mexm.mediadeepa.exportformat.SimpleKeyValueReportEntry;
 import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
+import media.mexm.mediadeepa.exportformat.report.NumericUnitValueReportEntry;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportEntry;
+import media.mexm.mediadeepa.exportformat.report.ReportEntryStream;
+import media.mexm.mediadeepa.exportformat.report.ReportEntryStreamList;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
+import media.mexm.mediadeepa.exportformat.report.SimpleKeyValueListReportEntry;
+import media.mexm.mediadeepa.exportformat.report.SimpleKeyValueReportEntry;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
@@ -193,7 +193,7 @@ public class MediaSummaryRendererEngine implements
 		}
 
 		reportEntry.add(HAS_B_FRAMES, stream.hasBFrames() ? CAN_CONTAIN : "No");
-		reportEntry.add(SAMPLE_ASPECT_RATIO2, stream.sampleAspectRatio());
+		reportEntry.add(SAMPLE_ASPECT_RATIO, stream.sampleAspectRatio());
 		reportEntry.add(DISPLAY_ASPECT_RATIO, stream.displayAspectRatio());
 		reportEntry.add(PIXEL_FORMAT, stream.pixFmt());
 		reportEntry.add(CHROMA_LOCATION, stream.chromaLocation());
@@ -207,7 +207,7 @@ public class MediaSummaryRendererEngine implements
 				.ifPresent(c -> reportEntry.add(CODEC_LEVEL, getLevelTag(stream.codecName(), c)));
 
 		reportEntry.add(FIELD_ORDER, stream.fieldOrder());
-		reportEntry.add(REFS, stream.refs(), "refs");
+		reportEntry.add(REFS, stream.refs(), REFS_MIN);
 
 		reportEntry.add(SAMPLE_FORMAT, stream.sampleFmt());
 		reportEntry.add(SAMPLE_RATE, stream.sampleRate(), HZ_SEC);

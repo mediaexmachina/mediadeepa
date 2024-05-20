@@ -14,20 +14,24 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.exportformat.report;
 
 import static j2html.TagCreator.attrs;
 import static j2html.TagCreator.div;
 import static j2html.TagCreator.each;
 import static java.util.function.Predicate.not;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Stream;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 import j2html.tags.DomContent;
 import media.mexm.mediadeepa.components.NumberUtils;
 
-public record ReportEntrySubset(List<ReportEntry> entries) implements ReportEntry {
+public record ReportEntrySubset(List<ReportEntry> entries) implements ReportEntry, JsonContentProvider {
 
 	@Override
 	public DomContent toDomContent(final NumberUtils numberUtils) {
@@ -47,6 +51,14 @@ public record ReportEntrySubset(List<ReportEntry> entries) implements ReportEntr
 		addToSection.add(new ReportEntrySubset(entries
 				.map(en -> (ReportEntry) en)
 				.toList()));
+	}
+
+	@Override
+	public void toJson(final JsonGenerator gen,
+					   final SerializerProvider provider) throws IOException {
+		for (final var item : entries.stream().filter(not(ReportEntry::isEmpty)).toList()) {
+			gen.writeObject(item);
+		}
 	}
 
 }

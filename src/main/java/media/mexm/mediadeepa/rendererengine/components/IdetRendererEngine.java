@@ -22,12 +22,11 @@ import static java.awt.Color.RED;
 import static java.util.function.Predicate.not;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THICK_STROKE;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
-import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.VIDEO;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.VIDEO;
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetRepeatedFrameType.BOTTOM;
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetRepeatedFrameType.NEITHER;
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetRepeatedFrameType.TOP;
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetSingleFrameType.BFF;
-import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetSingleFrameType.PROGRESSIVE;
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetSingleFrameType.TFF;
 import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetSingleFrameType.UNDETERMINED;
 
@@ -43,14 +42,14 @@ import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.GraphicArtifact;
-import media.mexm.mediadeepa.exportformat.NumericUnitValueReportEntry;
 import media.mexm.mediadeepa.exportformat.RangeAxis;
-import media.mexm.mediadeepa.exportformat.ReportDocument;
-import media.mexm.mediadeepa.exportformat.ReportSection;
 import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
+import media.mexm.mediadeepa.exportformat.report.NumericUnitValueReportEntry;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
@@ -58,6 +57,7 @@ import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetSingleFrameType;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
 
@@ -182,7 +182,7 @@ public class IdetRendererEngine implements
 				.map(idetReport -> {
 					final var singleDetectedTypeMap = Map.of(
 							UNDETERMINED, -1,
-							PROGRESSIVE, 0,
+							LavfiMtdIdetSingleFrameType.PROGRESSIVE, 0,
 							TFF, 1,
 							BFF, 2);
 					final var repeatedDetectedTypeMap = Map.of(
@@ -239,35 +239,35 @@ public class IdetRendererEngine implements
 					final var frameCount = idetReport.size();
 					final var lastIdet = idetReport.get(frameCount - 1).value();
 
-					addIdetStatus(section, "Detected as progressive",
+					addIdetStatus(section, DETECTED_AS_PROGRESSIVE,
 							lastIdet.single().progressive(), frameCount);
-					addIdetStatus(section, "Detected as progressive, using multiple-frame detection",
+					addIdetStatus(section, DETECTED_AS_PROGRESSIVE_USING_MULTIPLE_FRAME_DETECTION,
 							lastIdet.multiple().progressive(), frameCount);
 
-					addIdetStatus(section, "Detected as top field first",
+					addIdetStatus(section, DETECTED_AS_TOP_FIELD_FIRST,
 							lastIdet.single().tff(), frameCount);
-					addIdetStatus(section, "Detected as top field first, using multiple-frame detection",
+					addIdetStatus(section, DETECTED_AS_TOP_FIELD_FIRST_USING_MULTIPLE_FRAME_DETECTION,
 							lastIdet.multiple().tff(), frameCount);
 					if (lastIdet.repeated().neither() != frameCount) {
-						addIdetStatus(section, "With the top field repeated from the previous frame’s top field",
+						addIdetStatus(section, WITH_THE_TOP_FIELD_REPEATED_FROM_THE_PREVIOUS_FRAME_S_TOP_FIELD,
 								lastIdet.repeated().top(), frameCount);
 					}
 
-					addIdetStatus(section, "Detected as bottom field first",
+					addIdetStatus(section, DETECTED_AS_BOTTOM_FIELD_FIRST,
 							lastIdet.single().bff(), frameCount);
-					addIdetStatus(section, "Detected as bottom field first, using multiple-frame detection",
+					addIdetStatus(section, DETECTED_AS_BOTTOM_FIELD_FIRST_USING_MULTIPLE_FRAME_DETECTION,
 							lastIdet.multiple().bff(), frameCount);
 					if (lastIdet.repeated().neither() != frameCount) {
-						addIdetStatus(section, "With the bottom field repeated from the previous frame’s bottom field",
+						addIdetStatus(section, WITH_THE_BOTTOM_FIELD_REPEATED_FROM_THE_PREVIOUS_FRAME_S_BOTTOM_FIELD,
 								lastIdet.repeated().bottom(), frameCount);
 					}
 
-					addIdetStatus(section, "Could not be classified using single-frame detection",
+					addIdetStatus(section, COULD_NOT_BE_CLASSIFIED_USING_SINGLE_FRAME_DETECTION,
 							lastIdet.single().undetermined(), frameCount);
-					addIdetStatus(section, "Could not be classified using multiple-frame detection",
+					addIdetStatus(section, COULD_NOT_BE_CLASSIFIED_USING_MULTIPLE_FRAME_DETECTION,
 							lastIdet.multiple().undetermined(), frameCount);
 					if (lastIdet.repeated().neither() != frameCount) {
-						addIdetStatus(section, "No repeated field",
+						addIdetStatus(section, NO_REPEATED_FIELD,
 								lastIdet.repeated().neither(), frameCount);
 					}
 					document.add(section);

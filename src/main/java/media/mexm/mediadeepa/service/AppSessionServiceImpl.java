@@ -399,7 +399,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 			maSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
 
 			if (probeResult.getXmlContent().isEmpty() == false) {
-				extractSession.add(zippedTxtFileNames.getFfprobeTxt(), probeResult.getXmlContent());
+				extractSession.add(zippedTxtFileNames.getFfprobeXml(), probeResult.getXmlContent());
 			}
 			final var mediaS = probeResult.getMediaSummary();
 			extractSession.add(
@@ -533,7 +533,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		log.debug("Try to load ffprobe headers");
 
-		dataResult.setFfprobeResult(Optional.ofNullable(extractEntries.get(zippedTxtFileNames.getFfprobeTxt()))
+		dataResult.setFfprobeResult(Optional.ofNullable(extractEntries.get(zippedTxtFileNames.getFfprobeXml()))
 				.map(FFprobeJAXB::load)
 				.orElse(null));
 
@@ -545,16 +545,20 @@ public class AppSessionServiceImpl implements AppSessionService {
 				.flatMap(String::lines);
 
 		log.debug("Load MediaAnalyserSession");
-
+		final var ffmpegCommandLine = extractSession.getFFmpegCommandLine(
+				zippedTxtFileNames.getFfmpegCommandLineTxt()).orElse("TATA");
 		final var filters = extractSession.getFilterContext(zippedTxtFileNames.getFiltersJson());
 		dataResult.setMediaAnalyserResult(MediaAnalyserSession.importFromOffline(
 				stdOutLines,
-				filters));
+				filters,
+				ffmpegCommandLine));
 
 		log.debug("Try to load container offline");
+		final var ffprobeCommandLine = extractSession.getFFprobeCommandLine(
+				zippedTxtFileNames.getFfprobeCommandLineTxt()).orElse("TOTO");
 		Optional.ofNullable(extractEntries.get(zippedTxtFileNames.getContainerXml()))
 				.ifPresent(f -> dataResult.setContainerAnalyserResult(ContainerAnalyserSession
-						.importFromOffline(new ByteArrayInputStream(f.getBytes(UTF_8)))));
+						.importFromOffline(new ByteArrayInputStream(f.getBytes(UTF_8)), ffprobeCommandLine)));
 
 		exportAnalytics(dataResult);
 	}

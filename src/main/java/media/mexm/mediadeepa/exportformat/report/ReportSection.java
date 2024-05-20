@@ -14,24 +14,28 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.exportformat.report;
 
 import static j2html.TagCreator.attrs;
 import static j2html.TagCreator.each;
 import static j2html.TagCreator.section;
 import static java.util.function.Predicate.not;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+
 import j2html.tags.DomContent;
 import lombok.Getter;
 import media.mexm.mediadeepa.components.NumberUtils;
 
-public class ReportSection implements DomContentProvider {
+public final class ReportSection implements DomContentProvider, JsonContentProvider {
 
 	@Getter
 	private final ReportSectionCategory category;
@@ -79,7 +83,24 @@ public class ReportSection implements DomContentProvider {
 	}
 
 	public String getSectionAnchorName() {
-		return category.toString().toLowerCase() + "_" + title.toLowerCase().replace(' ', '_');
+		return jsonHeader(category.toString().toLowerCase() + "_" + title);
+	}
+
+	@Override
+	public void toJson(final JsonGenerator gen,
+					   final SerializerProvider provider) throws IOException {
+		if (ReportEntry.isEmpty(entries)) {
+			return;
+		}
+
+		gen.writeObjectFieldStart(jsonHeader(title));
+		gen.writeStringField("_section_title", title);
+
+		entries.stream()
+				.filter(not(ReportEntry::isEmpty))
+				.forEach(entry -> writeObject(entry, gen));
+
+		gen.writeEndObject();
 	}
 
 }

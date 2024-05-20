@@ -16,7 +16,7 @@
  */
 package media.mexm.mediadeepa.rendererengine.components;
 
-import static media.mexm.mediadeepa.exportformat.ReportSectionCategory.CONTAINER;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.CONTAINER;
 
 import java.util.List;
 import java.util.Objects;
@@ -29,13 +29,15 @@ import org.springframework.stereotype.Component;
 import media.mexm.mediadeepa.ConstStrings;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.exportformat.DataResult;
-import media.mexm.mediadeepa.exportformat.NumericUnitValueReportEntry;
-import media.mexm.mediadeepa.exportformat.ReportDocument;
-import media.mexm.mediadeepa.exportformat.ReportSection;
-import media.mexm.mediadeepa.exportformat.SimpleKeyValueReportEntry;
 import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
+import media.mexm.mediadeepa.exportformat.report.NumericUnitValueReportEntry;
+import media.mexm.mediadeepa.exportformat.report.RatioReportEntry;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
+import media.mexm.mediadeepa.exportformat.report.ResolutionReportEntry;
+import media.mexm.mediadeepa.exportformat.report.SimpleKeyValueReportEntry;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
@@ -162,50 +164,53 @@ public class VConstsRendererEngine implements
 				.flatMap(Optional::ofNullable)
 				.ifPresent(videoConst -> {
 					final var vConstSection = new ReportSection(CONTAINER, VIDEO_MEDIA_FILE_INFORMATION);
-					vConstSection.add(new SimpleKeyValueReportEntry(
-							"Image resolution", videoConst.width() + " × " + videoConst.height()));
+					vConstSection.add(new ResolutionReportEntry(
+							IMAGE_RESOLUTION, videoConst.width(), videoConst.height(), PIXEL_S));
 
 					vConstSection.add(new NumericUnitValueReportEntry(
-							"Pixel surface", videoConst.width() * videoConst.height(), PIXEL_S));
-
-					vConstSection.add(new SimpleKeyValueReportEntry(
-							"Display aspect ratio", videoConst.sampleAspectRatio()));
-					vConstSection.add(SimpleKeyValueReportEntry.getFromRatio("Storage aspect ratio (w/y)",
-							videoConst.width(), videoConst.height(),
-							numberUtils::formatDecimalFull3En));
+							PIXEL_SURFACE, videoConst.width() * videoConst.height(), PIXEL_S));
 
 					try {
-						final var darW = Integer.parseInt(videoConst.sampleAspectRatio().split(":")[0]);
-						final var darH = Integer.parseInt(videoConst.sampleAspectRatio().split(":")[1]);
-						vConstSection.add(SimpleKeyValueReportEntry.getFromRatio("Pixel aspect ratio",
-								darH * videoConst.width(), darW * videoConst.height(),
-								numberUtils::formatDecimalFull3En));
+						final var sarW = Integer.parseInt(videoConst.sampleAspectRatio().split(":")[0]);
+						final var sarH = Integer.parseInt(videoConst.sampleAspectRatio().split(":")[1]);
+
+						vConstSection.add(new RatioReportEntry(
+								DISPLAY_ASPECT_RATIO, sarW, sarH,
+								numberUtils::formatDecimalSimple1En));
+
+						vConstSection.add(new RatioReportEntry(
+								STORAGE_ASPECT_RATIO, videoConst.width(), videoConst.height(),
+								numberUtils::formatDecimalSimple1En));
+
+						vConstSection.add(new RatioReportEntry(PIXEL_ASPECT_RATIO,
+								sarH * videoConst.width(), sarW * videoConst.height(),
+								numberUtils::formatDecimalSimple1En));
 					} catch (NumberFormatException | IndexOutOfBoundsException e) {
 						vConstSection.add(new SimpleKeyValueReportEntry(
-								"Pixel aspect ratio", "(unknow)"));
+								PIXEL_ASPECT_RATIO, UNKNOW));
 					}
 
 					if (videoConst.interlacedFrame() && videoConst.topFieldFirst()) {
 						vConstSection.add(new SimpleKeyValueReportEntry(
-								INTERLACING_FRAME_STATUS, "Interlaced, top field first"));
+								INTERLACING_FRAME_STATUS, INTERLACED_TOP_FIELD_FIRST));
 					} else if (videoConst.interlacedFrame() && videoConst.topFieldFirst() == false) {
 						vConstSection.add(new SimpleKeyValueReportEntry(
-								INTERLACING_FRAME_STATUS, "Interlaced, bottom field first"));
+								INTERLACING_FRAME_STATUS, INTERLACED_BOTTOM_FIELD_FIRST));
 					} else {
 						vConstSection.add(new SimpleKeyValueReportEntry(
-								INTERLACING_FRAME_STATUS, "progressive"));
+								INTERLACING_FRAME_STATUS, PROGRESSIVE));
 					}
 
 					vConstSection.add(new SimpleKeyValueReportEntry(
-							"Pixel format", videoConst.pixFmt()));
+							PIXEL_FORMAT, videoConst.pixFmt()));
 					vConstSection.add(new SimpleKeyValueReportEntry(
-							"Color primaries", videoConst.colorPrimaries()));
+							COLOR_PRIMARIES, videoConst.colorPrimaries()));
 					vConstSection.add(new SimpleKeyValueReportEntry(
-							"Color range", videoConst.colorRange()));
+							COLOR_RANGE, videoConst.colorRange()));
 					vConstSection.add(new SimpleKeyValueReportEntry(
-							"Color space", videoConst.colorSpace()));
+							COLOR_SPACE, videoConst.colorSpace()));
 					vConstSection.add(new SimpleKeyValueReportEntry(
-							"Color transfer", videoConst.colorTransfer()));
+							COLOR_TRANSFER, videoConst.colorTransfer()));
 					document.add(vConstSection);
 				});
 	}

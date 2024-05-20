@@ -14,7 +14,7 @@
  * Copyright (C) Media ex Machina 2023
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.exportformat.report;
 
 import static j2html.TagCreator.attrs;
 import static j2html.TagCreator.div;
@@ -23,16 +23,24 @@ import static j2html.TagCreator.span;
 import static j2html.TagCreator.ul;
 import static java.util.function.Predicate.not;
 
+import java.io.IOException;
 import java.util.stream.Stream;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 import j2html.tags.DomContent;
 import media.mexm.mediadeepa.ConstStrings;
 import media.mexm.mediadeepa.NumberFormator;
 import media.mexm.mediadeepa.components.NumberUtils;
 
-public class StatisticsUnitValueReportEntry implements ReportEntry, NumericReportEntry, ConstStrings {
+public final class StatisticsUnitValueReportEntry implements
+												  ReportEntry,
+												  NumericReportEntry,
+												  ConstStrings,
+												  JsonContentProvider {
 
-	private static final ItemValue EMPTY_ITEM_VALUE = new ItemValue("", false);
+	private static final ItemValue EMPTY_ITEM_VALUE = new ItemValue(0, "", false);
 	private static final String KEY_CSS = ".key";
 	private static final String VALUE = ".value";
 	private static final String UNIT_CSS = ".unit";
@@ -60,7 +68,7 @@ public class StatisticsUnitValueReportEntry implements ReportEntry, NumericRepor
 		this.empty = empty;
 	}
 
-	private record ItemValue(String value, boolean isPlurial) {
+	private record ItemValue(Number value, String strValue, boolean isPlurial) {
 	}
 
 	public static StatisticsUnitValueReportEntry createFromFloat(final String key,
@@ -98,10 +106,10 @@ public class StatisticsUnitValueReportEntry implements ReportEntry, NumericRepor
 
 		return new StatisticsUnitValueReportEntry(
 				key,
-				new ItemValue(min, stats.getMin() > 1d),
-				new ItemValue(max, stats.getMax() > 1d),
-				new ItemValue(median, valMedian > 1d),
-				new ItemValue(average, stats.getAverage() > 1d),
+				new ItemValue(stats.getMin(), min, stats.getMin() > 1d),
+				new ItemValue(stats.getMax(), max, stats.getMax() > 1d),
+				new ItemValue(valMedian, median, valMedian > 1d),
+				new ItemValue(stats.getAverage(), average, stats.getAverage() > 1d),
 				unit, false);
 	}
 
@@ -138,10 +146,10 @@ public class StatisticsUnitValueReportEntry implements ReportEntry, NumericRepor
 		final var median = numberUtils.valueToString(valMedian);
 		return new StatisticsUnitValueReportEntry(
 				key,
-				new ItemValue(min, stats.getMin() > 1l),
-				new ItemValue(max, stats.getMax() > 1l),
-				new ItemValue(median, valMedian > 1l),
-				new ItemValue(average, stats.getAverage() > 1l),
+				new ItemValue(stats.getMin(), min, stats.getMin() > 1l),
+				new ItemValue(stats.getMax(), max, stats.getMax() > 1l),
+				new ItemValue(valMedian, median, valMedian > 1l),
+				new ItemValue(stats.getAverage(), average, stats.getAverage() > 1l),
 				unit, false);
 	}
 
@@ -152,10 +160,10 @@ public class StatisticsUnitValueReportEntry implements ReportEntry, NumericRepor
 
 	@Override
 	public DomContent toDomContent(final NumberUtils numberUtils) {
-		if (min.value.equals(max.value)) {
+		if (min.strValue.equals(max.strValue)) {
 			return div(attrs(".entry.stats"),
 					span(attrs(KEY_CSS), key),
-					span(attrs(VALUE), min.value),
+					span(attrs(VALUE), min.strValue),
 					span(attrs(UNIT_CSS), " " + getUnitWithPlurial(min.isPlurial)));
 		}
 
@@ -163,16 +171,16 @@ public class StatisticsUnitValueReportEntry implements ReportEntry, NumericRepor
 				span(attrs(KEY_CSS), key),
 				ul(attrs(VALUE),
 						li(span(attrs(KEY_CSS), LABEL_MINIMUM),
-								span(attrs(VALUE), min.value),
+								span(attrs(VALUE), min.strValue),
 								span(attrs(UNIT_CSS), " " + getUnitWithPlurial(min.isPlurial))),
 						li(span(attrs(KEY_CSS), LABEL_AVERAGE),
-								span(attrs(VALUE), average.value),
+								span(attrs(VALUE), average.strValue),
 								span(attrs(UNIT_CSS), " " + getUnitWithPlurial(average.isPlurial))),
 						li(span(attrs(KEY_CSS), LABEL_MEDIAN),
-								span(attrs(VALUE), median.value),
+								span(attrs(VALUE), median.strValue),
 								span(attrs(UNIT_CSS), " " + getUnitWithPlurial(median.isPlurial))),
 						li(span(attrs(KEY_CSS), LABEL_MAXIMUM),
-								span(attrs(VALUE), max.value),
+								span(attrs(VALUE), max.strValue),
 								span(attrs(UNIT_CSS), " " + getUnitWithPlurial(max.isPlurial)))));
 	}
 
@@ -184,5 +192,19 @@ public class StatisticsUnitValueReportEntry implements ReportEntry, NumericRepor
 	@Override
 	public String unit() {
 		return unit;
+	}
+
+	@Override
+	public void toJson(final JsonGenerator gen,
+					   final SerializerProvider provider) throws IOException {
+		gen.writeObjectFieldStart(jsonHeader(key));
+
+		gen.writeObjectField(jsonHeader(LABEL_MINIMUM), min.value);
+		gen.writeObjectField(jsonHeader(LABEL_AVERAGE), average.value);
+		gen.writeObjectField(jsonHeader(LABEL_MEDIAN), median.value);
+		gen.writeObjectField(jsonHeader(LABEL_MAXIMUM), max.value);
+		gen.writeObjectField("unit", getUnitWithPlurial(false));
+
+		gen.writeEndObject();
 	}
 }

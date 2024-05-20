@@ -171,7 +171,6 @@ public interface ConstStrings {// NOSONAR
 	String PIX_FMT = "Pix fmt";
 	String INTERLACED_FRAME = "Interlaced frame";
 	String TOP_FIELD_FIRST = "Top field first";
-	String SAMPLE_ASPECT_RATIO = "Sample aspect ratio";
 	String HEIGHT = "Height";
 	String WIDTH = "Width";
 
@@ -195,7 +194,7 @@ public interface ConstStrings {// NOSONAR
 	String CHROMA_LOCATION = "Chroma location";
 	String PIXEL_FORMAT = "Pixel format";
 	String DISPLAY_ASPECT_RATIO = "Display aspect ratio";
-	String SAMPLE_ASPECT_RATIO2 = "Sample aspect ratio";
+	String SAMPLE_ASPECT_RATIO = "Sample aspect ratio";
 	String HAS_B_FRAMES = "Has B frames";
 	String CODED_HEIGHT = "Coded height";
 	String CODED_WIDTH = "Coded width";
@@ -289,4 +288,33 @@ public interface ConstStrings {// NOSONAR
 	String COMMAND_LINES_USED_TO_CREATE_THIS_REPORT = "Command lines used to create this report";
 	String REPORT_CREATED_BY = "Report created by";
 	String ANALYSIS_CREATED_BY = "Analysis created by";
+
+	String FIRST_CROP_VALUES = "First crop values";
+	String BACK_TO_FULL_FRAME_NO_CROP = "Back to full frame (no crop)";
+	String BLACK_FRAME_FULL_CROP = "Black frame (full crop)";
+
+	String UNKNOW = "(unknow)";
+	String PROGRESSIVE = "progressive";
+	String INTERLACED_BOTTOM_FIELD_FIRST = "Interlaced, bottom field first";
+	String INTERLACED_TOP_FIELD_FIRST = "Interlaced, top field first";
+	String PIXEL_ASPECT_RATIO = "Pixel aspect ratio";
+	String STORAGE_ASPECT_RATIO = "Storage aspect ratio";
+	String PIXEL_SURFACE = "Pixel surface";
+	String IMAGE_RESOLUTION = "Image resolution";
+	String FRAME_DURATION_DECLARED = "Frame duration (declared)";
+	String FRAMES_ALL_ARE_KEY_FRAMES_NO_GOP = "frames (all are key frames, no GOP)";
+	String REFS_MIN = "refs";
+
+	String NO_REPEATED_FIELD = "No repeated field";
+	String COULD_NOT_BE_CLASSIFIED_USING_MULTIPLE_FRAME_DETECTION = "Could not be classified using multiple-frame detection";
+	String COULD_NOT_BE_CLASSIFIED_USING_SINGLE_FRAME_DETECTION = "Could not be classified using single-frame detection";
+	String WITH_THE_BOTTOM_FIELD_REPEATED_FROM_THE_PREVIOUS_FRAME_S_BOTTOM_FIELD = "With the bottom field repeated from the previous frame’s bottom field";
+	String DETECTED_AS_BOTTOM_FIELD_FIRST_USING_MULTIPLE_FRAME_DETECTION = "Detected as bottom field first, using multiple-frame detection";
+	String DETECTED_AS_BOTTOM_FIELD_FIRST = "Detected as bottom field first";
+	String WITH_THE_TOP_FIELD_REPEATED_FROM_THE_PREVIOUS_FRAME_S_TOP_FIELD = "With the top field repeated from the previous frame’s top field";
+	String DETECTED_AS_TOP_FIELD_FIRST_USING_MULTIPLE_FRAME_DETECTION = "Detected as top field first, using multiple-frame detection";
+	String DETECTED_AS_TOP_FIELD_FIRST = "Detected as top field first";
+	String DETECTED_AS_PROGRESSIVE_USING_MULTIPLE_FRAME_DETECTION = "Detected as progressive, using multiple-frame detection";
+	String DETECTED_AS_PROGRESSIVE = "Detected as progressive";
+
 }

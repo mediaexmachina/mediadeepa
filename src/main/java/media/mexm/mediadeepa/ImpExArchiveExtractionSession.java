@@ -36,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -136,6 +137,18 @@ public class ImpExArchiveExtractionSession {
 		} catch (final JsonProcessingException e) {
 			throw new IllegalArgumentException(CAN_T_READ_FROM_JSON, e);
 		}
+	}
+
+	private Optional<String> getFullTextContent(final String internalFileName) {
+		return Optional.ofNullable(contentItems.get(internalFileName));
+	}
+
+	public Optional<String> getFFmpegCommandLine(final String internalFileName) {
+		return getFullTextContent(internalFileName);
+	}
+
+	public Optional<String> getFFprobeCommandLine(final String internalFileName) {
+		return getFullTextContent(internalFileName);
 	}
 
 	public void addRunnedJavaCmdLine(final String internalFileName, final RunnedJavaCmdLine runnedJavaCmdLine) {

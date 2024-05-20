@@ -36,6 +36,9 @@ import org.mockito.Mock;
 
 import j2html.tags.specialized.SectionTag;
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.exportformat.report.ReportEntry;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
+import media.mexm.mediadeepa.exportformat.report.ReportSectionCategory;
 import net.datafaker.Faker;
 
 class ReportSectionTest {

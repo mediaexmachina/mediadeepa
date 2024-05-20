@@ -26,6 +26,8 @@ import org.junit.jupiter.api.Test;
 
 import j2html.tags.specialized.DivTag;
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.exportformat.report.RatioReportEntry;
+import media.mexm.mediadeepa.exportformat.report.SimpleKeyValueReportEntry;
 
 class SimpleKeyValueReportEntryTest extends BaseReportEntryTest {
 
@@ -53,8 +55,7 @@ class SimpleKeyValueReportEntryTest extends BaseReportEntryTest {
 
 	@Test
 	void testGetFromRatio() {
-		final var entry = SimpleKeyValueReportEntry.getFromRatio(key, 10, 20,
-				numberUtils::formatDecimalFull3En);
+		final var entry = new RatioReportEntry(key, 10, 20, numberUtils::formatDecimalFull3En);
 		assertEquals("1:2 (0.5)", entry.value());
 	}
 
