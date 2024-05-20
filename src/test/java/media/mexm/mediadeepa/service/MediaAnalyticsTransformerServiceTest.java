@@ -16,11 +16,17 @@
  */
 package media.mexm.mediadeepa.service;
 
+import static org.apache.commons.io.FileUtils.forceDelete;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Set;
 
@@ -55,16 +61,20 @@ class MediaAnalyticsTransformerServiceTest {
 	DocumentationExporter documentationExporter;
 	@Mock
 	DataResult dataResult;
+	@Mock
+	OutputStream out;
 
 	String notExistsFormat;
 	ExportToCmd exportToCmd;
 	String formatName;
 	String formatLongName;
+	String internalFileName;
 
 	@BeforeEach
 	void init() throws Exception {
 		MockitoAnnotations.openMocks(this).close();
 		notExistsFormat = faker.numerify("notExistsFormat###");
+		internalFileName = demoExportFormat.getSingleExportFileName();
 		formatName = demoExportFormat.getFormatName();
 		formatLongName = demoExportFormat.getFormatLongName();
 		exportToCmd = new ExportToCmd();
@@ -73,7 +83,7 @@ class MediaAnalyticsTransformerServiceTest {
 
 	@AfterEach
 	void ends() {
-		verifyNoMoreInteractions(dataResult, documentationExporter);
+		verifyNoMoreInteractions(dataResult, documentationExporter, out);
 	}
 
 	@Test
@@ -89,6 +99,23 @@ class MediaAnalyticsTransformerServiceTest {
 		matService.exportAnalytics(dataResult, exportToCmd);
 		assertThat(demoExportFormat.getCapturedResults())
 				.isEqualTo(List.of(dataResult));
+	}
+
+	@Test
+	void testSingleExportAnalytics() throws IOException {
+		final var outputFile = File.createTempFile("temp-mediadeepa", ".txt");
+		forceDelete(outputFile);
+		matService.singleExportAnalytics(internalFileName, dataResult, outputFile);
+
+		assertThat(outputFile)
+				.exists()
+				.hasBinaryContent(demoExportFormat.getSingleExportData());
+	}
+
+	@Test
+	void testSingleExportAnalyticsToOutputStream() throws IOException {
+		matService.singleExportAnalyticsToOutputStream(internalFileName, dataResult, out);
+		verify(out, times(1)).write(demoExportFormat.getSingleExportData());
 	}
 
 }

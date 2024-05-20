@@ -16,13 +16,16 @@
  */
 package media.mexm.mediadeepa.exportformat.components;
 
+import static java.util.stream.Collectors.toUnmodifiableMap;
+
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Component;
 
@@ -47,13 +50,27 @@ public class DemoExportFormat implements ExportFormat {
 		formatLongName = faker.numerify("formatLongName###");
 		formatName = faker.numerify("formatName###");
 		formatDescr = faker.numerify("formatDescr###");
-		exportResult = new HashMap<>(Map.of(
-				faker.numerify("resultKey###"),
-				new File(faker.numerify("resultValue###"))));
+
+		exportResult = IntStream.range(0, faker.random().nextInt(1, 2))
+				.mapToObj(i -> Map.of(
+						faker.numerify("resultKey###"),
+						new File(faker.numerify("resultValue###"))))
+				.map(Map::entrySet)
+				.flatMap(Set::stream)
+				.collect(toUnmodifiableMap(Entry::getKey, Entry::getValue));
+
 		capturedResults = new ArrayList<>();
 		singleExport = new ArrayList<>();
-		singleExportData = "A".getBytes();
+		singleExportData = faker.numerify("singleExportData###").getBytes();
 		singleExportFileName = faker.numerify("singleExportFileName###");
+	}
+
+	public String getSingleExportFileName() {
+		return singleExportFileName;
+	}
+
+	public byte[] getSingleExportData() {
+		return singleExportData;
 	}
 
 	@Override
