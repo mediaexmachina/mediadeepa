@@ -1,5 +1,5 @@
 
-Lists of 114 third-party dependencies.
+Lists of 115 third-party dependencies.
      (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Classic Module (ch.qos.logback:logback-classic:1.4.14 - http://logback.qos.ch/logback-classic)
      (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Core Module (ch.qos.logback:logback-core:1.4.14 - http://logback.qos.ch/logback-core)
      (Apache License, Version 2.0) ClassMate (com.fasterxml:classmate:1.6.0 - https://github.com/FasterXML/java-classmate)
@@ -7,6 +7,7 @@ Lists of 114 third-party dependencies.
      (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.15.4 - https://github.com/FasterXML/jackson-core)
      (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.15.4 - https://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) Jackson-dataformat-XML (com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.4 - https://github.com/FasterXML/jackson-dataformat-xml)
+     (The Apache Software License, Version 2.0) Jackson datatype: JSR310 (com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.4 - https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jsr310)
      (The Apache License, Version 2.0) Woodstox (com.fasterxml.woodstox:woodstox-core:6.5.1 - https://github.com/FasterXML/woodstox)
      (The Apache Software License, Version 2.0) Generex (com.github.mifmif:generex:1.0.2 - https://github.com/mifmif/Generex/tree/master)
      (BSD License) curvesapi (com.github.virtuald:curvesapi:1.07 - https://github.com/virtuald/curvesapi)
@@ -108,9 +109,9 @@ Lists of 114 third-party dependencies.
      (The Apache Software License, Version 2.0) SQLite JDBC (org.xerial:sqlite-jdbc:3.43.2.0 - https://github.com/xerial/sqlite-jdbc)
      (The Apache Software License, Version 2.0) org.xmlunit:xmlunit-core (org.xmlunit:xmlunit-core:2.9.1 - https://www.xmlunit.org/)
      (Apache License, Version 2.0) SnakeYAML (org.yaml:snakeyaml:2.2 - https://bitbucket.org/snakeyaml/snakeyaml)
-     (GNU Lesser General Public License, Version 3) fflauncher (tv.hd3g:fflauncher:16.0.0 - https://github.com/hdsdi3g/medialib)
-     (Apache License 2.0) ffprobejaxb (tv.hd3g:ffprobejaxb:16.0.0 - https://github.com/hdsdi3g/medialib)
-     (GNU Lesser General Public License, Version 3) processlauncher (tv.hd3g:processlauncher:16.0.0 - https://github.com/hdsdi3g/medialib)
+     (GNU Lesser General Public License, Version 3) fflauncher (tv.hd3g:fflauncher:16.1.0 - https://github.com/hdsdi3g/medialib)
+     (Apache License 2.0) ffprobejaxb (tv.hd3g:ffprobejaxb:16.1.0 - https://github.com/hdsdi3g/medialib)
+     (GNU Lesser General Public License, Version 3) processlauncher (tv.hd3g:processlauncher:16.1.0 - https://github.com/hdsdi3g/medialib)
      (GNU Lesser General Public License, Version 3) CodePolicyValidation (tv.hd3g.commons:codepolicyvalidation:3.1.1 - https://github.com/hdsdi3g/codepolicyvalidation)
      (GNU Lesser General Public License, Version 3) Project's environment version (tv.hd3g.commons:env-version:20.0.0 - https://github.com/hdsdi3g/prodlib)
      (GNU Lesser General Public License, Version 3) Commons Interfaces (tv.hd3g.commons:interfaces:20.0.0 - https://github.com/hdsdi3g/prodlib)
