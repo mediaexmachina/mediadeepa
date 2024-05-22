@@ -23,6 +23,7 @@ import java.io.PrintStream;
 import java.time.Duration;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 public class ProgressCLI {
 
@@ -92,15 +93,14 @@ public class ProgressCLI {
 
 	public void end() {
 		ended = true;
-		if (lastEntry != null && lastEntry.isEmpty() == false) {
-			write(repeat(" ", lastEntry.length()));
-		}
 		final var eta = Duration.ofMillis(System.currentTimeMillis() - startTime);
 		final var totalTime = ", total time: " +
 							  StringUtils.right("0" + eta.toHoursPart(), 2) + ":" +
 							  StringUtils.right("0" + eta.toMinutesPart(), 2) + ":" +
 							  StringUtils.right("0" + eta.toSecondsPart(), 2);
 		write("|" + repeat(PROGRESS, WIDTH) + "|" + makePercent(1) + totalTime);
-		out.println();
+		if (SystemUtils.IS_OS_WINDOWS == false) {
+			out.println();
+		}
 	}
 }
