@@ -20,6 +20,7 @@ import static j2html.TagCreator.a;
 import static j2html.TagCreator.article;
 import static j2html.TagCreator.attrs;
 import static j2html.TagCreator.body;
+import static j2html.TagCreator.div;
 import static j2html.TagCreator.each;
 import static j2html.TagCreator.footer;
 import static j2html.TagCreator.h1;
@@ -27,11 +28,13 @@ import static j2html.TagCreator.h2;
 import static j2html.TagCreator.head;
 import static j2html.TagCreator.header;
 import static j2html.TagCreator.html;
+import static j2html.TagCreator.img;
 import static j2html.TagCreator.li;
 import static j2html.TagCreator.link;
 import static j2html.TagCreator.main;
 import static j2html.TagCreator.meta;
 import static j2html.TagCreator.nav;
+import static j2html.TagCreator.script;
 import static j2html.TagCreator.style;
 import static j2html.TagCreator.text;
 import static j2html.TagCreator.title;
@@ -103,13 +106,20 @@ public final class ReportDocument implements ConstStrings, JsonContentProvider {
 				.sorted((l, r) -> l.getCategory().compareTo(r.getCategory()));
 	}
 
-	public String toHTML(final Resource cssHTMLReportResource, final NumberUtils numberUtils) {
+	public String toHTML(final Resource cssHTMLReportResource,
+						 final Resource jsHTMLReportResource,
+						 final NumberUtils numberUtils) {
 		var documentCSS = "";
+		var documentJS = "";
 		try {
 			documentCSS = cssHTMLReportResource.getContentAsString(UTF_8);
+			documentJS = jsHTMLReportResource.getContentAsString(UTF_8);
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't get CSS file from resources", e);
 		}
+
+		final var modalPopupWapper = div(attrs(".image-modal-popup"),
+				div(attrs(".wrapper"), img()));
 
 		final var htmlDocument = html(
 				head(
@@ -121,6 +131,7 @@ public final class ReportDocument implements ConstStrings, JsonContentProvider {
 								.withData(HTTP_EQUIV, "Content-Type")
 								.withContent("text/html; charset=UTF-8"),
 						style(documentCSS).withType("text/css"),
+						script(documentJS),
 						link()
 								.withMedia("all")
 								.withRel("stylesheet")
@@ -158,7 +169,8 @@ public final class ReportDocument implements ConstStrings, JsonContentProvider {
 														+ " "
 														+ section.getTitle()),
 														a(attrs(".backtotop"), TO_TOP_ICON).withHref("#top")),
-												section.toDomContent(numberUtils))))),
+												section.toDomContent(numberUtils)))),
+								modalPopupWapper),
 						footer(
 								article(
 										a().withId(aboutSection.getSectionAnchorName()),

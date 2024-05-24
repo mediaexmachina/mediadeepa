@@ -277,6 +277,7 @@ public interface ConstStrings {// NOSONAR
 	String INTERLACING_DETECTION = "Interlacing detection";
 	String VIDEO_COMPRESSION_GROUP_OF_PICTURES = "Video compression group-of-pictures";
 	String LOUDNESS_EBU_R128 = "Loudness EBU-R128";
+	String LOUDNESS_EBU_R128_SUMMARY = "Loudness EBU-R128 summary";
 	String BLACK_BORDERS_CROP_DETECTION = "Black borders / crop detection";
 	String IMAGE_BLUR_DETECTION = "Image blur detection";
 	String IMAGE_COMPRESSION_ARTIFACT_DETECTION = "Image compression artifact detection";

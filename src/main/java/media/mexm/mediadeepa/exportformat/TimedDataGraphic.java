@@ -26,7 +26,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
 import org.jfree.data.time.FixedMillisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -134,12 +133,15 @@ public class TimedDataGraphic extends DataGraphic {
 	}
 
 	@Override
-	protected JFreeChart getChart() {
+	protected ChartGraphicWrapper getChart() {
 		final var tsc = new TimeSeriesCollection();
 		series.stream()
 				.map(Series::getTimeSeries)
 				.forEach(tsc::addSeries);
-		return ChartFactory.createTimeSeriesChart("", "", "", tsc, true, false, false);
+		return new ChartGraphicWrapper(
+				rangeAxis.name(),
+				getSeriesStyle(),
+				ChartFactory.createTimeSeriesChart("", "", "", tsc, true, false, false));
 	}
 
 	@Override

@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.XYSeries;
 
@@ -58,8 +57,11 @@ public class StackedXYAreaChartDataGraphic extends DataGraphic {
 	}
 
 	@Override
-	protected JFreeChart getChart() {
-		return ChartFactory.createStackedXYAreaChart("", "", "", dataset, VERTICAL, true, false, false);
+	protected ChartGraphicWrapper getChart() {
+		return new ChartGraphicWrapper(
+				rangeAxis.name(),
+				getSeriesStyle(),
+				ChartFactory.createStackedXYAreaChart("", "", "", dataset, VERTICAL, true, false, false));
 	}
 
 	@Override

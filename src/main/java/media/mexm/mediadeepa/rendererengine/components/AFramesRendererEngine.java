@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.ConstStrings;
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -64,6 +65,8 @@ public class AFramesRendererEngine implements
 
 	@Autowired
 	private AppConfig appConfig;
+	@Autowired
+	private AppCommand appCommand;
 	@Autowired
 	private NumberUtils numberUtils;
 
@@ -226,6 +229,8 @@ public class AFramesRendererEngine implements
 									.filter(f -> f > 0f)
 									.filter(f -> f.isNaN() == false)
 									.map(d -> d * 1000f), MILLISECONDS, numberUtils::formatDecimalFull1En));
+
+					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
 					document.add(section);
 				});
 	}

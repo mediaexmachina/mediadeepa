@@ -20,6 +20,7 @@ import static java.util.function.Predicate.not;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.FULL_PINK;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THICK_STROKE;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.VIDEO;
 
 import java.awt.Color;
 import java.util.List;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.ConstStrings;
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -38,7 +40,10 @@ import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
+import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
@@ -53,12 +58,15 @@ public class SITIRendererEngine implements
 								TableRendererEngine,
 								TabularRendererEngine,
 								GraphicRendererEngine,
+								ReportRendererEngine,
 								ConstStrings,
 								SingleTabularDocumentExporterTraits,
 								SingleGraphicDocumentExporterTraits {
 
 	@Autowired
 	private AppConfig appConfig;
+	@Autowired
+	private AppCommand appCommand;
 	@Autowired
 	private NumberUtils numberUtils;
 
@@ -143,6 +151,13 @@ public class SITIRendererEngine implements
 	@Override
 	public String getSingleUniqGraphicBaseFileName() {
 		return appConfig.getGraphicConfig().getSitiGraphicFilename();
+	}
+
+	@Override
+	public void addToReport(final DataResult result, final ReportDocument document) {
+		final var section = new ReportSection(VIDEO, SPATIAL_TEMPORAL_INFORMATION);
+		addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+		document.add(section);
 	}
 
 }

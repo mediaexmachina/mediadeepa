@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.DefaultXYDataset;
 
 public class XYLineChartDataGraphic extends DataGraphic {
@@ -52,8 +51,11 @@ public class XYLineChartDataGraphic extends DataGraphic {
 	}
 
 	@Override
-	protected JFreeChart getChart() {
-		return ChartFactory.createXYLineChart("", "", "", dataset, VERTICAL, true, false, false);
+	protected ChartGraphicWrapper getChart() {
+		return new ChartGraphicWrapper(
+				rangeAxis.name(),
+				getSeriesStyle(),
+				ChartFactory.createXYLineChart("", "", "", dataset, VERTICAL, true, false, false));
 	}
 
 }

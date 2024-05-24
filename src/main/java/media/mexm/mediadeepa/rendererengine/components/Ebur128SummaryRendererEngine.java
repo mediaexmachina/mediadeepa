@@ -114,7 +114,7 @@ public class Ebur128SummaryRendererEngine implements
 				.map(l -> l.get(l.size() - 1))
 				.map(LavfiMtdValue::value)
 				.ifPresent(ebu -> {
-					final var section = new ReportSection(AUDIO, LOUDNESS_EBU_R128);
+					final var section = new ReportSection(AUDIO, LOUDNESS_EBU_R128_SUMMARY);
 					section.add(new NumericUnitValueReportEntry("Integrated", ebu.integrated(), DBFS));
 					section.add(new NumericUnitValueReportEntry("Range (LRA)", ebu.loudnessRange(), "dB"));
 					section.add(new NumericUnitValueReportEntry("High range", ebu.loudnessRangeHigh(), DBFS));

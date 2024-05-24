@@ -50,7 +50,8 @@ public sealed interface JsonContentProvider
 											ReportEntryStream,
 											ReportEntryStreamList,
 											ReportEntrySubset,
-											StatisticsUnitValueReportEntry {
+											StatisticsUnitValueReportEntry,
+											GraphicReportEntry {
 	Logger internalLog = getLogger(JsonContentProvider.class);
 
 	void toJson(JsonGenerator gen,

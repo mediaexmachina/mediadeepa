@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.ConstStrings;
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -76,6 +77,8 @@ public class CropRendererEngine implements
 
 	@Autowired
 	private AppConfig appConfig;
+	@Autowired
+	private AppCommand appCommand;
 	@Autowired
 	private NumberUtils numberUtils;
 
@@ -228,6 +231,8 @@ public class CropRendererEngine implements
 							.toList(),
 							sourceResolution,
 							appConfig.getReportConfig().getMaxCropEventsDisplay()));
+
+					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
 					document.add(section);
 				});
 	}

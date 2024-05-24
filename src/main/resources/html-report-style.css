@@ -25,6 +25,7 @@ article {
 
 a.backtotop {
 	text-decoration: none;
+    padding-left: .3em;
 }
 
 a:link {
@@ -33,10 +34,6 @@ a:link {
 
 a:visited {
 	color: blue;
-}
-
-a.backtotop {
-	padding-left: .3em;
 }
 
 ul {
@@ -170,6 +167,10 @@ div.entry.event span.value {
     width: 8rem;
 }
 
+div.entry.event span.type {
+    width: 12rem;
+}
+
 /****************************************/
 
 div.streamentries {
@@ -265,4 +266,50 @@ div.cropevent span.ptstime {
 div.cropevent span.pos {
 	width: 4rem;
 	padding-right: 0rem;
+}
+
+figure.graphic span.rangename {
+    font-weight: bold;
+}
+
+figure.graphic figcaption {
+    margin-left: 2em;
+    margin-top: .4em;
+}
+
+figure.graphic span.serie span.color {
+    display: inline-block;
+    width: 1.3em;
+    height: .9em;
+    margin-right: .3em;
+    margin-left: .3em;
+}
+
+figure.graphic img {
+	cursor: zoom-in;
+}
+  
+div.image-modal-popup {
+	position: fixed;
+	overflow: auto;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	left: 0;
+	background: rgba(0, 0, 0, 0.8);
+	color: #fff;
+	display: none;
+}
+
+div.image-modal-popup div.wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: fixed;
+}
+
+div.image-modal-popup img {
+	cursor: zoom-out;
+	max-height: 100vh;
+    max-width: 100%;
 }

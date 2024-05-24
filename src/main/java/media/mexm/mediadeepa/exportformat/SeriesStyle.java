@@ -16,6 +16,7 @@
  */
 package media.mexm.mediadeepa.exportformat;
 
+import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Stroke;
 
@@ -27,5 +28,12 @@ public class SeriesStyle {
 	private final String name;
 	private final Paint paint;
 	private final Stroke stroke;
+
+	public String getCSSColor() {
+		if (paint instanceof final Color c) {
+			return "rgb(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")";
+		}
+		return "#FFF";
+	}
 
 }

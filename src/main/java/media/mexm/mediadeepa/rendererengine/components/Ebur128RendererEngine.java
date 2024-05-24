@@ -22,6 +22,7 @@ import static java.awt.Color.RED;
 import static java.util.function.Predicate.not;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THICK_STROKE;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.AUDIO;
 import static tv.hd3g.fflauncher.recipes.MediaAnalyserResult.R128_DEFAULT_LUFS_TARGET;
 
 import java.awt.Color;
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.ConstStrings;
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -43,8 +45,11 @@ import media.mexm.mediadeepa.exportformat.TableDocument;
 import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.MultipleGraphicDocumentExporterTraits;
+import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleGraphicMaker;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
@@ -61,12 +66,15 @@ public class Ebur128RendererEngine implements
 								   TableRendererEngine,
 								   TabularRendererEngine,
 								   GraphicRendererEngine,
+								   ReportRendererEngine,
 								   ConstStrings,
 								   SingleTabularDocumentExporterTraits,
 								   MultipleGraphicDocumentExporterTraits<EBUR128ReportItem> {
 
 	@Autowired
 	private AppConfig appConfig;
+	@Autowired
+	private AppCommand appCommand;
 	@Autowired
 	private NumberUtils numberUtils;
 
@@ -257,6 +265,14 @@ public class Ebur128RendererEngine implements
 					dataGraphicTPK.makeLogarithmicAxisGraphic(numberUtils),
 					appConfig.getGraphicConfig().getImageSizeFullSize());
 		}
+
+	}
+
+	@Override
+	public void addToReport(final DataResult result, final ReportDocument document) {
+		final var section = new ReportSection(AUDIO, LOUDNESS_EBU_R128);
+		addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+		document.add(section);
 
 	}
 

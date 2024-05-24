@@ -58,6 +58,8 @@ public class ReportHTMLExportFormat implements ExportFormat, ConstStrings {
 
 	@Value("classpath:html-report-style.css")
 	private Resource cssHTMLReportResource;
+	@Value("classpath:html-report-script.js")
+	private Resource jsHTMLReportResource;
 
 	@Override
 	public String getFormatName() {
@@ -81,7 +83,7 @@ public class ReportHTMLExportFormat implements ExportFormat, ConstStrings {
 					result, appConfig.getReportConfig().getHtmlFilename());
 			write(outFile,
 					new ReportDocument(result, engines, rendererEngineComparator)
-							.toHTML(cssHTMLReportResource, numberUtils),
+							.toHTML(cssHTMLReportResource, jsHTMLReportResource, numberUtils),
 					UTF_8, false);
 
 			return Map.of("html_report", outFile);
@@ -95,7 +97,7 @@ public class ReportHTMLExportFormat implements ExportFormat, ConstStrings {
 											 final String internalFileName) {
 		return Optional.ofNullable(
 				new ReportDocument(result, engines, rendererEngineComparator)
-						.toHTML(cssHTMLReportResource, numberUtils)
+						.toHTML(cssHTMLReportResource, jsHTMLReportResource, numberUtils)
 						.getBytes(UTF_8));
 	}
 

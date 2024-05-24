@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.ConstStrings;
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -72,6 +73,8 @@ public class AStatsRendererEngine implements
 
 	@Autowired
 	private AppConfig appConfig;
+	@Autowired
+	private AppCommand appCommand;
 	@Autowired
 	private NumberUtils numberUtils;
 
@@ -449,6 +452,8 @@ public class AStatsRendererEngine implements
 										list.get(list.size() - 1),
 										SAMPLE_S);
 							}), section);
+
+					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
 					document.add(section);
 				});
 	}

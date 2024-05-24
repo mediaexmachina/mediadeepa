@@ -31,6 +31,7 @@ import lombok.Getter;
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.config.AppConfig;
+import media.mexm.mediadeepa.exportformat.report.GraphicReportEntry;
 
 public class GraphicArtifact {
 
@@ -39,15 +40,15 @@ public class GraphicArtifact {
 
 	private final String fileNameWOExt;
 	@Getter
-	private final JFreeChart graphic;
+	private final ChartGraphicWrapper graphic;
 	@Getter
 	private final Dimension imageSize;
 
 	public GraphicArtifact(final String fileNameWOExt,
-						   final JFreeChart graphic,
+						   final ChartGraphicWrapper graphicWrapper,
 						   final Dimension imageSize) {
 		this.fileNameWOExt = Objects.requireNonNull(fileNameWOExt, "\"fileNameWOExt\" can't to be null");
-		this.graphic = Objects.requireNonNull(graphic, "\"graphic\" can't to be null");
+		graphic = Objects.requireNonNull(graphicWrapper, "\"graphicWrapper\" can't to be null");
 		this.imageSize = Objects.requireNonNull(imageSize, "\"imageSize\" can't to be null");
 	}
 
@@ -85,9 +86,9 @@ public class GraphicArtifact {
 
 	public byte[] getRawData(final AppCommand appCommand, final AppConfig appConfig) {
 		if (appCommand.isGraphicJpg()) {
-			return getJPEG(graphic, imageSize, appConfig.getGraphicConfig().getJpegCompressionRatio());
+			return getJPEG(graphic.chart(), imageSize, appConfig.getGraphicConfig().getJpegCompressionRatio());
 		} else {
-			return getPNG(graphic, imageSize);
+			return getPNG(graphic.chart(), imageSize);
 		}
 	}
 
@@ -112,6 +113,14 @@ public class GraphicArtifact {
 		}
 		return outputFile;
 
+	}
+
+	public GraphicReportEntry toGraphicReportEntry(final AppCommand appCommand, final AppConfig appConfig) {
+		return new GraphicReportEntry(
+				graphic,
+				imageSize,
+				getRawData(appCommand, appConfig),
+				appCommand.isGraphicJpg() ? "image/jpeg" : "image/png");
 	}
 
 }

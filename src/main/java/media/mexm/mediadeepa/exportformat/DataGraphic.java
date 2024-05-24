@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
@@ -49,7 +48,7 @@ public abstract class DataGraphic {
 	public static final List<Stroke> STROKES_CHANNEL = List.of(THIN_STROKE, THICK_STROKE);
 
 	private final List<Double> markers;
-	private final RangeAxis rangeAxis;
+	protected final RangeAxis rangeAxis;
 
 	protected DataGraphic(final RangeAxis rangeAxis) {
 		this.rangeAxis = rangeAxis;
@@ -66,20 +65,21 @@ public abstract class DataGraphic {
 		return this;
 	}
 
-	public JFreeChart makeLogarithmicAxisGraphic(final NumberUtils numberUtils) {
+	public ChartGraphicWrapper makeLogarithmicAxisGraphic(final NumberUtils numberUtils) {
 		return makeGraphic(true, numberUtils);
 	}
 
-	public JFreeChart makeLinearAxisGraphic(final NumberUtils numberUtils) {
+	public ChartGraphicWrapper makeLinearAxisGraphic(final NumberUtils numberUtils) {
 		return makeGraphic(false, numberUtils);
 	}
 
-	protected abstract JFreeChart getChart();
+	protected abstract ChartGraphicWrapper getChart();
 
 	protected abstract List<? extends SeriesStyle> getSeriesStyle();// NOSONAR S1452
 
-	protected JFreeChart makeGraphic(final boolean logarithmicAxis, final NumberUtils numberUtils) {
-		final var timechart = getChart();
+	protected ChartGraphicWrapper makeGraphic(final boolean logarithmicAxis, final NumberUtils numberUtils) {
+		final var chartWrapper = getChart();
+		final var timechart = chartWrapper.chart();
 		timechart.setAntiAlias(true);
 		timechart.setTextAntiAlias(true);
 		timechart.setBackgroundPaint(BLACK);
@@ -149,7 +149,7 @@ public abstract class DataGraphic {
 		if (domainAxis instanceof final DateAxis timeAxis) {
 			timeAxis.setTimeZone(TimeZone.getTimeZone("GMT"));
 		}
-		return timechart;
+		return chartWrapper;
 	}
 
 }

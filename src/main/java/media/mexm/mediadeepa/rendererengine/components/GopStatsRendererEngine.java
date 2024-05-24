@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.ConstStrings;
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -74,6 +75,8 @@ public class GopStatsRendererEngine implements
 
 	@Autowired
 	private AppConfig appConfig;
+	@Autowired
+	private AppCommand appCommand;
 	@Autowired
 	private NumberUtils numberUtils;
 
@@ -226,10 +229,12 @@ public class GopStatsRendererEngine implements
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
 		result.getContainerAnalyserResult()
-				.ifPresent(caResult -> saveGOPStats(caResult.extractGOPStats(), caResult.videoFrames(), document));
+				.ifPresent(caResult -> saveGOPStats(result, caResult.extractGOPStats(), caResult.videoFrames(),
+						document));
 	}
 
-	private void saveGOPStats(final List<GOPStatItem> extractGOPStats,
+	private void saveGOPStats(final DataResult result,
+							  final List<GOPStatItem> extractGOPStats,
 							  final List<FFprobeVideoFrame> videoFrames,
 							  final ReportDocument document) {
 		if (extractGOPStats.isEmpty()) {
@@ -337,6 +342,7 @@ public class GopStatsRendererEngine implements
 			section.add(new SimpleKeyValueReportEntry("B frame presence", "no B frames"));
 		}
 
+		addAllGraphicsToReport(this, result, section, appConfig, appCommand);
 		document.add(section);
 	}
 

@@ -33,8 +33,10 @@ import j2html.tags.DomContent;
 import media.mexm.mediadeepa.components.NumberUtils;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 
-public record EventReportEntry(LavfiMtdEvent event, Optional<Duration> sourceDuration) implements ReportEntry,
-							  JsonContentProvider {
+public record EventReportEntry(String eventType,
+							   LavfiMtdEvent event,
+							   Optional<Duration> sourceDuration)
+							  implements ReportEntry, JsonContentProvider {
 
 	public static final class EventReportEntryHeader implements ReportEntry, JsonContentProvider {
 
@@ -55,6 +57,7 @@ public record EventReportEntry(LavfiMtdEvent event, Optional<Duration> sourceDur
 		@Override
 		public DomContent toDomContent(final NumberUtils numberUtils) {
 			return div(attrs(".entry.event"),
+					span(attrs(".key.type.value"), "Type"),
 					TagCreator.iff(hasScope, span(attrs(".key.scope.value"), "Scope/channel")),
 					span(attrs(".key.start.value"), "Start time"),
 					TagCreator.iff(hasEnd, span(attrs(".key.end.value"), "End time")),
@@ -95,6 +98,8 @@ public record EventReportEntry(LavfiMtdEvent event, Optional<Duration> sourceDur
 
 	@Override
 	public DomContent toDomContent(final NumberUtils numberUtils) {
+		final var spanType = span(attrs(".type.value"), eventType);
+
 		final var spanScope = getScope()
 				.map(s -> span(attrs(".scope.value"), s))
 				.orElse(span());
@@ -112,7 +117,7 @@ public record EventReportEntry(LavfiMtdEvent event, Optional<Duration> sourceDur
 						numberUtils.durationToString(end.minus(event.start()))))
 				.orElse(span());
 
-		return div(attrs(".entry.event"), spanScope, spanStart, spanEnd, spanDuration);
+		return div(attrs(".entry.event"), spanType, spanScope, spanStart, spanEnd, spanDuration);
 	}
 
 	@Override

@@ -23,6 +23,7 @@ public enum ReportSectionCategory {
 	SUMMARY("📋"),
 	AUDIO("🔊"),
 	VIDEO("🖼"),
+	EVENTS("📌"),
 	CONTAINER("📦"),
 	ABOUT("ℹ");
 

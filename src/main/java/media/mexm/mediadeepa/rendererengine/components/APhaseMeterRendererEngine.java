@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.ConstStrings;
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -61,6 +62,8 @@ public class APhaseMeterRendererEngine implements
 
 	@Autowired
 	private AppConfig appConfig;
+	@Autowired
+	private AppCommand appCommand;
 	@Autowired
 	private NumberUtils numberUtils;
 
@@ -109,15 +112,18 @@ public class APhaseMeterRendererEngine implements
 				.ifPresent(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
 					final var aPhaseMeterReport = lavfiMetadatas.getAPhaseMeterReport();
-					final var section = new ReportSection(AUDIO, PHASE_CORRELATION);
-					if (aPhaseMeterReport.isEmpty() == false) {
-						section.add(
-								StatisticsUnitValueReportEntry.createFromLong(
-										"Phase correlation (L/R)",
-										aPhaseMeterReport.stream()
-												.map(LavfiMtdValue::value)
-												.map(v -> Math.round(v * 100d)), "%", numberUtils));
+					if (aPhaseMeterReport.isEmpty()) {
+						return;
 					}
+					final var section = new ReportSection(AUDIO, PHASE_CORRELATION);
+					section.add(
+							StatisticsUnitValueReportEntry.createFromLong(
+									"Phase correlation (L/R)",
+									aPhaseMeterReport.stream()
+											.map(LavfiMtdValue::value)
+											.map(v -> Math.round(v * 100d)), "%", numberUtils));
+
+					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
 					document.add(section);
 				});
 	}

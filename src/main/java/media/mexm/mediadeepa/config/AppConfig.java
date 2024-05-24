@@ -58,6 +58,7 @@ public class AppConfig {
 		private String jsonFilename = "report.json";
 		private int maxCropEventsDisplay = 20;
 		private boolean jsonIdentOutput = true;
+		private boolean addGraphics = true;
 	}
 
 	private GraphicConfig graphicConfig = new GraphicConfig();

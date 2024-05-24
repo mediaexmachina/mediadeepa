@@ -21,6 +21,7 @@ import static java.awt.Color.RED;
 import static java.util.function.Predicate.not;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THICK_STROKE;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.CONTAINER;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.ConstStrings;
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -37,7 +39,10 @@ import media.mexm.mediadeepa.exportformat.GraphicArtifact;
 import media.mexm.mediadeepa.exportformat.RangeAxis;
 import media.mexm.mediadeepa.exportformat.SeriesStyle;
 import media.mexm.mediadeepa.exportformat.XYLineChartDataGraphic;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
+import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeBaseFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrame;
@@ -46,10 +51,13 @@ import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 @Component
 public class FramesDurationRendererEngine implements
 										  GraphicRendererEngine,
+										  ReportRendererEngine,
 										  ConstStrings,
 										  SingleGraphicDocumentExporterTraits {
 	@Autowired
 	private AppConfig appConfig;
+	@Autowired
+	private AppCommand appCommand;
 	@Autowired
 	private NumberUtils numberUtils;
 
@@ -117,6 +125,13 @@ public class FramesDurationRendererEngine implements
 	@Override
 	public String getSingleUniqGraphicBaseFileName() {
 		return appConfig.getGraphicConfig().getVFrameDurationGraphicFilename();
+	}
+
+	@Override
+	public void addToReport(final DataResult result, final ReportDocument document) {
+		final var section = new ReportSection(CONTAINER, "Frame duration");
+		addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+		document.add(section);
 	}
 
 }

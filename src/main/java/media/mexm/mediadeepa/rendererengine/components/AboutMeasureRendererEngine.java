@@ -153,9 +153,9 @@ public class AboutMeasureRendererEngine implements
 				runnedJavaCmdLine.makeFullExtendedCommandline()));
 
 		result.getFfmpegCommandLine()
-				.ifPresent(c -> section.add(new SimpleKeyValueReportEntry("ffmpeg", c)));
+				.ifPresent(c -> section.add(new KeyPreValueReportEntry("ffmpeg", c)));
 		result.getFfprobeCommandLine()
-				.ifPresent(c -> section.add(new SimpleKeyValueReportEntry("ffprobe", c)));
+				.ifPresent(c -> section.add(new KeyPreValueReportEntry("ffprobe", c)));
 		document.add(section);
 	}
 

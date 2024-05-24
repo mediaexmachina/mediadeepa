@@ -22,8 +22,6 @@ import static java.awt.Color.RED;
 import static java.awt.Color.YELLOW;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THICK_STROKE;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
-import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.AUDIO;
-import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.VIDEO;
 
 import java.awt.Color;
 import java.awt.Stroke;
@@ -38,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.ConstStrings;
+import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -50,6 +49,7 @@ import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.exportformat.report.EventReportEntry;
 import media.mexm.mediadeepa.exportformat.report.ReportDocument;
 import media.mexm.mediadeepa.exportformat.report.ReportSection;
+import media.mexm.mediadeepa.exportformat.report.ReportSectionCategory;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
@@ -72,8 +72,11 @@ public class EventsRendererEngine implements
 								  SingleTabularDocumentExporterTraits,
 								  SingleGraphicDocumentExporterTraits {
 
+	private static final String EVENTS2 = "Events";
 	@Autowired
 	private AppConfig appConfig;
+	@Autowired
+	private AppCommand appCommand;
 	@Autowired
 	private NumberUtils numberUtils;
 
@@ -122,7 +125,7 @@ public class EventsRendererEngine implements
 		result.getMediaAnalyserResult()
 				.map(MediaAnalyserResult::lavfiMetadatas)
 				.ifPresent(lavfiMetadatas -> {
-					final var events = tableDocument.createTable("Events").head(HEAD_EVENTS);
+					final var events = tableDocument.createTable(EVENTS2).head(HEAD_EVENTS);
 					Stream.of(
 							lavfiMetadatas.getMonoEvents(),
 							lavfiMetadatas.getSilenceEvents(),
@@ -181,7 +184,7 @@ public class EventsRendererEngine implements
 		final var dataGraphic = TimedDataGraphic.create(
 				IntStream.range(0, secDurationRoundedInt)
 						.mapToObj(f -> (float) f),
-				new RangeAxis("Events", 0, 1));
+				new RangeAxis(EVENTS2, 0, 1));
 
 		addSeriesFromEvent(result, LavfiMetadataFilterParser::getBlackEvents, secDurationRoundedInt,
 				FULL_BLACK_FRAMES, BLUE, THIN_STROKE, dataGraphic);
@@ -212,28 +215,46 @@ public class EventsRendererEngine implements
 				.map(MediaAnalyserResult::lavfiMetadatas)
 				.ifPresent(lavfiMetadatas -> {
 					final var duration = result.getSourceDuration();
-					saveEvents(AUDIO_SILENCE, lavfiMetadatas.getSilenceEvents(), true, document, duration);
-					saveEvents(AUDIO_MONO, lavfiMetadatas.getMonoEvents(), true, document, duration);
-					saveEvents(BLACK_FRAMES, lavfiMetadatas.getBlackEvents(), false, document, duration);
-					saveEvents(FREEZE_STATIC_FRAMES, lavfiMetadatas.getFreezeEvents(), false, document, duration);
+
+					final var section = new ReportSection(ReportSectionCategory.EVENTS, EVENTS2);
+
+					final var allEvents = Stream.of(
+							Event.getEvents(AUDIO_SILENCE, lavfiMetadatas.getSilenceEvents()),
+							Event.getEvents(AUDIO_MONO, lavfiMetadatas.getMonoEvents()),
+							Event.getEvents(BLACK_FRAMES, lavfiMetadatas.getBlackEvents()),
+							Event.getEvents(FREEZE_STATIC_FRAMES, lavfiMetadatas.getFreezeEvents()))
+							.flatMap(Function.identity())
+							.sorted()
+							.toList();
+
+					Stream.concat(
+							Stream.of(EventReportEntry.createHeader(
+									allEvents.stream().map(Event::mtdEvent).toList(),
+									duration)),
+							allEvents.stream()
+									.map(event -> event.toEventReportEntry(duration)))
+							.forEach(section::add);
+
+					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+					document.add(section);
 				});
 	}
 
-	private void saveEvents(final String name,
-							final List<LavfiMtdEvent> events,
-							final boolean audio,
-							final ReportDocument document,
-							final Optional<Duration> sourceDuration) {
-		if (events.isEmpty()) {
-			return;
+	private record Event(String type, LavfiMtdEvent mtdEvent) implements Comparable<Event> {
+
+		@Override
+		public int compareTo(final Event o) {
+			return mtdEvent.compareTo(o.mtdEvent);
 		}
-		final var section = new ReportSection(audio ? AUDIO : VIDEO, name + " events");
-		Stream.concat(
-				Stream.of(EventReportEntry.createHeader(events, sourceDuration)),
-				events.stream()
-						.map(event -> new EventReportEntry(event, sourceDuration)))
-				.forEach(section::add);
-		document.add(section);
+
+		static Stream<Event> getEvents(final String type, final List<LavfiMtdEvent> mtdEvent) {
+			return mtdEvent.stream().map(event -> new Event(type, event));
+		}
+
+		EventReportEntry toEventReportEntry(final Optional<Duration> duration) {
+			return new EventReportEntry(type, mtdEvent, duration);
+		}
+
 	}
 
 }
