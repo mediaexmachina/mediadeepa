@@ -651,4 +651,30 @@ class E2ETextTest extends E2EUtils {
 		}
 	}
 
+	@Test
+	void extractAndProcessContainerOnly() {
+		if (MEDIA_FILE_NAME_AVI.exists() == false) {
+			return;
+		}
+
+		final var zipFile = new File("target/e2e/container-only-avi.zip");
+		runApp(() -> zipFile.exists(),
+				"--temp", "target/e2e-temp",
+				"-i", MEDIA_FILE_NAME_AVI.getPath(),
+				"-c", "-mn",
+				"--extract", zipFile.getPath());
+
+		assertThat(zipFile).exists().size().isGreaterThan(100);
+
+		final var expectedResult = new File("target/e2e-export/container-only_media-summary.txt");
+		runApp(() -> expectedResult.exists(),
+				"--temp", "target/e2e-temp",
+				"-i", zipFile.getPath(),
+				"-f", "txt",
+				"-e", "target/e2e-export",
+				"--export-base-filename", "container-only");
+
+		assertThat(expectedResult).exists().size().isGreaterThan(80);
+	}
+
 }

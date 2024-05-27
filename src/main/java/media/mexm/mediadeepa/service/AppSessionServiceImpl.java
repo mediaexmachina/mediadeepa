@@ -382,13 +382,20 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		final var extractSession = new ImpExArchiveExtractionSession();
 
+		final var probeResult = ffmpegService.getFFprobeJAXBFromFileToProcess(inputFile, processFileCmd);
+		log.info("Source file: {}", probeResult);
+		if (probeResult.getXmlContent().isEmpty() == false) {
+			extractSession.add(zippedTxtFileNames.getFfprobeXml(), probeResult.getXmlContent());
+			final var mediaS = probeResult.getMediaSummary();
+			extractSession.add(
+					zippedTxtFileNames.getSummaryTxt(),
+					concat(Stream.of(mediaS.format()), mediaS.streams().stream()).toList());
+		}
+
 		if (processFileCmd.isNoMediaAnalysing() == false) {
 			log.debug("Prepare media analysing...");
 
 			final var lavfiSecondaryFile = prepareTempFile(tempDir);
-			final var probeResult = ffmpegService.getFFprobeJAXBFromFileToProcess(inputFile, processFileCmd);
-			log.info("Source file: {}", probeResult);
-
 			final var maSession = ffmpegService.createMediaAnalyserSession(
 					inputFile,
 					processFileCmd,
@@ -397,14 +404,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 					processFileCmd.getFilterCmd());
 			maSession.setFFprobeResult(probeResult);
 			maSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
-
-			if (probeResult.getXmlContent().isEmpty() == false) {
-				extractSession.add(zippedTxtFileNames.getFfprobeXml(), probeResult.getXmlContent());
-			}
-			final var mediaS = probeResult.getMediaSummary();
-			extractSession.add(
-					zippedTxtFileNames.getSummaryTxt(),
-					concat(Stream.of(mediaS.format()), mediaS.streams().stream()).toList());
 
 			final var stderrList = new ArrayList<String>();
 			final var lavfiList = new ArrayList<String>();
