@@ -33,7 +33,6 @@
 
     <logger name="picocli.spring.PicocliSpringFactory" level="error" />
     <logger name="media.mexm" level="info" />
-    <logger name="tv.hd3g.fflauncher.recipes" level="debug" />
     <logger name="tv.hd3g.fflauncher.resultparser.RawStdErrEventParser" level="info" />
 
     <root level="warn">
