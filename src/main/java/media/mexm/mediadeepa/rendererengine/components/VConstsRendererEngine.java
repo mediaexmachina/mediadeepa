@@ -176,15 +176,15 @@ public class VConstsRendererEngine implements
 
 						vConstSection.add(new RatioReportEntry(
 								DISPLAY_ASPECT_RATIO, sarW, sarH,
-								numberUtils::formatDecimalSimple1En));
+								numberUtils::formatDecimalSimple5En));
 
 						vConstSection.add(new RatioReportEntry(
 								STORAGE_ASPECT_RATIO, videoConst.width(), videoConst.height(),
-								numberUtils::formatDecimalSimple1En));
+								numberUtils::formatDecimalSimple5En));
 
 						vConstSection.add(new RatioReportEntry(PIXEL_ASPECT_RATIO,
 								sarH * videoConst.width(), sarW * videoConst.height(),
-								numberUtils::formatDecimalSimple1En));
+								numberUtils::formatDecimalSimple5En));
 					} catch (NumberFormatException | IndexOutOfBoundsException e) {
 						vConstSection.add(new SimpleKeyValueReportEntry(
 								PIXEL_ASPECT_RATIO, UNKNOW));
