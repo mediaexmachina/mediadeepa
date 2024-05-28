@@ -18,6 +18,7 @@ package media.mexm.mediadeepa.service;
 
 import static java.nio.charset.Charset.defaultCharset;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.time.Duration.ZERO;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.joining;
@@ -420,7 +421,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		if (processFileCmd.isContainerAnalysing()) {
 			log.info("Start container analysing...");
-			final var caSession = ffmpegService.createContainerAnalyserSession(inputFile, processFileCmd);
+			final var caSession = ffmpegService.createContainerAnalyserSession(
+					inputFile, processFileCmd, probeResult.getDuration().orElse(ZERO));
 			caSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
 
 			final var containerListLines = new ArrayList<String>();
@@ -483,7 +485,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		if (processFileCmd.isContainerAnalysing()) {
 			log.info("Start container analysing...");
-			final var caSession = ffmpegService.createContainerAnalyserSession(inputFile, processFileCmd);
+			final var caSession = ffmpegService.createContainerAnalyserSession(
+					inputFile, processFileCmd, ffprobeResult.getDuration().orElse(ZERO));
 			caSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
 			dataResult.setContainerAnalyserResult(caSession.process());
 		}

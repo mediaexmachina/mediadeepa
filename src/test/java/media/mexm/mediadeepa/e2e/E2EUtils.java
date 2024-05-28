@@ -87,7 +87,7 @@ abstract class E2EUtils {
 		runApp(() -> false, params);
 	}
 
-	static void extractRawTXT(final E2ERawOutDataFiles rawData) throws IOException {
+	static void extractRawTXT(final E2ERawOutDataFiles rawData) {
 		runApp(() -> rawData.allOutExists(),
 				"-i", rawData.mediaFile().getPath(), "-c",
 				"--temp", "target/e2e-temp",
@@ -133,19 +133,19 @@ abstract class E2EUtils {
 		}
 	}
 
-	static E2ERawOutDataFiles prepareMovForSimpleE2ETests() throws IOException {
+	static E2ERawOutDataFiles prepareMovForSimpleE2ETests() {
 		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_MOV);
 	}
 
-	static E2ERawOutDataFiles prepareMpgForSimpleE2ETests() throws IOException {
+	static E2ERawOutDataFiles prepareMpgForSimpleE2ETests() {
 		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_MPG);
 	}
 
-	static E2ERawOutDataFiles prepareTsForSimpleE2ETests() throws IOException {
+	static E2ERawOutDataFiles prepareTsForSimpleE2ETests() {
 		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_TS);
 	}
 
-	static E2ERawOutDataFiles prepareMovForSimpleE2ETests(final File mediaFile) throws IOException {
+	static E2ERawOutDataFiles prepareMovForSimpleE2ETests(final File mediaFile) {
 		final var rawData = E2ERawOutDataFiles.create(mediaFile);
 		if (mediaFile.exists() == false) {
 			return null;

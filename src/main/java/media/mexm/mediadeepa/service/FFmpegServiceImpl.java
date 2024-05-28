@@ -74,6 +74,7 @@ import tv.hd3g.fflauncher.filtering.VideoFilterMEstimate;
 import tv.hd3g.fflauncher.filtering.VideoFilterMetadata;
 import tv.hd3g.fflauncher.filtering.VideoFilterSiti;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
+import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher;
 import tv.hd3g.fflauncher.progress.ProgressBlock;
 import tv.hd3g.fflauncher.progress.ProgressCallback;
 import tv.hd3g.fflauncher.progress.ProgressListener;
@@ -488,9 +489,22 @@ public class FFmpegServiceImpl implements FFmpegService {
 
 	@Override
 	public ContainerAnalyserSession createContainerAnalyserSession(final File inputFile,
-																   final ProcessFileCmd processFileCmd) {
+																   final ProcessFileCmd processFileCmd,
+																   final Duration programDuration) {
 		final var ca = new ContainerAnalyser(appConfig.getFfprobeExecName(), executableFinder);
-		return ca.createSession(inputFile);
+		final var progress = progressSupplier.get();
+
+		return ca.createSession(inputFile, new FFprobeXMLProgressWatcher(
+				programDuration,
+				r -> {
+					final var t = new Thread(r);
+					t.setDaemon(true);
+					t.setName("Watcher for ffprobe container analyser");
+					return t;
+				},
+				s -> progress.displayProgress(0, 1),
+				event -> progress.displayProgress(event.progress(), event.speed()),
+				s -> progress.end()));
 	}
 
 	@Override

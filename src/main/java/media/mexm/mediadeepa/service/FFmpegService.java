@@ -17,6 +17,7 @@
 package media.mexm.mediadeepa.service;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Map;
 
 import media.mexm.mediadeepa.cli.FilterCmd;
@@ -38,7 +39,9 @@ public interface FFmpegService {
 													FFprobeJAXB ffprobeJAXB,
 													FilterCmd options);
 
-	ContainerAnalyserSession createContainerAnalyserSession(File inputFile, ProcessFileCmd processFileCmd);
+	ContainerAnalyserSession createContainerAnalyserSession(File inputFile,
+															ProcessFileCmd processFileCmd,
+															Duration programDuration);
 
 	FFprobeJAXB getFFprobeJAXBFromFileToProcess(File inputFile, ProcessFileCmd processFileCmd);
 
