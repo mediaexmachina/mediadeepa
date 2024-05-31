@@ -160,7 +160,7 @@ class E2ETextTest extends E2EUtils {
 
 		}
 
-		private void processTXT() throws IOException {
+		private void processTXT() {
 			runApp("-i", mediafile.getPath(), "-c",
 					"--temp", "target/e2e-temp",
 					"-f", "txt",
@@ -251,11 +251,7 @@ class E2ETextTest extends E2EUtils {
 			assertTableWith(2, lines);
 
 			switch (specificMediaFile) {
-			case AVI:
-			case MKV:
-			case MOV:
-			case MPG:
-			case TS:
+			case AVI, MKV, MOV, MPG, TS:
 				assertEquals(4, lines.size());
 				break;
 			case WAV:
@@ -274,9 +270,7 @@ class E2ETextTest extends E2EUtils {
 			final var lines = readLines(f);
 			assertTableWith(5, lines);
 			switch (specificMediaFile) {
-			case AVI:
-			case MKV:
-			case MOV:
+			case AVI, MKV, MOV:
 				assertEquals(List.of("freeze", "", "00:00:00", "00:00:05", "00:00:05"),
 						getSplitedLine(lines, 1));
 				assertEquals(List.of("black", "", "00:00:05", "00:00:10", "00:00:05"),
@@ -289,8 +283,7 @@ class E2ETextTest extends E2EUtils {
 						getSplitedLine(lines, 5));
 				assertEquals(6, lines.size());
 				break;
-			case MPG:
-			case TS:
+			case MPG, TS:
 				assertEquals(List.of("freeze", "", "00:00:00.010", "00:00:05.010", "00:00:05"),
 						getSplitedLine(lines, 1));
 				assertEquals(List.of("black", "", "00:00:05.010", "00:00:10.010", "00:00:05"),
@@ -363,7 +356,7 @@ class E2ETextTest extends E2EUtils {
 			final var specificMediaFile = getFromMediaFile(rawData.mediaFile());
 			final var f = getProcessedTXTFromRaw(rawData, "audio-stats.txt");
 			final var lines = readLines(f);
-			assertTableWith(List.of(12, 11), lines);
+			assertTableWith(List.of(32), lines);
 			assertThat(lines.size()).isBetween(60, (int) specificMediaFile.containerAudioCount * 2 + 2);
 		}
 

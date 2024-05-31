@@ -31,6 +31,6 @@ You can process multiple files in one run, as well as load a text file as file l
  - It only support the first video, and the first founded audio stream of a file.
  - Audio mono and stereo only.
  - Some process take (long) time to do, like SITI and container analyzing, caused by poor FFmpeg/FFprobe performances with **these** filters.
- - Loudness EBU R-128 measure works correctly with FFmpeg v7+, due to internal bugs/limitations with the previous versions.
+ - Loudness EBU R-128,and _audio stats_ measures works correctly with FFmpeg v7+, due to internal bugs/limitations with the previous versions.
 
 An internal warning will by displayed if you try to works with a Zip archive created by a different Mediadeepa version.

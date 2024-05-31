@@ -63,7 +63,7 @@ class E2ETableTest extends E2EUtils {
 	}
 
 	@TestFactory
-	Stream<DynamicTest> testTable() throws IOException {
+	Stream<DynamicTest> testTable() {
 		rawData = prepareMpgForSimpleE2ETests();
 		if (rawData == null) {
 			return Stream.empty();
@@ -76,7 +76,7 @@ class E2ETableTest extends E2EUtils {
 				dynamicTest("json", this::testJSON));
 	}
 
-	File makeOutputFile(final String baseFileName, final String format) throws IOException {
+	File makeOutputFile(final String baseFileName, final String format) {
 		final var outputFile = new File("target/e2e-export", baseFileName);
 		runApp(
 				"--temp", "target/e2e-temp",
@@ -87,13 +87,13 @@ class E2ETableTest extends E2EUtils {
 		return outputFile;
 	}
 
-	void testXLSX() throws IOException {
+	void testXLSX() {
 		final var outputFile = makeOutputFile("mpg_media-datas.xlsx", "xlsx");
 		assertTrue(outputFile.exists());
 		assertTrue(outputFile.length() > 0);
 	}
 
-	void testSQLite() throws IOException {
+	void testSQLite() {
 		final var outputFile = makeOutputFile("mpg_media-datas.sqlite", "sqlite");
 		assertTrue(outputFile.exists());
 		assertTrue(outputFile.length() > 0);
@@ -121,7 +121,7 @@ class E2ETableTest extends E2EUtils {
 	}
 
 	void testJSON() throws IOException {
-		rawData = prepareMovForSimpleE2ETests();
+		rawData = prepareMpgForSimpleE2ETests();
 		final var outputFile = makeOutputFile("mpg_media-datas.json", "json");
 		assertTrue(outputFile.exists());
 		assertTrue(outputFile.length() > 0);

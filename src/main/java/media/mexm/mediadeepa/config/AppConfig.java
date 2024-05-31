@@ -73,6 +73,8 @@ public class AppConfig {
 		private String flatnessGraphicFilename = "audio-flatness";
 		private String noiseFloorGraphicFilename = "audio-noise-floor";
 		private String peakLevelGraphicFilename = "audio-peak-level";
+		private String dynamicRangeGraphicFilename = "audio-dynamic-range";
+		private String rmsLevelGraphicFilename = "audio-rms-level";
 		private String sitiGraphicFilename = "video-siti";
 		private String blockGraphicFilename = "video-block";
 		private String blurGraphicFilename = "video-blur";

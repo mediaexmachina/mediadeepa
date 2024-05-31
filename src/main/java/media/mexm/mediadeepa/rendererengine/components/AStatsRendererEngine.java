@@ -17,15 +17,19 @@
 package media.mexm.mediadeepa.rendererengine.components;
 
 import static java.util.function.Predicate.not;
+import static java.util.function.UnaryOperator.identity;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.COLORS_CHANNEL;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.STROKES_CHANNEL;
 import static media.mexm.mediadeepa.exportformat.report.ReportEntrySubset.toEntrySubset;
 import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.AUDIO;
+import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdAstatsChannel.getFieldNames;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -80,22 +84,31 @@ public class AStatsRendererEngine implements
 
 	private List<SingleGraphicMaker<AStatReportItem>> graphicMakerList;
 
-	public static final List<String> HEAD_ASTATS = List.of(
-			FRAME, PTS, PTS_TIME,
-			CHANNEL,
-			DC_OFFSET,
-			ENTROPY,
-			FLATNESS,
-			NOISE_FLOOR,
-			NOISE_FLOOR_COUNT,
-			PEAK_LEVEL,
-			PEAK_COUNT,
-			OTHER);
-
 	@Override
 	public String getSingleUniqTabularDocumentBaseFileName() {
 		return "audio-stats";
 	}
+
+	private static String makeFieldName(final String field) {
+		final var sb = new StringBuilder();
+		for (var pos = 0; pos < field.length(); pos++) {
+			final var chr = field.substring(pos, pos + 1);
+			if (pos == 0) {
+				sb.append(chr.toUpperCase());
+			} else if (pos + 1 == field.length() || chr.equals(chr.toUpperCase()) == false) {
+				sb.append(chr);
+			} else {
+				sb.append(" ");
+				sb.append(chr);
+			}
+		}
+		return sb.toString();
+	}
+
+	private static final List<String> HEAD_ASTATS = Stream.concat(
+			Stream.of(FRAME, PTS, PTS_TIME, CHANNEL),
+			getFieldNames(AStatsRendererEngine::makeFieldName))
+			.toList();
 
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
@@ -114,16 +127,16 @@ public class AStatsRendererEngine implements
 									if (other.equals("{}")) {
 										other = "";
 									}
-									aStats.row(a.frame(), a.pts(), a.ptsTime(),
-											pos + 1,
-											channel.dcOffset(),
-											channel.entropy(),
-											channel.flatness(),
-											channel.noiseFloor(),
-											channel.noiseFloorCount(),
-											channel.peakLevel(),
-											channel.peakCount(),
-											other);
+									final var items = Stream.concat(
+											Stream.concat(
+													Stream.of(a.frame(), a.pts(), a.ptsTime(), pos + 1)
+															.map(f -> (Object) f),
+													channel.getValues().map(f -> (Object) f)),
+											Stream.of(other).map(f -> (Object) f))
+											.toList()
+											.toArray();
+
+									aStats.row(items);
 								}
 							});
 					return aStats;
@@ -146,19 +159,15 @@ public class AStatsRendererEngine implements
 									if (other.equals("{}")) {
 										other = "";
 									}
-									aStats.addRow()
+
+									final var row = aStats.addRow()
 											.addCell(a.frame())
 											.addCell(a.pts())
 											.addCell(a.ptsTime())
-											.addCell(pos + 1)
-											.addCell(channel.dcOffset())
-											.addCell(channel.entropy())
-											.addCell(channel.flatness())
-											.addCell(channel.noiseFloor())
-											.addCell(channel.noiseFloorCount())
-											.addCell(channel.peakLevel())
-											.addCell(channel.peakCount())
-											.addCell(other);
+											.addCell(pos + 1);
+
+									channel.getValues().forEach(row::addCell);
+									row.addCell(other);
 								}
 							});
 				});
@@ -172,11 +181,13 @@ public class AStatsRendererEngine implements
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		graphicMakerList = List.of(
+				new RMSLevelGraphicMaker(),
 				new DcOffsetGraphicMaker(),
 				new EntropyGraphicMaker(),
 				new FlatnessGraphicMaker(),
 				new NoiseFloorGraphicMaker(),
-				new PeakLevelGraphicMaker());
+				new PeakLevelGraphicMaker(),
+				new DynamicRangeGraphicMaker());
 	}
 
 	static record AStatReportItem(List<LavfiMtdValue<LavfiMtdAstats>> aStatsReport, int chCount) {
@@ -326,6 +337,62 @@ public class AStatsRendererEngine implements
 
 	}
 
+	class DynamicRangeGraphicMaker implements SingleGraphicMaker<AStatReportItem> {
+
+		@Override
+		public String getBaseFileName() {
+			return appConfig.getGraphicConfig().getDynamicRangeGraphicFilename();
+		}
+
+		@Override
+		public GraphicArtifact makeGraphic(final AStatReportItem item) {
+			return new GraphicArtifact(
+					getBaseFileName(),
+					prepareAStatGraphic(
+							RangeAxis.createFromValueSet("Dynamic range (dBFS)",
+									-96, 10, 5,
+									item.aStatsReport.stream()
+											.map(LavfiMtdValue::value)
+											.map(LavfiMtdAstats::channels)
+											.flatMap(List::stream)
+											.map(LavfiMtdAstatsChannel::dynamicRange)),
+							item.aStatsReport,
+							item.chCount,
+							LavfiMtdAstatsChannel::dynamicRange)
+									.makeLogarithmicAxisGraphic(numberUtils),
+					appConfig.getGraphicConfig().getImageSizeHalfSize());
+		}
+
+	}
+
+	class RMSLevelGraphicMaker implements SingleGraphicMaker<AStatReportItem> {
+
+		@Override
+		public String getBaseFileName() {
+			return appConfig.getGraphicConfig().getRmsLevelGraphicFilename();
+		}
+
+		@Override
+		public GraphicArtifact makeGraphic(final AStatReportItem item) {
+			return new GraphicArtifact(
+					getBaseFileName(),
+					prepareAStatGraphic(
+							RangeAxis.createFromValueSet("RMS Level (dBFS)",
+									-96, 10, 5,
+									item.aStatsReport.stream()
+											.map(LavfiMtdValue::value)
+											.map(LavfiMtdAstats::channels)
+											.flatMap(List::stream)
+											.map(LavfiMtdAstatsChannel::rmsLevel)),
+							item.aStatsReport,
+							item.chCount,
+							LavfiMtdAstatsChannel::rmsLevel)
+									.makeLogarithmicAxisGraphic(numberUtils),
+					appConfig.getGraphicConfig().getImageSizeHalfSize());
+		}
+
+	}
+
 	private static TimedDataGraphic prepareAStatGraphic(final RangeAxis rangeAxis,
 														final List<LavfiMtdValue<LavfiMtdAstats>> aStatReport,
 														final Integer chCount,
@@ -381,81 +448,119 @@ public class AStatsRendererEngine implements
 						return;
 					}
 
-					final var aStatsChannelsValuesList = aStatsReport.stream()
-							.map(LavfiMtdValue::value)
-							.map(LavfiMtdAstats::channels)
-							.toList();
+					final var c = new ReportConsts(
+							channelCount,
+							aStatsReport.stream()
+									.map(LavfiMtdValue::value)
+									.map(LavfiMtdAstats::channels)
+									.toList(),
+							section);
 
-					toEntrySubset(IntStream.range(0, channelCount)
-							.mapToObj(chIndex -> StatisticsUnitValueReportEntry.createFromFloat(
-									"DC offset channel " + (chIndex + 1),
-									aStatsChannelsValuesList.stream()
-											.map(f -> f.get(chIndex))
-											.map(LavfiMtdAstatsChannel::dcOffset)
-											.map(v -> v * 100f),
-									"%", numberUtils::formatDecimalFull1En)), section);
+					addStatValuesToReport(
+							LavfiMtdAstatsChannel::rmsLevel, identity(),
+							"RMS Level channel", DBFS, c);
 
-					toEntrySubset(IntStream.range(0, channelCount)
-							.mapToObj(chIndex -> StatisticsUnitValueReportEntry.createFromFloat(
-									"Peak level channel " + (chIndex + 1),
-									aStatsChannelsValuesList.stream()
-											.map(f -> f.get(chIndex))
-											.map(LavfiMtdAstatsChannel::peakLevel),
-									DBFS, numberUtils::formatDecimalFull1En)), section);
+					addStatValuesToReport(
+							LavfiMtdAstatsChannel::peakLevel, identity(),
+							"Peak level channel", DBFS, c);
 
-					toEntrySubset(IntStream.range(0, channelCount)
-							.mapToObj(chIndex -> StatisticsUnitValueReportEntry.createFromFloat(
-									"Noise floor channel " + (chIndex + 1),
-									aStatsChannelsValuesList.stream()
-											.map(f -> f.get(chIndex))
-											.map(LavfiMtdAstatsChannel::noiseFloor),
-									DBFS, numberUtils::formatDecimalFull1En)), section);
+					addStatValuesToReport(
+							LavfiMtdAstatsChannel::noiseFloor, identity(),
+							"Noise floor channel", DBFS, c);
 
-					toEntrySubset(IntStream.range(0, channelCount)
-							.mapToObj(chIndex -> StatisticsUnitValueReportEntry.createFromFloat(
-									"Entropy (complexity) channel " + (chIndex + 1),
-									aStatsChannelsValuesList.stream()
-											.map(f -> f.get(chIndex))
-											.map(LavfiMtdAstatsChannel::entropy)
-											.map(v -> v * 100f),
-									"%", numberUtils::formatDecimalFull1En)), section);
+					addStatValuesToReport(
+							LavfiMtdAstatsChannel::dynamicRange, identity(),
+							"Dynamic Range channel", DBFS, c);
 
-					toEntrySubset(IntStream.range(0, channelCount)
-							.mapToObj(chIndex -> {
-								final var list = aStatsChannelsValuesList.stream()
-										.map(f -> f.get(chIndex))
-										.map(p -> (long) p.peakCount()) /** Workaround for maven compiler bug */
-										.toList();
-								return new NumericUnitValueReportEntry("Peak count channel " + (chIndex + 1),
-										list.get(list.size() - 1),
-										SAMPLE_S);
-							}), section);
+					addStatValuesToReport(
+							LavfiMtdAstatsChannel::dcOffset, v -> v * 100f,
+							"DC offset channel", "%", c);
 
-					toEntrySubset(IntStream.range(0, channelCount)
-							.mapToObj(chIndex -> {
-								final var list = aStatsChannelsValuesList.stream()
-										.map(f -> f.get(chIndex))
-										.map(p -> (long) p.flatness()) /** Workaround for maven compiler bug */
-										.toList();
-								return new NumericUnitValueReportEntry("Flatness count channel " + (chIndex + 1),
-										list.get(list.size() - 1),
-										SAMPLE_S);
-							}), section);
+					addStatValuesToReport(
+							LavfiMtdAstatsChannel::entropy, v -> v * 100f,
+							"Entropy (complexity) channel", "%", c);
 
-					toEntrySubset(IntStream.range(0, channelCount)
-							.mapToObj(chIndex -> {
-								final var list = aStatsChannelsValuesList.stream()
-										.map(f -> f.get(chIndex))
-										.map(p -> (long) p.noiseFloorCount()) /** Workaround for maven compiler bug */
-										.toList();
-								return new NumericUnitValueReportEntry("Noise floor count channel " + (chIndex + 1),
-										list.get(list.size() - 1),
-										SAMPLE_S);
-							}), section);
+					addStatValuesToReport(
+							LavfiMtdAstatsChannel::crestFactor, identity(),
+							"Crest Factor channel", "", c);
+
+					addStatCountToReport(
+							LavfiMtdAstatsChannel::peakCount,
+							"Peak count channel", SAMPLE_S, c);
+
+					addStatCountToReport(
+							LavfiMtdAstatsChannel::flatness,
+							"Flatness count channel", SAMPLE_S, c);
+
+					addStatCountToReport(
+							u -> (long) u.bitDepth(),
+							"Bit depth channel", "bits", c);
+
+					addStatCountToReport(
+							LavfiMtdAstatsChannel::noiseFloorCount,
+							"Noise floor count channel", SAMPLE_S, c);
+
+					addStatCountToReport(
+							LavfiMtdAstatsChannel::numberOfInfs,
+							"Number Of Infs channel", SAMPLE_S, c);
+
+					addStatCountToReport(
+							LavfiMtdAstatsChannel::numberOfNaNs,
+							"Number Of Na Ns", SAMPLE_S, c);
+
+					addStatCountToReport(
+							LavfiMtdAstatsChannel::numberOfDenormals,
+							"Number Of Denormals", SAMPLE_S, c);
+
+					addStatCountToReport(
+							LavfiMtdAstatsChannel::noiseFloorCount,
+							"Noise floor count channel", SAMPLE_S, c);
 
 					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
 					document.add(section);
 				});
+	}
+
+	private record ReportConsts(int channelCount,
+								List<List<LavfiMtdAstatsChannel>> aStatsChannelsValuesList,
+								ReportSection section) {
+	}
+
+	private void addStatValuesToReport(final Function<LavfiMtdAstatsChannel, Float> valueSelector,
+									   final UnaryOperator<Float> transformator,
+									   final String label,
+									   final String unit,
+									   final ReportConsts consts) {
+		toEntrySubset(IntStream.range(0, consts.channelCount)
+				.mapToObj(chIndex -> StatisticsUnitValueReportEntry.createFromFloat(
+						label + " " + (chIndex + 1),
+						consts.aStatsChannelsValuesList.stream()
+								.map(f -> f.get(chIndex))
+								.map(valueSelector)
+								.map(transformator),
+						unit, numberUtils::formatDecimalFull1En)), consts.section);
+	}
+
+	private void addStatCountToReport(final Function<LavfiMtdAstatsChannel, Long> valueSelector,
+									  final String label,
+									  final String unit,
+									  final ReportConsts consts) {
+		toEntrySubset(IntStream.range(0, consts.channelCount)
+				.mapToObj(chIndex -> {
+					final var list = consts.aStatsChannelsValuesList.stream()
+							.map(f -> f.get(chIndex))
+							.map(valueSelector)
+							.map(p -> (long) p) /** Workaround for maven compiler bug */
+							.toList();
+					final var result = list.get(list.size() - 1);
+					if (result == 0l) {
+						return new NumericUnitValueReportEntry("", null, "");
+					}
+					return new NumericUnitValueReportEntry(
+							label + " " + (chIndex + 1),
+							result,
+							unit);
+				}), consts.section);
 	}
 
 }
