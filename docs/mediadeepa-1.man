@@ -2,10 +2,10 @@
 .\"     Title: mediadeepa
 .\"    Author: Media ex Machina / hdsdi3g 
 .\" Generator: mediadeepa
-.\"      Date: 05/31/2024
-.\"    Source: mediadeepa 0.0.39
+.\"      Date: 06/15/2024
+.\"    Source: mediadeepa 0.0.40
 .\"  Language: English
-.TH "MEDIADEEPA" "1" "05/31/2024" "mediadeepa 0\&.0\&.39" ""
+.TH "MEDIADEEPA" "1" "06/15/2024" "mediadeepa 0\&.0\&.40" ""
 .\" -----------------------------------------------------------------
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
@@ -31,7 +31,7 @@ mediadeepa [\-hov] [\-\-temp DIRECTORY]
 .SH "DESCRIPTION"
 Audio/video medias and streams deep analyzer in Java with FFmpeg as back\-end: extract/process technical information from audio/videos files/streams\&.
 .PP
-\fIThis application is currently in alpha version, and should not be ready for production\fR
+\fIThis application is currently in alpha version, and should not be ready yet for production\fR
 .PP
 
 
@@ -104,7 +104,7 @@ Known limitations for Mediadeepa
 .PP
 \- Some process take (long) time to do, like SITI and container analyzing, caused by poor FFmpeg/FFprobe performances with \fIthese\fR filters\&.
 .PP
-\- Loudness EBU R\-128 measure works correctly with FFmpeg v7+, due to internal bugs/limitations with the previous versions\&.
+\- Loudness EBU R\-128,and audio stats measures works correctly with FFmpeg v7+, due to internal bugs/limitations with the previous versions\&.
 .PP
 .RE
 An internal warning will by displayed if you try to works with a Zip archive created by a different Mediadeepa version\&.
@@ -619,7 +619,7 @@ Send bug reports on GitHub project page \fIhttps://github\&.com/mediaexmachina/m
 If you have any questions, feel free to reach out via any contact method listed on https://mexm\&.media \fIhttps://mexm\&.media\fR\&.
 .PP
 
-Mediadeepa 0\&.0\&.39
+Mediadeepa 0\&.0\&.40
 .PP
 Copyright (C) 2022\-2024 Media ex Machina, under the GNU General Public License\&.
 .PP
