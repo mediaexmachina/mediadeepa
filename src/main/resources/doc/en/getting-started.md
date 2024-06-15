@@ -1,6 +1,6 @@
 ## Dependencies needed for run Mediadeepa
 
-  - Java/JRE/JDK 17+
+  - Java/JRE/JDK 21+
   - FFmpeg/FFprobe v5+ (v7+ highly recommended)
 
 Declared on OS (Windows/Linux/macOS) PATH.

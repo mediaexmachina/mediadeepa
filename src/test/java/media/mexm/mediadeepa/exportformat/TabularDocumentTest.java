@@ -31,7 +31,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 
@@ -135,7 +135,7 @@ class TabularDocumentTest {
 		final var duration = Duration.ofMillis(5);
 		final var flo = 3.14157f;
 		final var numb = faker.random().nextInt();
-		final var url = new URL("http://localhost");
+		final var url = URI.create("http://localhost").toURL();
 
 		assertEquals(doc, doc.row(
 				null,

@@ -3,7 +3,7 @@ Mediadeepa would never have been possible without the help of these magnificent 
  - [Spring Boot](https://spring.io/projects/spring-boot)
 
 And the tech stack:
-  - Java 17
+  - Java 21
   - Spring Boot 3
   - Picocli 4
   - My [`prodlib`](https://github.com/hdsdi3g/prodlib) and  [`medialib`](https://github.com/hdsdi3g/medialib) utility libs.

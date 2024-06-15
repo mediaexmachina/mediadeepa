@@ -85,7 +85,7 @@ class CLIRunnerTest {
 		verify(appCommand, times(1)).setDoCall(doCallCaptor.capture());
 		assertEquals(returnCode, doCallCaptor.getValue().call());
 		verify(appSessionService, times(1)).runCli();
-		verify(commandLine, times(1)).execute(any());
+		verify(commandLine, times(1)).execute();
 
 		/**
 		 * Spring Boot test limitation: startup is before BeforeEach

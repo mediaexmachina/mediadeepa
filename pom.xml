@@ -15,13 +15,13 @@
     <parent>
         <groupId>tv.hd3g.commons</groupId>
         <artifactId>app</artifactId>
-        <version>20.0.0</version>
+        <version>21.0.0</version>
         <relativePath />
     </parent>
 
     <properties>
-        <prodlib.version>20.0.0</prodlib.version>
-        <medialib.version>16.3.0</medialib.version>
+        <prodlib.version>21.0.0</prodlib.version>
+        <medialib.version>17.0.0</medialib.version>
 
         <linux-springboot-packager.kind>cli</linux-springboot-packager.kind>
         <opencsv.version>5.9</opencsv.version>
