@@ -11,33 +11,22 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
- * Copyright (C) Media ex Machina 2023
+ * Copyright (C) hdsdi3g for hd3g.tv 2024
  *
  */
-package media.mexm.mediadeepa.exportformat;
+package media.mexm.mediadeepa.rendererengine;
 
-import java.io.File;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
-public interface ExportFormat {
+import media.mexm.mediadeepa.exportformat.DataResult;
+import media.mexm.mediadeepa.exportformat.ImageArtifact;
 
-	Map<String, File> exportResult(DataResult result);
+public interface SignalImageRendererEngine {
 
-	String getFormatName();
+	Optional<ImageArtifact> makeimagePNG(DataResult result);
 
-	String getFormatLongName();
+	String getManagedReturnName();
 
-	default String getFormatDescription() {
-		return "";
-	}
+	String getDefaultInternalFileName();
 
-	Set<String> getInternalProducedFileNames();
-
-	Optional<byte[]> makeSingleExport(DataResult result, String internalFileName);
-
-	default boolean canHandleMeasuredWaveForm() {
-		return false;
-	}
 }

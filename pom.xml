@@ -15,13 +15,13 @@
     <parent>
         <groupId>tv.hd3g.commons</groupId>
         <artifactId>app</artifactId>
-        <version>21.0.0</version>
+        <version>21.1.0</version>
         <relativePath />
     </parent>
 
     <properties>
-        <prodlib.version>21.0.0</prodlib.version>
-        <medialib.version>17.0.0</medialib.version>
+        <prodlib.version>21.1.0</prodlib.version>
+        <medialib.version>18.0.0</medialib.version>
 
         <linux-springboot-packager.kind>cli</linux-springboot-packager.kind>
         <opencsv.version>5.9</opencsv.version>
@@ -54,7 +54,11 @@
             <artifactId>env-version</artifactId>
             <version>${prodlib.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>tv.hd3g.commons</groupId>
+            <artifactId>testtools</artifactId>
+            <version>${prodlib.version}</version>
+        </dependency>
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli-spring-boot-starter</artifactId>

@@ -17,23 +17,21 @@
 package media.mexm.mediadeepa.exportformat;
 
 import java.awt.Dimension;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Objects;
 
 import org.apache.commons.io.FileUtils;
-import org.jfree.chart.ChartUtils;
-import org.jfree.chart.JFreeChart;
 
 import lombok.Getter;
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.report.GraphicReportEntry;
+import media.mexm.mediadeepa.rendererengine.RenderChartTraits;
 
-public class GraphicArtifact {
+public class GraphicArtifact implements RenderChartTraits {
 
 	public static final String DOT_PNG = ".png";
 	public static final String DOT_JPEG = ".jpeg";
@@ -52,43 +50,18 @@ public class GraphicArtifact {
 		this.imageSize = Objects.requireNonNull(imageSize, "\"imageSize\" can't to be null");
 	}
 
-	private static byte[] getJPEG(final JFreeChart graphic,
-								  final Dimension imageSize,
-								  final float jpegCompressRatio) {
-		try {
-			final var b = new ByteArrayOutputStream();
-			ChartUtils.writeChartAsJPEG(
-					b,
-					jpegCompressRatio,
-					graphic,
-					imageSize.width,
-					imageSize.height);
-			return b.toByteArray();
-		} catch (final IOException e) {
-			throw new UncheckedIOException("Can't export JPG", e);
-		}
-	}
-
-	private static byte[] getPNG(final JFreeChart graphic,
-								 final Dimension imageSize) {
-		try {
-			final var b = new ByteArrayOutputStream();
-			ChartUtils.writeChartAsPNG(
-					b,
-					graphic,
-					imageSize.width,
-					imageSize.height);
-			return b.toByteArray();
-		} catch (final IOException e) {
-			throw new UncheckedIOException("Can't export PNG", e);
-		}
-	}
-
 	public byte[] getRawData(final AppCommand appCommand, final AppConfig appConfig) {
 		if (appCommand.isGraphicJpg()) {
-			return getJPEG(graphic.chart(), imageSize, appConfig.getGraphicConfig().getJpegCompressionRatio());
+			return renderJPEGFromChart(
+					graphic.chart(),
+					imageSize.width,
+					imageSize.height,
+					appConfig.getGraphicConfig().getJpegCompressionRatio());
 		} else {
-			return getPNG(graphic.chart(), imageSize);
+			return renderPNGFromChart(
+					graphic.chart(),
+					imageSize.width,
+					imageSize.height);
 		}
 	}
 

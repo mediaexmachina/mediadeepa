@@ -37,7 +37,7 @@ import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 
 @Component
 public class Ebur128SummaryRendererEngine implements
@@ -63,8 +63,8 @@ public class Ebur128SummaryRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		return result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getR128Report)
 				.filter(not(List::isEmpty))
 				.map(l -> l.get(l.size() - 1))
@@ -87,8 +87,8 @@ public class Ebur128SummaryRendererEngine implements
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
-		result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getR128Report)
 				.filter(not(List::isEmpty))
 				.map(l -> l.get(l.size() - 1))
@@ -107,8 +107,8 @@ public class Ebur128SummaryRendererEngine implements
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
-		result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getR128Report)
 				.filter(not(List::isEmpty))
 				.map(l -> l.get(l.size() - 1))

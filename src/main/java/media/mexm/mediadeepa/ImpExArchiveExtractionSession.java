@@ -50,6 +50,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserSessionFilterContext;
+import tv.hd3g.fflauncher.recipes.wavmeasure.MeasuredWav;
 
 @Slf4j
 public class ImpExArchiveExtractionSession {
@@ -134,6 +135,22 @@ public class ImpExArchiveExtractionSession {
 		try {
 			return objectMapper.readValue(contentItems.get(internalFileName),
 					new TypeReference<Map<String, String>>() {});
+		} catch (final JsonProcessingException e) {
+			throw new IllegalArgumentException(CAN_T_READ_FROM_JSON, e);
+		}
+	}
+
+	public void addMeasuredWav(final String internalFileName, final MeasuredWav measuredWav) {
+		add(internalFileName, measuredWav);
+	}
+
+	public Optional<MeasuredWav> getMeasuredWav(final String internalFileName) {
+		if (contentItems.containsKey(internalFileName) == false) {
+			return Optional.empty();
+		}
+		try {
+			return Optional.ofNullable(objectMapper.readValue(contentItems.get(internalFileName),
+					new TypeReference<MeasuredWav>() {}));
 		} catch (final JsonProcessingException e) {
 			throw new IllegalArgumentException(CAN_T_READ_FROM_JSON, e);
 		}

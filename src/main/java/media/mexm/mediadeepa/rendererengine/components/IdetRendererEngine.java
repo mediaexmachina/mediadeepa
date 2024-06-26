@@ -60,7 +60,7 @@ import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetSingleFrameType;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 
 @Component
 public class IdetRendererEngine implements
@@ -103,7 +103,7 @@ public class IdetRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getMediaAnalyserResult()
+		return result.getMediaAnalyserProcessResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
 					final var idet = new TabularDocument(tabularExportFormat,
@@ -141,7 +141,7 @@ public class IdetRendererEngine implements
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
-		result.getMediaAnalyserResult()
+		result.getMediaAnalyserProcessResult()
 				.ifPresent(maResult -> {
 					final var idet = tableDocument.createTable("Interlace detect").head(HEAD_IDET);
 					maResult.lavfiMetadatas().getIdetReport()
@@ -177,8 +177,8 @@ public class IdetRendererEngine implements
 
 	@Override
 	public List<GraphicArtifact> toGraphic(final DataResult result) {
-		return result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		return result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getIdetReport)
 				.filter(not(List::isEmpty))
 				.stream()
@@ -231,8 +231,8 @@ public class IdetRendererEngine implements
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
-		result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.flatMap(Optional::ofNullable)
 				.map(LavfiMetadataFilterParser::getIdetReport)
 				.filter(not(List::isEmpty))

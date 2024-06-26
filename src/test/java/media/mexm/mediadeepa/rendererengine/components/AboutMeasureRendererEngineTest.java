@@ -46,7 +46,7 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.service.AppSessionService;
 import net.datafaker.Faker;
 import picocli.CommandLine;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 
 @SpringBootTest
 class AboutMeasureRendererEngineTest {
@@ -73,7 +73,7 @@ class AboutMeasureRendererEngineTest {
 	@Mock
 	DataResult result;
 	@Mock
-	MediaAnalyserResult mediaAnalyserResult;
+	MediaAnalyserProcessResult mediaAnalyserResult;
 	String internalTabularBaseFileName;
 
 	@BeforeEach
@@ -82,7 +82,7 @@ class AboutMeasureRendererEngineTest {
 		internalTabularBaseFileName = faker.numerify("internalTabularBaseFileName###");
 		when(runnedJavaCmdLine.makeArchiveCommandline()).thenReturn(Optional.empty());
 		when(result.getVersions()).thenReturn(Map.of());
-		when(result.getMediaAnalyserResult()).thenReturn(Optional.ofNullable(mediaAnalyserResult));
+		when(result.getMediaAnalyserProcessResult()).thenReturn(Optional.ofNullable(mediaAnalyserResult));
 		when(mediaAnalyserResult.filters()).thenReturn(Set.of());
 	}
 
@@ -125,7 +125,7 @@ class AboutMeasureRendererEngineTest {
 				tabularExportFormat);
 		assertThat(std).isNotEmpty();
 
-		verify(result, times(1)).getMediaAnalyserResult();
+		verify(result, times(1)).getMediaAnalyserProcessResult();
 		verify(mediaAnalyserResult, times(1)).filters();
 	}
 

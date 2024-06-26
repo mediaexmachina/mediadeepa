@@ -46,7 +46,7 @@ import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleGraphicDocumentExporterTraits;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeBaseFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrame;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 
 @Component
 public class FramesDurationRendererEngine implements
@@ -63,8 +63,8 @@ public class FramesDurationRendererEngine implements
 
 	@Override
 	public List<GraphicArtifact> toGraphic(final DataResult result) {
-		final var videoFramesReport = result.getContainerAnalyserResult()
-				.map(ContainerAnalyserResult::videoFrames)
+		final var videoFramesReport = result.getContainerAnalyserProcessResult()
+				.map(ContainerAnalyserProcessResult::videoFrames)
 				.stream()
 				.flatMap(List::stream)
 				.toList();

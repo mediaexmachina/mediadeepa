@@ -218,6 +218,24 @@ class E2ESingleExportTest extends E2EUtils {
 				.endsWith("</ffprobe>");
 	}
 
+	@Test
+	void testWaveForm() throws IOException {
+		rawData = prepareMpgForSimpleE2ETests();
+		if (rawData == null) {
+			return;
+		}
+
+		outputFile = new File("target/e2e-single-export", "wfrm.png");
+		forceMkdirParent(outputFile);
+		if (outputFile.exists()) {
+			return;
+		}
+
+		runAppSingleExport(defaultAppConfig.getWavFormConfig().getPngFilename());
+		assertThat(outputFile).exists().size().isNotZero();
+		openImage();
+	}
+
 	private void runAppSingleExport(final String what) {
 		runApp(
 				"--temp", "target/e2e-temp",

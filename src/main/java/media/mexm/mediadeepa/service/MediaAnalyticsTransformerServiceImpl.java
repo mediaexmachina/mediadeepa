@@ -22,7 +22,9 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -75,6 +77,19 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 				.findFirst()
 				.flatMap(d -> d.makeSingleExport(result, internalFileName))
 				.ifPresent(action);
+	}
+
+	@Override
+	public Stream<ExportFormat> getSelectedExportFormats(final ExportToCmd exportToCmd,
+														 final Optional<String> internalFileName) {
+		return Stream.concat(
+				exportToCmd.getFormat().stream()
+						.map(this::getExportFormatByName),
+				exportFormatList.stream()
+						.sorted(exportFormatComparator)
+						.filter(f -> internalFileName.isPresent()
+									 && f.getInternalProducedFileNames().contains(internalFileName.get())))
+				.distinct();
 	}
 
 	@Override

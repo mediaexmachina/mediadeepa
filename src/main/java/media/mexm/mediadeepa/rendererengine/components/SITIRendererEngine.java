@@ -51,7 +51,7 @@ import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdSiti;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 
 @Component
 public class SITIRendererEngine implements
@@ -80,7 +80,7 @@ public class SITIRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getMediaAnalyserResult()
+		return result.getMediaAnalyserProcessResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
 					final var siti = new TabularDocument(tabularExportFormat,
@@ -96,7 +96,7 @@ public class SITIRendererEngine implements
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
-		result.getMediaAnalyserResult()
+		result.getMediaAnalyserProcessResult()
 				.ifPresent(maResult -> {
 					final var siti = tableDocument.createTable("SITI").head(HEAD_SITI);
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
@@ -112,8 +112,8 @@ public class SITIRendererEngine implements
 
 	@Override
 	public List<GraphicArtifact> toGraphic(final DataResult result) {
-		return result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		return result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getSitiReport)
 				.filter(not(List::isEmpty))
 				.map(sitiReport -> {

@@ -65,4 +65,8 @@ public class ProcessFileCmd {
 	@ArgGroup(exclusive = false, heading = "Internal filters parameters%n")
 	private FilterCmd filterCmd;
 
+	@Option(names = { "-wfn", "--wavform-no" },
+			description = "Disable wavform measuring (ffmpeg)")
+	private boolean noWavForm;
+
 }

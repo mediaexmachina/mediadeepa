@@ -41,7 +41,7 @@ import media.mexm.mediadeepa.exportformat.report.SimpleKeyValueReportEntry;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 
 @Component
 public class AboutMeasureRendererEngine implements
@@ -79,7 +79,7 @@ public class AboutMeasureRendererEngine implements
 
 	private Optional<TabularDocument> getFiltersTabular(final DataResult result,
 														final TabularExportFormat tabularExportFormat) {
-		return result.getMediaAnalyserResult()
+		return result.getMediaAnalyserProcessResult()
 				.map(maResult -> {
 					final var tFilters = new TabularDocument(tabularExportFormat, FILTERS)
 							.head(HEAD_ABOUT);
@@ -113,7 +113,7 @@ public class AboutMeasureRendererEngine implements
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
-		result.getMediaAnalyserResult()
+		result.getMediaAnalyserProcessResult()
 				.ifPresent(maResult -> {
 					final var aboutMeasure = tableDocument.createTable("Filters").head(HEAD_ABOUT);
 					maResult.filters()
@@ -134,8 +134,8 @@ public class AboutMeasureRendererEngine implements
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
-		result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::filters)
+		result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::filters)
 				.filter(not(Collection::isEmpty))
 				.ifPresent(filters -> {
 					final var section = new ReportSection(ABOUT, FFMPEG_FILTERS_USED_IN_THIS_MEASURE);

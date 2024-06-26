@@ -23,7 +23,7 @@ import static java.util.function.Predicate.not;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THICK_STROKE;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
 import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.AUDIO;
-import static tv.hd3g.fflauncher.recipes.MediaAnalyserResult.R128_DEFAULT_LUFS_TARGET;
+import static tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult.R128_DEFAULT_LUFS_TARGET;
 
 import java.awt.Color;
 import java.util.List;
@@ -59,7 +59,7 @@ import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdR128;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
 import tv.hd3g.fflauncher.filtering.lavfimtd.Stereo;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 
 @Component
 public class Ebur128RendererEngine implements
@@ -99,8 +99,8 @@ public class Ebur128RendererEngine implements
 												   final TabularExportFormat tabularExportFormat) {
 		final var t = new TabularDocument(tabularExportFormat, getSingleUniqTabularDocumentBaseFileName()).head(
 				HEAD_EBUR128);
-		result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getR128Report)
 				.stream()
 				.flatMap(List::stream)
@@ -120,8 +120,8 @@ public class Ebur128RendererEngine implements
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
 		final var t = tableDocument.createTable("EBU R 128").head(HEAD_EBUR128);
-		result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getR128Report)
 				.stream()
 				.flatMap(List::stream)
@@ -155,8 +155,8 @@ public class Ebur128RendererEngine implements
 
 	@Override
 	public Optional<EBUR128ReportItem> makeGraphicReportItem(final DataResult result) {
-		return result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		return result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getR128Report)
 				.filter(not(List::isEmpty))
 				.map(r128Report -> new EBUR128ReportItem(
@@ -171,8 +171,8 @@ public class Ebur128RendererEngine implements
 								.map(Math::round)
 								.map(FixedMillisecond::new)
 								.toList(),
-						result.getMediaAnalyserResult()
-								.flatMap(MediaAnalyserResult::r128Target)
+						result.getMediaAnalyserProcessResult()
+								.flatMap(MediaAnalyserProcessResult::r128Target)
 								.orElse(R128_DEFAULT_LUFS_TARGET)));
 	}
 

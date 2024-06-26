@@ -42,7 +42,7 @@ import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 
 @Component
 public class VConstsRendererEngine implements
@@ -84,7 +84,7 @@ public class VConstsRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getContainerAnalyserResult()
+		return result.getContainerAnalyserProcessResult()
 				.map(caResult -> {
 					final var vConsts = new TabularDocument(tabularExportFormat,
 							getSingleUniqTabularDocumentBaseFileName())
@@ -124,7 +124,7 @@ public class VConstsRendererEngine implements
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
-		result.getContainerAnalyserResult()
+		result.getContainerAnalyserProcessResult()
 				.ifPresent(caResult -> {
 					final var vConsts = tableDocument.createTable("Container video consts").head(HEAD_VCONSTS);
 					Stream.concat(
@@ -159,8 +159,8 @@ public class VConstsRendererEngine implements
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
-		result.getContainerAnalyserResult()
-				.map(ContainerAnalyserResult::videoConst)
+		result.getContainerAnalyserProcessResult()
+				.map(ContainerAnalyserProcessResult::videoConst)
 				.flatMap(Optional::ofNullable)
 				.ifPresent(videoConst -> {
 					final var vConstSection = new ReportSection(CONTAINER, VIDEO_MEDIA_FILE_INFORMATION);

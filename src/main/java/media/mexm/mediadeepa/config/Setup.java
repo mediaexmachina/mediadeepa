@@ -40,7 +40,6 @@ import tv.hd3g.fflauncher.FFprobe;
 import tv.hd3g.fflauncher.about.FFAbout;
 import tv.hd3g.fflauncher.progress.ProgressListener;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
-import tv.hd3g.processlauncher.cmdline.Parameters;
 
 @Configuration
 @ComponentScan(basePackages = { "tv.hd3g.commons.version.mod" })
@@ -56,12 +55,12 @@ public class Setup {
 
 	@Bean(name = "ffmpegAbout")
 	FFAbout getFFmpegAbout(final ExecutableFinder executableFinder) {
-		return new FFmpeg(appConfig.getFfmpegExecName(), new Parameters()).getAbout(executableFinder);
+		return new FFmpeg(appConfig.getFfmpegExecName()).getAbout(executableFinder);
 	}
 
 	@Bean(name = "ffprobeAbout")
 	FFAbout getFFprobeAbout(final ExecutableFinder executableFinder) {
-		return new FFprobe(appConfig.getFfmpegExecName(), new Parameters()).getAbout(executableFinder);
+		return new FFprobe(appConfig.getFfmpegExecName()).getAbout(executableFinder);
 	}
 
 	@Bean

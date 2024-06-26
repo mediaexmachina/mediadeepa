@@ -48,7 +48,7 @@ import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 
 @Component
 public class APhaseMeterRendererEngine implements
@@ -77,7 +77,7 @@ public class APhaseMeterRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getMediaAnalyserResult()
+		return result.getMediaAnalyserProcessResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
 					final var aPhaseMeter = new TabularDocument(tabularExportFormat,
@@ -93,7 +93,7 @@ public class APhaseMeterRendererEngine implements
 	@Override
 	public void addToTable(final DataResult result,
 						   final TableDocument doc) {
-		result.getMediaAnalyserResult()
+		result.getMediaAnalyserProcessResult()
 				.ifPresent(maResult -> {
 					final var aPhaseMeter = doc.createTable("Audio phase").head(HEAD_APHASE);
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
@@ -108,7 +108,7 @@ public class APhaseMeterRendererEngine implements
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
-		result.getMediaAnalyserResult()
+		result.getMediaAnalyserProcessResult()
 				.ifPresent(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
 					final var aPhaseMeterReport = lavfiMetadatas.getAPhaseMeterReport();
@@ -130,8 +130,8 @@ public class APhaseMeterRendererEngine implements
 
 	@Override
 	public List<GraphicArtifact> toGraphic(final DataResult result) {
-		return result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		return result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getAPhaseMeterReport)
 				.filter(not(List::isEmpty))
 				.map(aPhaseMeterReport -> {

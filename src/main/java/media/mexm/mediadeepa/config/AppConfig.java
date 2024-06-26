@@ -42,6 +42,7 @@ public class AppConfig {
 		private String ffprobeXml = "ffprobe.xml";
 		private String ffmpegCommandLineTxt = "ffmpeg-cmdline.txt";
 		private String ffprobeCommandLineTxt = "ffprobe-cmdline.txt";
+		private String measuredWavJson = "waveform.json";
 	}
 
 	private String jsontableFileName = "media-datas.json";
@@ -97,4 +98,11 @@ public class AppConfig {
 	private String ffprobeExecName = "ffprobe";
 	private boolean addSourceExtToOutputDirectories = false;
 
+	private WavFormConfig wavFormConfig = new WavFormConfig();
+
+	@Data
+	public class WavFormConfig {
+		private Dimension imageSize = graphicConfig.getImageSizeHalfSize();
+		private String pngFilename = "waveform.png";
+	}
 }

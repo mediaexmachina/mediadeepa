@@ -19,12 +19,15 @@ package media.mexm.mediadeepa.service;
 import java.io.File;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 
 import media.mexm.mediadeepa.cli.FilterCmd;
 import media.mexm.mediadeepa.cli.ProcessFileCmd;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
-import tv.hd3g.fflauncher.recipes.MediaAnalyser;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserExtractResult;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserExtractResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
+import tv.hd3g.fflauncher.recipes.wavmeasure.MeasuredWav;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
 public interface FFmpegService {
@@ -33,23 +36,28 @@ public interface FFmpegService {
 
 	Map<String, String> getVersions();
 
-	MediaAnalyserSession createMediaAnalyserSession(File inputFile,
-													ProcessFileCmd processFileCmd,
-													File lavfiSecondaryVideoFile,
-													FFprobeJAXB ffprobeJAXB,
-													FilterCmd options);
+	MediaAnalyserExtractResult extractMedia(File inputFile,
+											ProcessFileCmd processFileCmd,
+											File lavfiSecondaryVideoFile,
+											FFprobeJAXB ffprobeJAXB,
+											FilterCmd options);
 
-	ContainerAnalyserSession createContainerAnalyserSession(File inputFile,
-															ProcessFileCmd processFileCmd,
-															Duration programDuration);
+	MediaAnalyserProcessResult processMedia(File inputFile,
+											ProcessFileCmd processFileCmd,
+											File lavfiSecondaryVideoFile,
+											FFprobeJAXB ffprobeJAXB,
+											FilterCmd options);
+
+	ContainerAnalyserExtractResult extractContainer(File inputFile,
+													ProcessFileCmd processFileCmd,
+													Duration programDuration);
+
+	ContainerAnalyserProcessResult processContainer(File inputFile,
+													ProcessFileCmd processFileCmd,
+													Duration programDuration);
 
 	FFprobeJAXB getFFprobeJAXBFromFileToProcess(File inputFile, ProcessFileCmd processFileCmd);
 
-	void applyMediaAnalyserFilterChain(ProcessFileCmd processFileCmd,
-									   File lavfiSecondaryVideoFile,
-									   boolean sourceHasVideo,
-									   boolean sourceHasAudio,
-									   MediaAnalyser ma,
-									   FilterCmd options,
-									   float frameRate);
+	Optional<MeasuredWav> measureWav(File inputFile, FFprobeJAXB ffprobeJAXB, ProcessFileCmd processFileCmd);
+
 }

@@ -51,7 +51,7 @@ import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeAudioFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeBaseFrame;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 
 @Component
 public class AFramesRendererEngine implements
@@ -92,7 +92,7 @@ public class AFramesRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getContainerAnalyserResult()
+		return result.getContainerAnalyserProcessResult()
 				.map(caResult -> {
 					final var aFrames = new TabularDocument(tabularExportFormat,
 							getSingleUniqTabularDocumentBaseFileName()).head(
@@ -122,7 +122,7 @@ public class AFramesRendererEngine implements
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
-		result.getContainerAnalyserResult()
+		result.getContainerAnalyserProcessResult()
 				.ifPresent(caResult -> {
 					final var aFrames = tableDocument.createTable("Container audio frames").head(HEAD_AFRAMES);
 					caResult.audioFrames().forEach(r -> {
@@ -146,8 +146,8 @@ public class AFramesRendererEngine implements
 
 	@Override
 	public List<GraphicArtifact> toGraphic(final DataResult result) {
-		final var audioBReport = result.getContainerAnalyserResult()
-				.map(ContainerAnalyserResult::audioFrames)
+		final var audioBReport = result.getContainerAnalyserProcessResult()
+				.map(ContainerAnalyserProcessResult::audioFrames)
 				.stream()
 				.flatMap(List::stream)
 				.toList();
@@ -203,8 +203,8 @@ public class AFramesRendererEngine implements
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
-		result.getContainerAnalyserResult()
-				.map(ContainerAnalyserResult::audioFrames)
+		result.getContainerAnalyserProcessResult()
+				.map(ContainerAnalyserProcessResult::audioFrames)
 				.flatMap(Optional::ofNullable)
 				.filter(Predicate.not(List::isEmpty))
 				.ifPresent(audioFrames -> {

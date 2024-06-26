@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Stream.concat;
 import static media.mexm.mediadeepa.App.NAME;
+import static media.mexm.mediadeepa.ExportOnlyParamConfiguration.fromOutputCmd;
 import static media.mexm.mediadeepa.ImpExArchiveExtractionSession.TEN_MB;
 import static org.apache.commons.io.FileUtils.forceMkdir;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
@@ -36,32 +37,27 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Stream;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
+import media.mexm.mediadeepa.ExportOnlyParamConfiguration;
 import media.mexm.mediadeepa.ImpExArchiveExtractionSession;
 import media.mexm.mediadeepa.ImpExArchiveExtractionSession.ExtractedFileEntry;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.cli.OutputCmd;
-import media.mexm.mediadeepa.cli.SingleExportCmd;
 import media.mexm.mediadeepa.components.ExportFormatComparator;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -71,8 +67,8 @@ import picocli.CommandLine;
 import picocli.CommandLine.Help;
 import picocli.CommandLine.ParameterException;
 import tv.hd3g.commons.version.EnvironmentVersion;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
@@ -90,8 +86,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 	private FFmpegService ffmpegService;
 	@Autowired
 	private EnvironmentVersion environmentVersion;
-	@Autowired
-	private ScheduledExecutorService scheduledExecutorService;
 	@Autowired
 	private ExecutableFinder executableFinder;
 	@Autowired
@@ -397,44 +391,38 @@ public class AppSessionServiceImpl implements AppSessionService {
 			log.debug("Prepare media analysing...");
 
 			final var lavfiSecondaryFile = prepareTempFile(tempDir);
-			final var maSession = ffmpegService.createMediaAnalyserSession(
+			final var maResult = ffmpegService.extractMedia(
 					inputFile,
 					processFileCmd,
 					lavfiSecondaryFile,
 					probeResult,
 					processFileCmd.getFilterCmd());
-			maSession.setFFprobeResult(probeResult);
-			maSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
-
-			final var stderrList = new ArrayList<String>();
-			final var lavfiList = new ArrayList<String>();
-			final var ffmpegCommandLine = maSession.extract(lavfiList::add, stderrList::add);
-			extractSession.add(zippedTxtFileNames.getLavfiTxtBase() + "0.txt", lavfiList);
+			extractSession.add(zippedTxtFileNames.getLavfiTxtBase() + "0.txt", maResult.sysOut());
 
 			if (lavfiSecondaryFile.exists()) {
 				extractSession.add(zippedTxtFileNames.getLavfiTxtBase() + "1.txt", readLines(lavfiSecondaryFile));
 				FileUtils.deleteQuietly(lavfiSecondaryFile);
 			}
-			extractSession.addFilterContext(zippedTxtFileNames.getFiltersJson(), maSession.getFilterContextList());
-			extractSession.add(zippedTxtFileNames.getFfmpegCommandLineTxt(), ffmpegCommandLine);
+			extractSession.addFilterContext(zippedTxtFileNames.getFiltersJson(), maResult.filters());
+			extractSession.add(zippedTxtFileNames.getFfmpegCommandLineTxt(), maResult.ffmpegCommandLine());
 		}
 
 		if (processFileCmd.isContainerAnalysing()) {
 			log.info("Start container analysing...");
-			final var caSession = ffmpegService.createContainerAnalyserSession(
+			final var caResult = ffmpegService.extractContainer(
 					inputFile, processFileCmd, probeResult.getDuration().orElse(ZERO));
-			caSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
-
-			final var containerListLines = new ArrayList<String>();
-			final var ffprobeCommandLine = caSession.extract(containerListLines::add);
-			extractSession.add(zippedTxtFileNames.getContainerXml(),
-					containerListLines);
-			extractSession.add(zippedTxtFileNames.getFfprobeCommandLineTxt(), ffprobeCommandLine);
+			extractSession.add(zippedTxtFileNames.getContainerXml(), caResult.sysOut());
+			extractSession.add(zippedTxtFileNames.getFfprobeCommandLineTxt(), caResult.ffprobeCommandLine());
 		}
 
 		extractSession.add(zippedTxtFileNames.getSourceNameTxt(), inputFile.getName());
 		extractSession.addVersion(zippedTxtFileNames.getVersionJson(), getVersion());
 		extractSession.addRunnedJavaCmdLine(zippedTxtFileNames.getCommandLineJson(), runnedJavaCmdLine);
+
+		ffmpegService.measureWav(inputFile, probeResult, processFileCmd)
+				.ifPresent(measuredWav -> extractSession.addMeasuredWav(zippedTxtFileNames.getMeasuredWavJson(),
+						measuredWav));
+
 		extractSession.saveToZip(extractToCmd.getArchiveFile());
 	}
 
@@ -468,27 +456,32 @@ public class AppSessionServiceImpl implements AppSessionService {
 			log.debug("Prepare media analysing...");
 
 			final var lavfiSecondaryFile = prepareTempFile(tempDir);
-			final var maSession = ffmpegService.createMediaAnalyserSession(
+			log.debug("Start media analysing session...");
+			final var maResult = ffmpegService.processMedia(
 					inputFile,
 					processFileCmd,
 					lavfiSecondaryFile,
 					ffprobeResult,
 					processFileCmd.getFilterCmd());
-			maSession.setFFprobeResult(ffprobeResult);
-			maSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
-
-			log.debug("Start media analysing session...");
-			dataResult.setMediaAnalyserResult(maSession.process(
-					Optional.ofNullable(() -> openFileToLineStream(lavfiSecondaryFile))));
+			dataResult.setMediaAnalyserProcessResult(maResult);
 			FileUtils.deleteQuietly(lavfiSecondaryFile);
 		}
 
 		if (processFileCmd.isContainerAnalysing()) {
 			log.info("Start container analysing...");
-			final var caSession = ffmpegService.createContainerAnalyserSession(
+			final var caResult = ffmpegService.processContainer(
 					inputFile, processFileCmd, ffprobeResult.getDuration().orElse(ZERO));
-			caSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
-			dataResult.setContainerAnalyserResult(caSession.process());
+			dataResult.setContainerAnalyserProcessResult(caResult);
+		}
+
+		final var canHandleWaveForm = mediaAnalyticsTransformerService.getSelectedExportFormats(
+				appCommand.getOutputCmd().getExportToCmd(),
+				fromOutputCmd(appCommand.getOutputCmd(), commandLine)
+						.map(ExportOnlyParamConfiguration::internalFileName))
+				.anyMatch(ExportFormat::canHandleMeasuredWaveForm);
+		if (canHandleWaveForm) {
+			ffmpegService.measureWav(inputFile, ffprobeResult, processFileCmd)
+					.ifPresent(dataResult::setWavForm);
 		}
 
 		exportAnalytics(dataResult);
@@ -550,7 +543,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		final var ffmpegCommandLine = extractSession.getFFmpegCommandLine(
 				zippedTxtFileNames.getFfmpegCommandLineTxt()).orElse("TATA");
 		final var filters = extractSession.getFilterContext(zippedTxtFileNames.getFiltersJson());
-		dataResult.setMediaAnalyserResult(MediaAnalyserSession.importFromOffline(
+		dataResult.setMediaAnalyserProcessResult(MediaAnalyserProcessResult.importFromOffline(
 				stdOutLines,
 				filters,
 				ffmpegCommandLine));
@@ -559,47 +552,37 @@ public class AppSessionServiceImpl implements AppSessionService {
 		final var ffprobeCommandLine = extractSession.getFFprobeCommandLine(
 				zippedTxtFileNames.getFfprobeCommandLineTxt()).orElse("TOTO");
 		Optional.ofNullable(extractEntries.get(zippedTxtFileNames.getContainerXml()))
-				.ifPresent(f -> dataResult.setContainerAnalyserResult(ContainerAnalyserSession
+				.ifPresent(f -> dataResult.setContainerAnalyserProcessResult(ContainerAnalyserProcessResult
 						.importFromOffline(new ByteArrayInputStream(f.getBytes(UTF_8)), ffprobeCommandLine)));
+
+		extractSession.getMeasuredWav(zippedTxtFileNames.getMeasuredWavJson())
+				.ifPresent(dataResult::setWavForm);
 
 		exportAnalytics(dataResult);
 	}
 
 	private void exportAnalytics(final DataResult dataResult) {
-		final var oSingleExportParam = Optional.ofNullable(appCommand.getOutputCmd().getSingleExportCmd())
-				.map(SingleExportCmd::getSingleExport)
-				.flatMap(Optional::ofNullable)
-				.filter(not(String::isBlank));
-		if (oSingleExportParam.isPresent()) {
-			final var exportOnlyParams = StringUtils.split(oSingleExportParam.get(), ":", 2);
-			if (exportOnlyParams.length == 1) {
-				throw new ParameterException(commandLine,
-						"Can't manage singleExport param: missing path separator \":\"");
-			}
-			final var internalFileName = exportOnlyParams[0];
-			if (exportOnlyParams[1].equals("-")) {
-				log.debug("Single export analytics {} file to stdout...", internalFileName);
+		final var oExportOnly = ExportOnlyParamConfiguration.fromOutputCmd(appCommand.getOutputCmd(), commandLine);
+		if (oExportOnly.isPresent()) {
+			final var exportOnlyParams = oExportOnly.get();
+			if (exportOnlyParams.isOutToStdOut()) {
+				log.debug("Single export analytics {} file to stdout...",
+						exportOnlyParams.internalFileName());
 				mediaAnalyticsTransformerService.singleExportAnalyticsToOutputStream(
-						internalFileName, dataResult, System.out);// NOSONAR S106
+						exportOnlyParams.internalFileName(),
+						dataResult,
+						System.out);// NOSONAR S106
 			} else {
-				final var outputFile = new File(exportOnlyParams[1]);
-				log.debug("Single export analytics {} file to {}...", internalFileName, outputFile);
-				mediaAnalyticsTransformerService.singleExportAnalytics(internalFileName, dataResult, outputFile);
+				final var outputFile = new File(exportOnlyParams.outputDest());
+				log.debug("Single export analytics {} file to {}...",
+						exportOnlyParams.internalFileName(), outputFile);
+				mediaAnalyticsTransformerService.singleExportAnalytics(
+						exportOnlyParams.internalFileName(), dataResult,
+						outputFile);
 			}
 		} else {
 			log.debug("Export analytics");
 			mediaAnalyticsTransformerService.exportAnalytics(dataResult, appCommand.getOutputCmd().getExportToCmd());
-		}
-	}
-
-	private static Stream<String> openFileToLineStream(final File file) {
-		if (file.exists() == false || file.isFile() == false) {
-			return Stream.empty();
-		}
-		try {
-			return Files.lines(file.toPath());
-		} catch (final IOException e) {
-			throw new UncheckedIOException("Can't open file", e);
 		}
 	}
 

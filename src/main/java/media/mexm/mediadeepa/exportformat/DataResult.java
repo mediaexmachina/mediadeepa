@@ -31,8 +31,9 @@ import media.mexm.mediadeepa.exportformat.report.ReportDocument;
 import media.mexm.mediadeepa.exportformat.report.SimpleKeyValueReportEntry;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
+import tv.hd3g.fflauncher.recipes.wavmeasure.MeasuredWav;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.ffprobejaxb.data.FFProbeFormat;
 
@@ -41,38 +42,40 @@ public class DataResult {
 
 	@Getter
 	private final String source;
-	private MediaAnalyserResult mediaAnalyserResult;
+	private MediaAnalyserProcessResult mediaAnalyserResult;
 	@Setter
 	private Duration sourceDuration;
 	private FFprobeJAXB ffprobeResult;
-	private ContainerAnalyserResult containerAnalyserResult;
+	private ContainerAnalyserProcessResult containerAnalyserResult;
 	@Getter
 	private final Map<String, String> versions;
 	@Setter
 	private String ffmpegCommandLine;
 	@Setter
 	private String ffprobeCommandLine;
+	@Setter
+	private MeasuredWav wavForm;
 
 	public DataResult(final String source, final Map<String, String> versions) {
 		this.source = requireNonNull(source);
 		this.versions = versions;
 	}
 
-	public void setMediaAnalyserResult(final MediaAnalyserResult mediaAnalyserResult) {
+	public void setMediaAnalyserProcessResult(final MediaAnalyserProcessResult mediaAnalyserResult) {
 		this.mediaAnalyserResult = mediaAnalyserResult;
 		if (mediaAnalyserResult != null && ffmpegCommandLine == null) {
 			ffmpegCommandLine = mediaAnalyserResult.ffmpegCommandLine();
 		}
 	}
 
-	public void setContainerAnalyserResult(final ContainerAnalyserResult containerAnalyserResult) {
+	public void setContainerAnalyserProcessResult(final ContainerAnalyserProcessResult containerAnalyserResult) {
 		this.containerAnalyserResult = containerAnalyserResult;
 		if (containerAnalyserResult != null && ffprobeCommandLine == null) {
 			ffprobeCommandLine = containerAnalyserResult.ffprobeCommandLine();
 		}
 	}
 
-	public Optional<MediaAnalyserResult> getMediaAnalyserResult() {
+	public Optional<MediaAnalyserProcessResult> getMediaAnalyserProcessResult() {
 		return Optional.ofNullable(mediaAnalyserResult);
 	}
 
@@ -92,7 +95,11 @@ public class DataResult {
 		return Optional.ofNullable(ffprobeCommandLine);
 	}
 
-	public Optional<ContainerAnalyserResult> getContainerAnalyserResult() {
+	public Optional<MeasuredWav> getWavForm() {
+		return Optional.ofNullable(wavForm);
+	}
+
+	public Optional<ContainerAnalyserProcessResult> getContainerAnalyserProcessResult() {
 		return Optional.ofNullable(containerAnalyserResult);
 	}
 
@@ -107,12 +114,12 @@ public class DataResult {
 					}
 					return Optional.empty();
 				})
-				.or(() -> getContainerAnalyserResult()
-						.map(ContainerAnalyserResult::videoConst)
+				.or(() -> getContainerAnalyserProcessResult()
+						.map(ContainerAnalyserProcessResult::videoConst)
 						.flatMap(Optional::ofNullable)
 						.flatMap(videoFrameConstToDimension()))
-				.or(() -> getContainerAnalyserResult()
-						.map(ContainerAnalyserResult::olderVideoConsts)
+				.or(() -> getContainerAnalyserProcessResult()
+						.map(ContainerAnalyserProcessResult::olderVideoConsts)
 						.flatMap(f -> f.stream().findFirst())
 						.flatMap(videoFrameConstToDimension()));
 	}
