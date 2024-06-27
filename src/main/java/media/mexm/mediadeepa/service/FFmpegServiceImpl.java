@@ -78,11 +78,13 @@ import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher;
 import tv.hd3g.fflauncher.progress.ProgressBlock;
 import tv.hd3g.fflauncher.progress.ProgressCallback;
 import tv.hd3g.fflauncher.progress.ProgressListener;
+import tv.hd3g.fflauncher.progress.ProgressListenerHandler;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyser;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
 import tv.hd3g.fflauncher.recipes.MediaAnalyser;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
 import tv.hd3g.fflauncher.recipes.ProbeMedia;
+import tv.hd3g.fflauncher.recipes.wavmeasure.WavMeasure;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.ffprobejaxb.data.FFProbeFormat;
 import tv.hd3g.ffprobejaxb.data.FFProbeStream;
@@ -184,6 +186,25 @@ public class FFmpegServiceImpl implements FFmpegService {
 		result.put("ffmpeg", ffmpegAbout.getVersion().headerVersion);
 		result.put("ffprobe", ffprobeAbout.getVersion().headerVersion);
 		return result;
+	}
+
+	@Override
+	public WavMeasure createWavMeasure(final File inputFile, final FFprobeJAXB ffprobeJAXB) {
+		final var fileDuration = ffprobeJAXB.getDuration()
+				.orElseThrow(() -> new IllegalArgumentException("Wav signal extraction need the source file duration"));
+
+		final var wm = new WavMeasure(
+				inputFile.getAbsolutePath(),
+				appConfig.getFfmpegExecName(),
+				executableFinder,
+				fileDuration,
+				appConfig.getWavFormConfig().getImageSize().width);
+		setProgress(progressSupplier.get(), fileDuration.toSeconds(), wm);
+		// TODO add start and limit duration
+		// session.setPgmFFDuration(processFileCmd.getDuration());
+		// session.setPgmFFStartTime(processFileCmd.getStartTime());
+
+		return wm;
 	}
 
 	@Override
@@ -466,7 +487,9 @@ public class FFmpegServiceImpl implements FFmpegService {
 		log.info("Setup {} audio filter", f.toFilter());
 	}
 
-	private void setProgress(final ProgressCLI progressCLI, final float programDurationSec, final MediaAnalyser ma) {
+	private void setProgress(final ProgressCLI progressCLI,
+							 final float programDurationSec,
+							 final ProgressListenerHandler ma) {
 		ma.setProgress(progressListener, new ProgressCallback() {
 
 			@Override

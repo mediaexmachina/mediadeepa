@@ -65,4 +65,6 @@ public class ProcessFileCmd {
 	@ArgGroup(exclusive = false, heading = "Internal filters parameters%n")
 	private FilterCmd filterCmd;
 
+	// TODO add config for wav, exclusive
+
 }

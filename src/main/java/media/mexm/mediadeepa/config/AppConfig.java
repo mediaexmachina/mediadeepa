@@ -97,4 +97,10 @@ public class AppConfig {
 	private String ffprobeExecName = "ffprobe";
 	private boolean addSourceExtToOutputDirectories = false;
 
+	private WavFormConfig wavFormConfig = new WavFormConfig();
+
+	@Data
+	public class WavFormConfig {
+		private Dimension imageSize = graphicConfig.getImageSizeHalfSize();
+	}
 }

@@ -25,6 +25,7 @@ import media.mexm.mediadeepa.cli.ProcessFileCmd;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
 import tv.hd3g.fflauncher.recipes.MediaAnalyser;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
+import tv.hd3g.fflauncher.recipes.wavmeasure.WavMeasure;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
 public interface FFmpegService {
@@ -52,4 +53,7 @@ public interface FFmpegService {
 									   MediaAnalyser ma,
 									   FilterCmd options,
 									   float frameRate);
+
+	WavMeasure createWavMeasure(File inputFile, FFprobeJAXB ffprobeJAXB);
+
 }
