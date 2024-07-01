@@ -58,7 +58,7 @@ import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.ffprobejaxb.data.FFProbeFormat;
 
@@ -90,7 +90,7 @@ public class EventsRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getMediaAnalyserResult()
+		return result.getMediaAnalyserProcessResult()
 				.filter(f -> result.getSourceDuration().isPresent())
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
@@ -122,8 +122,8 @@ public class EventsRendererEngine implements
 			return;
 		}
 		final var sourceDuration = result.getSourceDuration().get();// NOSONAR S3655
-		result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.ifPresent(lavfiMetadatas -> {
 					final var events = tableDocument.createTable(EVENTS2).head(HEAD_EVENTS);
 					Stream.of(
@@ -149,8 +149,8 @@ public class EventsRendererEngine implements
 									final Color color,
 									final Stroke stroke,
 									final TimedDataGraphic dataGraphic) {
-		final var events = result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		final var events = result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.stream()
 				.map(dataSelector)
 				.flatMap(List::stream)
@@ -167,8 +167,8 @@ public class EventsRendererEngine implements
 
 	@Override
 	public List<GraphicArtifact> toGraphic(final DataResult result) {
-		final var eventsReportCount = result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		final var eventsReportCount = result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getEventCount)
 				.orElse(0);
 
@@ -211,8 +211,8 @@ public class EventsRendererEngine implements
 		if (result.getSourceDuration().isEmpty()) {
 			return;
 		}
-		result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.ifPresent(lavfiMetadatas -> {
 					final var duration = result.getSourceDuration();
 

@@ -39,8 +39,8 @@ import org.mockito.MockitoAnnotations;
 
 import net.datafaker.Faker;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 
@@ -54,13 +54,13 @@ class DataResultTest {
 	int height;
 
 	@Mock
-	MediaAnalyserResult mediaAnalyserResult;
+	MediaAnalyserProcessResult mediaAnalyserResult;
 	@Mock
 	Duration sourceDuration;
 	@Mock
 	FFprobeJAXB ffprobeResult;
 	@Mock
-	ContainerAnalyserResult containerAnalyserResult;
+	ContainerAnalyserProcessResult containerAnalyserResult;
 	@Mock
 	Map<String, String> versions;
 	@Mock
@@ -91,10 +91,10 @@ class DataResultTest {
 
 	@Test
 	void testGetMediaAnalyserResult() {
-		assertFalse(dr.getMediaAnalyserResult().isPresent());
-		dr.setMediaAnalyserResult(mediaAnalyserResult);
-		assertTrue(dr.getMediaAnalyserResult().isPresent());
-		assertEquals(mediaAnalyserResult, dr.getMediaAnalyserResult().get());
+		assertFalse(dr.getMediaAnalyserProcessResult().isPresent());
+		dr.setMediaAnalyserProcessResult(mediaAnalyserResult);
+		assertTrue(dr.getMediaAnalyserProcessResult().isPresent());
+		assertEquals(mediaAnalyserResult, dr.getMediaAnalyserProcessResult().get());
 		verify(mediaAnalyserResult, atLeast(1)).ffmpegCommandLine();
 	}
 
@@ -117,10 +117,10 @@ class DataResultTest {
 
 	@Test
 	void testGetContainerAnalyserResult() {
-		assertFalse(dr.getContainerAnalyserResult().isPresent());
-		dr.setContainerAnalyserResult(containerAnalyserResult);
-		assertTrue(dr.getContainerAnalyserResult().isPresent());
-		assertEquals(containerAnalyserResult, dr.getContainerAnalyserResult().get());
+		assertFalse(dr.getContainerAnalyserProcessResult().isPresent());
+		dr.setContainerAnalyserProcessResult(containerAnalyserResult);
+		assertTrue(dr.getContainerAnalyserProcessResult().isPresent());
+		assertEquals(containerAnalyserResult, dr.getContainerAnalyserProcessResult().get());
 		verify(containerAnalyserResult, atLeast(1)).ffprobeCommandLine();
 	}
 
@@ -164,7 +164,7 @@ class DataResultTest {
 
 	@Test
 	void testGetVideoResolution_containerAnalyserResultVideoConst() {
-		dr.setContainerAnalyserResult(containerAnalyserResult);
+		dr.setContainerAnalyserProcessResult(containerAnalyserResult);
 		when(containerAnalyserResult.videoConst())
 				.thenReturn(ffprobeVideoFrameConst);
 		when(ffprobeVideoFrameConst.width()).thenReturn(width);
@@ -180,7 +180,7 @@ class DataResultTest {
 
 	@Test
 	void testGetVideoResolution_containerAnalyserResultOlderVideoConsts() {
-		dr.setContainerAnalyserResult(containerAnalyserResult);
+		dr.setContainerAnalyserProcessResult(containerAnalyserResult);
 		when(containerAnalyserResult.olderVideoConsts())
 				.thenReturn(List.of(ffprobeVideoFrameConst));
 		when(ffprobeVideoFrameConst.width()).thenReturn(width);

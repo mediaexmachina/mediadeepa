@@ -62,7 +62,7 @@ import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdAstats;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdAstatsChannel;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 
 @Component
 @Slf4j
@@ -113,7 +113,7 @@ public class AStatsRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getMediaAnalyserResult()
+		return result.getMediaAnalyserProcessResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
 					final var aStats = new TabularDocument(tabularExportFormat,
@@ -147,7 +147,7 @@ public class AStatsRendererEngine implements
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
-		result.getMediaAnalyserResult()
+		result.getMediaAnalyserProcessResult()
 				.ifPresent(maResult -> {
 					final var aStats = tableDocument.createTable("Audio Stats").head(HEAD_ASTATS);
 					maResult.lavfiMetadatas().getAStatsReport()
@@ -195,8 +195,8 @@ public class AStatsRendererEngine implements
 
 	@Override
 	public Optional<AStatReportItem> makeGraphicReportItem(final DataResult result) {
-		return result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		return result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getAStatsReport)
 				.filter(not(List::isEmpty))
 				.map(aStatReport -> {
@@ -431,8 +431,8 @@ public class AStatsRendererEngine implements
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
-		result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.flatMap(Optional::ofNullable)
 				.map(LavfiMetadataFilterParser::getAStatsReport)
 				.filter(not(List::isEmpty))

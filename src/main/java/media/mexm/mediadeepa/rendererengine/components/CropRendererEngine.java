@@ -60,8 +60,8 @@ import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdCropdetect;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserResult;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 
@@ -93,7 +93,7 @@ public class CropRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getMediaAnalyserResult()
+		return result.getMediaAnalyserProcessResult()
 				.map(maResult -> {
 					final var lavfiMetadatas = maResult.lavfiMetadatas();
 					final var crop = new TabularDocument(tabularExportFormat,
@@ -112,7 +112,7 @@ public class CropRendererEngine implements
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
-		result.getMediaAnalyserResult()
+		result.getMediaAnalyserProcessResult()
 				.ifPresent(maResult -> {
 					final var crop = tableDocument.createTable("Crop detect").head(HEAD_CROP);
 					maResult.lavfiMetadatas().getCropDetectReport().forEach(a -> {
@@ -129,8 +129,8 @@ public class CropRendererEngine implements
 
 	@Override
 	public List<GraphicArtifact> toGraphic(final DataResult result) {
-		return result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		return result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.map(LavfiMetadataFilterParser::getCropDetectReport)
 				.filter(not(List::isEmpty))
 				.stream()
@@ -168,15 +168,15 @@ public class CropRendererEngine implements
 					result.getFFprobeResult()
 							.flatMap(FFprobeJAXB::getFirstVideoStream)
 							.map(FFProbeStream::height)
-							.or(() -> result.getContainerAnalyserResult()
-									.map(ContainerAnalyserResult::videoConst)
+							.or(() -> result.getContainerAnalyserProcessResult()
+									.map(ContainerAnalyserProcessResult::videoConst)
 									.map(FFprobeVideoFrameConst::height))
 							.ifPresent(dataGraphic::addValueMarker);
 					result.getFFprobeResult()
 							.flatMap(FFprobeJAXB::getFirstVideoStream)
 							.map(FFProbeStream::width)
-							.or(() -> result.getContainerAnalyserResult()
-									.map(ContainerAnalyserResult::videoConst)
+							.or(() -> result.getContainerAnalyserProcessResult()
+									.map(ContainerAnalyserProcessResult::videoConst)
 									.map(FFprobeVideoFrameConst::width))
 							.ifPresent(dataGraphic::addValueMarker);
 
@@ -195,8 +195,8 @@ public class CropRendererEngine implements
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
-		result.getMediaAnalyserResult()
-				.map(MediaAnalyserResult::lavfiMetadatas)
+		result.getMediaAnalyserProcessResult()
+				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.flatMap(Optional::ofNullable)
 				.map(LavfiMetadataFilterParser::getCropDetectReport)
 				.filter(not(List::isEmpty))

@@ -60,7 +60,7 @@ import media.mexm.mediadeepa.rendererengine.components.GopStatsRendererEngine.GO
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeBaseFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobePictType;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrame;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 import tv.hd3g.fflauncher.recipes.GOPStatItem;
 
 @Component
@@ -99,7 +99,7 @@ public class GopStatsRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getContainerAnalyserResult()
+		return result.getContainerAnalyserProcessResult()
 				.map(caResult -> {
 					final var gopStats = new TabularDocument(tabularExportFormat,
 							getSingleUniqTabularDocumentBaseFileName())
@@ -121,7 +121,7 @@ public class GopStatsRendererEngine implements
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
-		result.getContainerAnalyserResult()
+		result.getContainerAnalyserProcessResult()
 				.ifPresent(caResult -> {
 					final var gopStats = tableDocument.createTable("Container GOP").head(HEAD_GOPSTATS);
 					caResult.extractGOPStats()
@@ -153,8 +153,8 @@ public class GopStatsRendererEngine implements
 
 	@Override
 	public Optional<GOPReportItem> makeGraphicReportItem(final DataResult result) {
-		return result.getContainerAnalyserResult()
-				.map(ContainerAnalyserResult::extractGOPStats)
+		return result.getContainerAnalyserProcessResult()
+				.map(ContainerAnalyserProcessResult::extractGOPStats)
 				.filter(not(List::isEmpty))
 				.map(GOPReportItem::new);
 	}
@@ -228,7 +228,7 @@ public class GopStatsRendererEngine implements
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
-		result.getContainerAnalyserResult()
+		result.getContainerAnalyserProcessResult()
 				.ifPresent(caResult -> saveGOPStats(result, caResult.extractGOPStats(), caResult.videoFrames(),
 						document));
 	}

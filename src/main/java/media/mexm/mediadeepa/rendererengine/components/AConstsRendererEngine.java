@@ -36,7 +36,7 @@ import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 
 @Component
 public class AConstsRendererEngine implements
@@ -68,7 +68,7 @@ public class AConstsRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getContainerAnalyserResult()
+		return result.getContainerAnalyserProcessResult()
 				.map(caResult -> {
 					final var aConsts = new TabularDocument(tabularExportFormat,
 							getSingleUniqTabularDocumentBaseFileName())
@@ -100,7 +100,7 @@ public class AConstsRendererEngine implements
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
-		result.getContainerAnalyserResult()
+		result.getContainerAnalyserProcessResult()
 				.ifPresent(caResult -> {
 					final var aConsts = tableDocument.createTable("Container audio consts").head(HEAD_ACONSTS);
 					Stream.concat(
@@ -127,8 +127,8 @@ public class AConstsRendererEngine implements
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
-		result.getContainerAnalyserResult()
-				.map(ContainerAnalyserResult::audioConst)
+		result.getContainerAnalyserProcessResult()
+				.map(ContainerAnalyserProcessResult::audioConst)
 				.flatMap(Optional::ofNullable)
 				.ifPresent(audioConst -> {
 					final var aConstSection = new ReportSection(CONTAINER, AUDIO_MEDIA_FILE_INFORMATION);

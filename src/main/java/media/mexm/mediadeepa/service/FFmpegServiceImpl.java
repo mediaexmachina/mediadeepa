@@ -19,10 +19,13 @@ package media.mexm.mediadeepa.service;
 import static java.lang.Math.round;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static tv.hd3g.fflauncher.recipes.MediaAnalyserResult.R128_DEFAULT_LUFS_TARGET;
+import static tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult.R128_DEFAULT_LUFS_TARGET;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.SocketException;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -34,6 +37,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -78,11 +82,17 @@ import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher;
 import tv.hd3g.fflauncher.progress.ProgressBlock;
 import tv.hd3g.fflauncher.progress.ProgressCallback;
 import tv.hd3g.fflauncher.progress.ProgressListener;
-import tv.hd3g.fflauncher.progress.ProgressListenerHandler;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyser;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
-import tv.hd3g.fflauncher.recipes.MediaAnalyser;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserBase;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserExtract;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserExtractResult;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcess;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserBase;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserExtract;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserExtractResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcess;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessSetup;
 import tv.hd3g.fflauncher.recipes.ProbeMedia;
 import tv.hd3g.fflauncher.recipes.wavmeasure.WavMeasure;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
@@ -188,33 +198,12 @@ public class FFmpegServiceImpl implements FFmpegService {
 		return result;
 	}
 
-	@Override
-	public WavMeasure createWavMeasure(final File inputFile, final FFprobeJAXB ffprobeJAXB) {
-		final var fileDuration = ffprobeJAXB.getDuration()
-				.orElseThrow(() -> new IllegalArgumentException("Wav signal extraction need the source file duration"));
-
-		final var wm = new WavMeasure(
-				inputFile.getAbsolutePath(),
-				appConfig.getFfmpegExecName(),
-				executableFinder,
-				fileDuration,
-				appConfig.getWavFormConfig().getImageSize().width);
-		setProgress(progressSupplier.get(), fileDuration.toSeconds(), wm);
-		// TODO add start and limit duration
-		// session.setPgmFFDuration(processFileCmd.getDuration());
-		// session.setPgmFFStartTime(processFileCmd.getStartTime());
-
-		return wm;
-	}
-
-	@Override
-	public MediaAnalyserSession createMediaAnalyserSession(final File inputFile,
-														   final ProcessFileCmd processFileCmd,
-														   final File lavfiSecondaryVideoFile,
-														   final FFprobeJAXB ffprobeJAXB,
-														   final FilterCmd options) {
-		final var ma = new MediaAnalyser(appConfig.getFfmpegExecName(), executableFinder, ffmpegAbout);
-
+	private void internalMedia(final MediaAnalyserBase<?, ?> ma,
+							   final File inputFile,
+							   final ProcessFileCmd processFileCmd,
+							   final File lavfiSecondaryVideoFile,
+							   final FFprobeJAXB ffprobeJAXB,
+							   final FilterCmd options) {
 		final var programDurationSec = ffprobeJAXB.getFormat().map(FFProbeFormat::duration).orElse(0f);
 		setProgress(progressSupplier.get(), programDurationSec, ma);
 
@@ -233,10 +222,78 @@ public class FFmpegServiceImpl implements FFmpegService {
 				Optional.ofNullable(options).orElseGet(FilterCmd::new),
 				avgFrameRate);
 
-		final var session = ma.createSession(inputFile);
-		session.setPgmFFDuration(processFileCmd.getDuration());
-		session.setPgmFFStartTime(processFileCmd.getStartTime());
-		return session;
+		ma.setSource(inputFile);
+		ma.setPgmFFDuration(processFileCmd.getDuration());
+		ma.setPgmFFStartTime(processFileCmd.getStartTime());
+		ma.setFFprobeResult(ffprobeJAXB);
+		ma.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), maxExecTimeScheduler);
+	}
+
+	@Override
+	public MediaAnalyserProcessResult processMedia(final File inputFile,
+												   final ProcessFileCmd processFileCmd,
+												   final File lavfiSecondaryVideoFile,
+												   final FFprobeJAXB ffprobeJAXB,
+												   final FilterCmd options) {
+		final var ma = new MediaAnalyserProcess(appConfig.getFfmpegExecName(), executableFinder, ffmpegAbout);
+		internalMedia(ma, inputFile, processFileCmd, lavfiSecondaryVideoFile, ffprobeJAXB, options);
+		return ma.createSession(new MediaAnalyserProcessSetup(
+				Optional.ofNullable(() -> openFileToLineStream(lavfiSecondaryVideoFile))))
+				.process()
+				.getResult();
+	}
+
+	@Override
+	public MediaAnalyserExtractResult extractMedia(final File inputFile,
+												   final ProcessFileCmd processFileCmd,
+												   final File lavfiSecondaryVideoFile,
+												   final FFprobeJAXB ffprobeJAXB,
+												   final FilterCmd options) {
+		final var ma = new MediaAnalyserExtract(appConfig.getFfmpegExecName(), executableFinder, ffmpegAbout);
+		internalMedia(ma, inputFile, processFileCmd, lavfiSecondaryVideoFile, ffprobeJAXB, options);
+		return ma.createSession(null)
+				.process()
+				.getResult();
+	}
+
+	private void internalContainer(final ContainerAnalyserBase<?, ?> ca,
+								   final ProcessFileCmd processFileCmd,
+								   final Duration programDuration) {
+		final var progress = progressSupplier.get();
+		ca.setWatcher(new FFprobeXMLProgressWatcher(
+				programDuration,
+				r -> {
+					final var t = new Thread(r);
+					t.setDaemon(true);
+					t.setName("Watcher for ffprobe container analyser");
+					return t;
+				},
+				s -> progress.displayProgress(0, 1),
+				event -> progress.displayProgress(event.progress(), event.speed()),
+				s -> progress.end()));
+		ca.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), maxExecTimeScheduler);
+	}
+
+	@Override
+	public ContainerAnalyserProcessResult processContainer(final File inputFile,
+														   final ProcessFileCmd processFileCmd,
+														   final Duration programDuration) {
+		final var ca = new ContainerAnalyserProcess(appConfig.getFfprobeExecName(), executableFinder);
+		internalContainer(ca, processFileCmd, programDuration);
+		return ca.createSession(inputFile)
+				.process()
+				.getResult();
+	}
+
+	@Override
+	public ContainerAnalyserExtractResult extractContainer(final File inputFile,
+														   final ProcessFileCmd processFileCmd,
+														   final Duration programDuration) {
+		final var ca = new ContainerAnalyserExtract(appConfig.getFfprobeExecName(), executableFinder);
+		internalContainer(ca, processFileCmd, programDuration);
+		return ca.createSession(inputFile)
+				.process()
+				.getResult();
 	}
 
 	private static float getAvgFrameRate(final String avgFrameRate) {
@@ -254,14 +311,13 @@ public class FFmpegServiceImpl implements FFmpegService {
 		return countFilter.stream().anyMatch(Boolean::booleanValue);
 	}
 
-	@Override
-	public void applyMediaAnalyserFilterChain(final ProcessFileCmd processFileCmd,
-											  final File lavfiSecondaryVideoFile,
-											  final boolean sourceHasVideo,
-											  final boolean sourceHasAudio,
-											  final MediaAnalyser ma,
-											  final FilterCmd nullableOptions,
-											  final float avgFrameRate) {
+	private void applyMediaAnalyserFilterChain(final ProcessFileCmd processFileCmd,
+											   final File lavfiSecondaryVideoFile,
+											   final boolean sourceHasVideo,
+											   final boolean sourceHasAudio,
+											   final MediaAnalyserBase<?, ?> ma,
+											   final FilterCmd nullableOptions,
+											   final float avgFrameRate) {
 		var useMtdAudio = false;
 		final var fIgnore = Optional.ofNullable(processFileCmd.getFiltersIgnore()).orElse(Set.of());
 		final var fOnly = Optional.ofNullable(processFileCmd.getFiltersOnly()).orElse(Set.of());
@@ -450,7 +506,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 		return audioFilterSilencedetect;
 	}
 
-	private boolean addFilter(final MediaAnalyser ma,
+	private boolean addFilter(final MediaAnalyserBase<?, ?> ma,
 							  final Set<String> fIgnore,
 							  final Set<String> fOnly,
 							  final FilterSupplier filter) {
@@ -489,8 +545,8 @@ public class FFmpegServiceImpl implements FFmpegService {
 
 	private void setProgress(final ProgressCLI progressCLI,
 							 final float programDurationSec,
-							 final ProgressListenerHandler ma) {
-		ma.setProgress(progressListener, new ProgressCallback() {
+							 final MediaAnalyserBase<?, ?> ma) {
+		ma.setProgressListener(progressListener, new ProgressCallback() {
 
 			@Override
 			public void onProgress(final int localhostTcpPort, final ProgressBlock progressBlock) {
@@ -511,29 +567,40 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	@Override
-	public ContainerAnalyserSession createContainerAnalyserSession(final File inputFile,
-																   final ProcessFileCmd processFileCmd,
-																   final Duration programDuration) {
-		final var ca = new ContainerAnalyser(appConfig.getFfprobeExecName(), executableFinder);
-		final var progress = progressSupplier.get();
-
-		return ca.createSession(inputFile, new FFprobeXMLProgressWatcher(
-				programDuration,
-				r -> {
-					final var t = new Thread(r);
-					t.setDaemon(true);
-					t.setName("Watcher for ffprobe container analyser");
-					return t;
-				},
-				s -> progress.displayProgress(0, 1),
-				event -> progress.displayProgress(event.progress(), event.speed()),
-				s -> progress.end()));
+	public FFprobeJAXB getFFprobeJAXBFromFileToProcess(final File inputFile, final ProcessFileCmd processFileCmd) {
+		return new ProbeMedia(executableFinder, maxExecTimeScheduler).doAnalysing(inputFile);
 	}
 
 	@Override
-	public FFprobeJAXB getFFprobeJAXBFromFileToProcess(final File inputFile, final ProcessFileCmd processFileCmd) {
-		return new ProbeMedia(executableFinder, maxExecTimeScheduler)
-				.doAnalysing(inputFile);
+	public WavMeasure createWavMeasure(final File inputFile, final FFprobeJAXB ffprobeJAXB) {
+		// TODO impl wav measure
+		final var fileDuration = ffprobeJAXB.getDuration()
+				.orElseThrow(() -> new IllegalArgumentException("Wav signal extraction need the source file duration"));
+
+		/*
+		final var wm = new WavMeasure(
+				inputFile.getAbsolutePath(),
+				appConfig.getFfmpegExecName(),
+				executableFinder,
+				fileDuration,
+				appConfig.getWavFormConfig().getImageSize().width);
+		setProgress(progressSupplier.get(), fileDuration.toSeconds(), wm);
+		// add start and limit duration
+		// session.setPgmFFDuration(processFileCmd.getDuration());
+		// session.setPgmFFStartTime(processFileCmd.getStartTime());
+		*/
+		return null;
+	}
+
+	private static Stream<String> openFileToLineStream(final File file) {
+		if (file.exists() == false || file.isFile() == false) {
+			return Stream.empty();
+		}
+		try {
+			return Files.lines(file.toPath());
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't open file", e);
+		}
 	}
 
 }

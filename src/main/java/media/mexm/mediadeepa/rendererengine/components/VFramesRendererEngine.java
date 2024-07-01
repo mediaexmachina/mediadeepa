@@ -55,7 +55,7 @@ import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeBaseFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrame;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 
 @Component
 public class VFramesRendererEngine implements
@@ -98,7 +98,7 @@ public class VFramesRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getContainerAnalyserResult()
+		return result.getContainerAnalyserProcessResult()
 				.map(caResult -> {
 					final var vFrames = new TabularDocument(tabularExportFormat,
 							getSingleUniqTabularDocumentBaseFileName())
@@ -129,7 +129,7 @@ public class VFramesRendererEngine implements
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
-		result.getContainerAnalyserResult()
+		result.getContainerAnalyserProcessResult()
 				.ifPresent(caResult -> {
 					final var vFrames = tableDocument.createTable("Container video frames").head(HEAD_VFRAMES);
 					caResult.videoFrames().forEach(r -> {
@@ -155,8 +155,8 @@ public class VFramesRendererEngine implements
 
 	@Override
 	public List<GraphicArtifact> toGraphic(final DataResult result) {
-		final var videoFramesReport = result.getContainerAnalyserResult()
-				.map(ContainerAnalyserResult::videoFrames)
+		final var videoFramesReport = result.getContainerAnalyserProcessResult()
+				.map(ContainerAnalyserProcessResult::videoFrames)
 				.stream()
 				.flatMap(List::stream)
 				.filter(d -> d.repeatPict() == false)
@@ -206,8 +206,8 @@ public class VFramesRendererEngine implements
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
-		result.getContainerAnalyserResult()
-				.map(ContainerAnalyserResult::videoFrames)
+		result.getContainerAnalyserProcessResult()
+				.map(ContainerAnalyserProcessResult::videoFrames)
 				.flatMap(Optional::ofNullable)
 				.filter(Predicate.not(List::isEmpty))
 				.ifPresent(videoFrames -> {

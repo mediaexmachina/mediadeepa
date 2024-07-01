@@ -36,15 +36,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Stream;
 import java.util.zip.ZipInputStream;
 
@@ -71,8 +67,8 @@ import picocli.CommandLine;
 import picocli.CommandLine.Help;
 import picocli.CommandLine.ParameterException;
 import tv.hd3g.commons.version.EnvironmentVersion;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
-import tv.hd3g.fflauncher.recipes.MediaAnalyserSession;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
+import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
@@ -90,8 +86,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 	private FFmpegService ffmpegService;
 	@Autowired
 	private EnvironmentVersion environmentVersion;
-	@Autowired
-	private ScheduledExecutorService scheduledExecutorService;
 	@Autowired
 	private ExecutableFinder executableFinder;
 	@Autowired
@@ -397,42 +391,30 @@ public class AppSessionServiceImpl implements AppSessionService {
 			log.debug("Prepare media analysing...");
 
 			final var lavfiSecondaryFile = prepareTempFile(tempDir);
-			final var maSession = ffmpegService.createMediaAnalyserSession(
+			final var maResult = ffmpegService.extractMedia(
 					inputFile,
 					processFileCmd,
 					lavfiSecondaryFile,
 					probeResult,
 					processFileCmd.getFilterCmd());
-			maSession.setFFprobeResult(probeResult);
-			maSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
-
-			final var stderrList = new ArrayList<String>();
-			final var lavfiList = new ArrayList<String>();
-			final var ffmpegCommandLine = maSession.extract(lavfiList::add, stderrList::add);
-			extractSession.add(zippedTxtFileNames.getLavfiTxtBase() + "0.txt", lavfiList);
+			extractSession.add(zippedTxtFileNames.getLavfiTxtBase() + "0.txt", maResult.sysOut());
 
 			if (lavfiSecondaryFile.exists()) {
 				extractSession.add(zippedTxtFileNames.getLavfiTxtBase() + "1.txt", readLines(lavfiSecondaryFile));
 				FileUtils.deleteQuietly(lavfiSecondaryFile);
 			}
-			extractSession.addFilterContext(zippedTxtFileNames.getFiltersJson(), maSession.getFilterContextList());
-			extractSession.add(zippedTxtFileNames.getFfmpegCommandLineTxt(), ffmpegCommandLine);
+			extractSession.addFilterContext(zippedTxtFileNames.getFiltersJson(), maResult.filters());
+			extractSession.add(zippedTxtFileNames.getFfmpegCommandLineTxt(), maResult.ffmpegCommandLine());
 		}
 
 		if (processFileCmd.isContainerAnalysing()) {
 			log.info("Start container analysing...");
-			final var caSession = ffmpegService.createContainerAnalyserSession(
+			final var caResult = ffmpegService.extractContainer(
 					inputFile, processFileCmd, probeResult.getDuration().orElse(ZERO));
-			caSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
-
-			final var containerListLines = new ArrayList<String>();
-			final var ffprobeCommandLine = caSession.extract(containerListLines::add);
-			extractSession.add(zippedTxtFileNames.getContainerXml(),
-					containerListLines);
-			extractSession.add(zippedTxtFileNames.getFfprobeCommandLineTxt(), ffprobeCommandLine);
+			extractSession.add(zippedTxtFileNames.getContainerXml(), caResult.sysOut());
+			extractSession.add(zippedTxtFileNames.getFfprobeCommandLineTxt(), caResult.ffprobeCommandLine());
 		}
 
-		// FFmpegService
 		// TODO add wav
 		// TODO add wav config + an
 
@@ -472,27 +454,22 @@ public class AppSessionServiceImpl implements AppSessionService {
 			log.debug("Prepare media analysing...");
 
 			final var lavfiSecondaryFile = prepareTempFile(tempDir);
-			final var maSession = ffmpegService.createMediaAnalyserSession(
+			log.debug("Start media analysing session...");
+			final var maResult = ffmpegService.processMedia(
 					inputFile,
 					processFileCmd,
 					lavfiSecondaryFile,
 					ffprobeResult,
 					processFileCmd.getFilterCmd());
-			maSession.setFFprobeResult(ffprobeResult);
-			maSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
-
-			log.debug("Start media analysing session...");
-			dataResult.setMediaAnalyserResult(maSession.process(
-					Optional.ofNullable(() -> openFileToLineStream(lavfiSecondaryFile))));
+			dataResult.setMediaAnalyserProcessResult(maResult);
 			FileUtils.deleteQuietly(lavfiSecondaryFile);
 		}
 
 		if (processFileCmd.isContainerAnalysing()) {
 			log.info("Start container analysing...");
-			final var caSession = ffmpegService.createContainerAnalyserSession(
+			final var caResult = ffmpegService.processContainer(
 					inputFile, processFileCmd, ffprobeResult.getDuration().orElse(ZERO));
-			caSession.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), scheduledExecutorService);
-			dataResult.setContainerAnalyserResult(caSession.process());
+			dataResult.setContainerAnalyserProcessResult(caResult);
 		}
 
 		// TODO add wav
@@ -558,7 +535,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		final var ffmpegCommandLine = extractSession.getFFmpegCommandLine(
 				zippedTxtFileNames.getFfmpegCommandLineTxt()).orElse("TATA");
 		final var filters = extractSession.getFilterContext(zippedTxtFileNames.getFiltersJson());
-		dataResult.setMediaAnalyserResult(MediaAnalyserSession.importFromOffline(
+		dataResult.setMediaAnalyserProcessResult(MediaAnalyserProcessResult.importFromOffline(
 				stdOutLines,
 				filters,
 				ffmpegCommandLine));
@@ -567,7 +544,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		final var ffprobeCommandLine = extractSession.getFFprobeCommandLine(
 				zippedTxtFileNames.getFfprobeCommandLineTxt()).orElse("TOTO");
 		Optional.ofNullable(extractEntries.get(zippedTxtFileNames.getContainerXml()))
-				.ifPresent(f -> dataResult.setContainerAnalyserResult(ContainerAnalyserSession
+				.ifPresent(f -> dataResult.setContainerAnalyserProcessResult(ContainerAnalyserProcessResult
 						.importFromOffline(new ByteArrayInputStream(f.getBytes(UTF_8)), ffprobeCommandLine)));
 
 		exportAnalytics(dataResult);
@@ -597,17 +574,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 		} else {
 			log.debug("Export analytics");
 			mediaAnalyticsTransformerService.exportAnalytics(dataResult, appCommand.getOutputCmd().getExportToCmd());
-		}
-	}
-
-	private static Stream<String> openFileToLineStream(final File file) {
-		if (file.exists() == false || file.isFile() == false) {
-			return Stream.empty();
-		}
-		try {
-			return Files.lines(file.toPath());
-		} catch (final IOException e) {
-			throw new UncheckedIOException("Can't open file", e);
 		}
 	}
 

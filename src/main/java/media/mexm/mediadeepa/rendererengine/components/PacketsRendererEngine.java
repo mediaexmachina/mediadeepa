@@ -43,7 +43,7 @@ import media.mexm.mediadeepa.rendererengine.SingleTabularDocumentExporterTraits;
 import media.mexm.mediadeepa.rendererengine.TableRendererEngine;
 import media.mexm.mediadeepa.rendererengine.TabularRendererEngine;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 
 @Component
 public class PacketsRendererEngine implements
@@ -77,7 +77,7 @@ public class PacketsRendererEngine implements
 	@Override
 	public List<TabularDocument> toTabularDocument(final DataResult result,
 												   final TabularExportFormat tabularExportFormat) {
-		return result.getContainerAnalyserResult()
+		return result.getContainerAnalyserProcessResult()
 				.map(caResult -> {
 					final var packets = new TabularDocument(tabularExportFormat,
 							getSingleUniqTabularDocumentBaseFileName())
@@ -103,7 +103,7 @@ public class PacketsRendererEngine implements
 
 	@Override
 	public void addToTable(final DataResult result, final TableDocument tableDocument) {
-		result.getContainerAnalyserResult()
+		result.getContainerAnalyserProcessResult()
 				.ifPresent(caResult -> {
 					final var packets = tableDocument.createTable("Container packets").head(HEAD_CONTAINER_PACKETS);
 					caResult.packets().forEach(
@@ -124,8 +124,8 @@ public class PacketsRendererEngine implements
 
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
-		result.getContainerAnalyserResult()
-				.map(ContainerAnalyserResult::packets)
+		result.getContainerAnalyserProcessResult()
+				.map(ContainerAnalyserProcessResult::packets)
 				.flatMap(Optional::ofNullable)
 				.filter(Predicate.not(List::isEmpty))
 				.ifPresent(packets -> {
