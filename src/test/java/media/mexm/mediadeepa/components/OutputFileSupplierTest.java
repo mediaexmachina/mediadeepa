@@ -138,7 +138,7 @@ class OutputFileSupplierTest {
 		String inputFileName;
 
 		@BeforeEach
-		void init() throws Exception {
+		void init() {
 			inputFileName = FilenameUtils.getBaseName(inputFile.getPath());
 			when(appCommand.getInput()).thenReturn(List.of(inputFile, inputFile));
 			when(result.getSource()).thenReturn(inputFile.getPath());
@@ -158,14 +158,16 @@ class OutputFileSupplierTest {
 		@Test
 		void testMakeOutputFile_simpleBaseFileName() {
 			when(exportToCmd.getBaseFileName()).thenReturn(baseFileName);
-			assertEquals(new File(export, inputFileName + "_" + baseFileName + "_" + suffix), ofs.makeOutputFile(result, suffix));
+			assertEquals(new File(export, inputFileName + "_" + baseFileName + "_" + suffix), ofs.makeOutputFile(result,
+					suffix));
 		}
 
 		@ParameterizedTest
 		@ValueSource(strings = { "_", " ", "-", "|" })
 		void testMakeOutputFile_separatedBaseFileName(final String sep) {
 			when(exportToCmd.getBaseFileName()).thenReturn(baseFileName + sep);
-			assertEquals(new File(export, inputFileName + "_" + baseFileName + sep + suffix), ofs.makeOutputFile(result, suffix));
+			assertEquals(new File(export, inputFileName + "_" + baseFileName + sep + suffix), ofs.makeOutputFile(result,
+					suffix));
 		}
 
 	}
@@ -175,7 +177,7 @@ class OutputFileSupplierTest {
 
 		@Override
 		@BeforeEach
-		void init() throws Exception {
+		void init() {
 			super.init();
 			inputFileName = inputFile.getName();
 			appConfig.setAddSourceExtToOutputDirectories(true);

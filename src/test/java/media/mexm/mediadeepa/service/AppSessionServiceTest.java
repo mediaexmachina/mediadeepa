@@ -127,7 +127,7 @@ class AppSessionServiceTest {
 	}
 
 	@Test
-	void testRunCli_nothing() throws IOException {
+	void testRunCli_nothing() {
 		assertThrows(ParameterException.class, () -> appSessionService.runCli());
 	}
 
@@ -157,7 +157,7 @@ class AppSessionServiceTest {
 	}
 
 	@Test
-	void testRunCli_process_nothingToDo() throws IOException {
+	void testRunCli_process_nothingToDo() {
 		appCommand.setProcessFileCmd(processFileCmd);
 		assertThrows(ParameterException.class, () -> appSessionService.runCli());
 	}

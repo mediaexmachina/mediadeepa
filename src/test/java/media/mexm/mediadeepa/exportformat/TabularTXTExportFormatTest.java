@@ -34,7 +34,7 @@ import media.mexm.mediadeepa.exportformat.components.TabularTXTExportFormat;
 import net.datafaker.Faker;
 
 class TabularTXTExportFormatTest {
-	final static Faker faker = Faker.instance();
+	static final Faker faker = Faker.instance();
 
 	TabularTXTExportFormat t;
 	NumberUtils numberUtils;

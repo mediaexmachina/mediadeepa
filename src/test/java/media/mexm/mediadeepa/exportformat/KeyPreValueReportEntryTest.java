@@ -31,7 +31,7 @@ class KeyPreValueReportEntryTest extends BaseReportEntryTest {
 	String value;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		value = faker.numerify("value###");
 		entry = new KeyPreValueReportEntry(key, value);
 	}

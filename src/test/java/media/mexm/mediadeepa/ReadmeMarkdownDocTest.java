@@ -23,7 +23,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,14 +36,10 @@ class ReadmeMarkdownDocTest {
 	ByteArrayOutputStream baosPs;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		doc = new ReadmeMarkdownDoc();
 		baosPs = new ByteArrayOutputStream();
 		ps = new PrintStream(baosPs);
-	}
-
-	@AfterEach
-	void ends() {
 	}
 
 	List<String> getPrintText() {

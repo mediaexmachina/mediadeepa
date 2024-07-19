@@ -67,7 +67,7 @@ class E2EFFprobeXMLTest extends E2EUtils implements ConstStrings {
 		assertEquals(1, ffprobeJAXB.getVideoStreams().count());
 	}
 
-	File makeOutputFile(final String baseFileName) throws IOException {
+	File makeOutputFile(final String baseFileName) {
 		final var outputFile = new File("target/e2e-export", baseFileName);
 		runApp(
 				"--temp", "target/e2e-temp",

@@ -33,7 +33,7 @@ import media.mexm.mediadeepa.exportformat.components.TabularCSVExportFormat;
 import net.datafaker.Faker;
 
 class CSVExportFormatTest {
-	final static Faker faker = Faker.instance();
+	static final Faker faker = Faker.instance();
 
 	TabularCSVExportFormat c;
 	NumberUtils numberUtils;

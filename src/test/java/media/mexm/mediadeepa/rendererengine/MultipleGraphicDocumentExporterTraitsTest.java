@@ -54,6 +54,9 @@ class MultipleGraphicDocumentExporterTraitsTest {
 
 		@Override
 		public void afterPropertiesSet() throws Exception {
+			/**
+			 * Not used
+			 */
 		}
 
 		@Override

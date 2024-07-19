@@ -266,7 +266,7 @@ class E2ESingleExportTest extends E2EUtils {
 	}
 
 	@Test
-	void testAbout_stdout(final CapturedOutput output) throws IOException {
+	void testAbout_stdout(final CapturedOutput output) {
 		rawData = prepareMpgForSimpleE2ETests();
 		if (rawData == null) {
 			return;

@@ -134,7 +134,7 @@ class ImpExArchiveExtractionSessionTest {
 	}
 
 	@Test
-	void testWriteEmpty() throws IOException {
+	void testWriteEmpty() {
 		assertThat(zipFile).exists().size().isEqualTo(0);
 		s.saveToZip(zipFile);
 		assertThat(zipFile).doesNotExist();

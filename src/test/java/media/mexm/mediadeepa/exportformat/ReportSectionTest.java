@@ -51,8 +51,6 @@ class ReportSectionTest {
 
 	@Mock
 	ReportEntry entry;
-
-	@Deprecated
 	NumberUtils numberUtils;
 
 	@BeforeEach
@@ -102,7 +100,7 @@ class ReportSectionTest {
 		String value;
 
 		@BeforeEach
-		void init() throws Exception {
+		void init() {
 			value = faker.numerify("value###");
 			when(entry.isEmpty()).thenReturn(false);
 			when(entry.toDomContent(numberUtils)).thenReturn(div(value));

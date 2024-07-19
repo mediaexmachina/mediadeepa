@@ -45,11 +45,10 @@ class StatisticsUnitValueReportEntryTest {
 	String unit;
 	String[] contains;
 
-	@Deprecated
 	NumberUtils numberUtils;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		numberUtils = new NumberUtils();
 		key = faker.numerify("key###");
 		unit = faker.numerify("unit###");
@@ -58,26 +57,6 @@ class StatisticsUnitValueReportEntryTest {
 								  "12", "50", "77", "200",
 								  LABEL_AVERAGE, LABEL_MAXIMUM, LABEL_MEDIAN, LABEL_MINIMUM };
 	}
-
-	/*	@Test
-		void testCreateFromDouble() {
-			stat = createFromDouble(key, Stream.of(12d, 25d, 50d, 100d, 200d), unit + "(s)", "#");
-			assertThat(stat.toDomContent(numberUtils)).isInstanceOf(DivTag.class)
-					.asString().contains(contains);
-			assertFalse(stat.isEmpty());
-			assertEquals(key, stat.key());
-			assertEquals(unit + "(s)", stat.unit());
-		}
-	
-		@Test
-		void testCreateFromFloat() {
-			stat = createFromFloat(key, Stream.of(12f, 25f, 50f, 100f, 200f), unit + "(s)");
-			assertThat(stat.toDomContent(numberUtils)).isInstanceOf(DivTag.class)
-					.asString().contains(contains);
-			assertFalse(stat.isEmpty());
-			assertEquals(key, stat.key());
-			assertEquals(unit + "(s)", stat.unit());
-		}*/
 
 	@Test
 	void testCreateFromInteger() {

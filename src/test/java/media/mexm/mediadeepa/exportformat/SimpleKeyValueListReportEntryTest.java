@@ -33,11 +33,10 @@ class SimpleKeyValueListReportEntryTest extends BaseReportEntryTest {
 
 	List<String> value;
 
-	@Deprecated
 	NumberUtils numberUtils;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		numberUtils = new NumberUtils();
 		value = List.of(faker.numerify("value###"), faker.numerify("value###"));
 		entry = new SimpleKeyValueListReportEntry(key, value);

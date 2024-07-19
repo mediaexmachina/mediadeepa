@@ -30,7 +30,7 @@ import media.mexm.mediadeepa.components.NumberUtils;
 import net.datafaker.Faker;
 
 class TableDocumentTest {
-	final static Faker faker = Faker.instance();
+	static final Faker faker = Faker.instance();
 
 	TableDocument t;
 	String tableName;
@@ -41,7 +41,6 @@ class TableDocumentTest {
 	int iValue;
 	long lValue;
 
-	@Deprecated
 	NumberUtils numberUtils;
 
 	@BeforeEach

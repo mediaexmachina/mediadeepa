@@ -169,14 +169,13 @@ class E2ETextTest extends E2EUtils {
 		}
 
 		private List<File> makeListExportTXT(final File e2eExportDir) {
-			final var listExport = Stream.of(e2eExportDir.listFiles())
+			return Stream.of(e2eExportDir.listFiles())
 					.filter(f -> f.getName().startsWith(ext + "_"))
 					.filter(f -> f.getName().endsWith(".txt"))
 					.filter(f -> f.getName().endsWith("filters.txt") == false)
 					.filter(f -> f.getName().endsWith("media-summary.txt") == false)
 					.filter(f -> f.getName().endsWith("_about.txt") == false)
 					.toList();
-			return listExport;
 		}
 
 		void checkProcessTXT_containerVideoFrames() throws IOException {
@@ -634,7 +633,7 @@ class E2ETextTest extends E2EUtils {
 		}
 
 		private int getCurrentFileCountMultipleInputs() {
-			final var totalFileCount = (int) inputs.stream()
+			return (int) inputs.stream()
 					.map(E2ERawOutDataFiles::mediaFile)
 					.map(File::getName)
 					.map(sourceName -> sourceName + "_" + exportBaseFilename)
@@ -642,7 +641,6 @@ class E2ETextTest extends E2EUtils {
 							exportDir.listFiles(f -> wildcardMatch(f.getName(), fileNamePrefix + "*"))))
 					.filter(f -> f.length() > 0)
 					.count();
-			return totalFileCount;
 		}
 	}
 

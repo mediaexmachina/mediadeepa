@@ -50,7 +50,7 @@ class KeyPressToExitTest {
 	}
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		source = new ByteArrayInputStream("\n".getBytes());
 		p = new TestKeyPressToExit(source);
 	}

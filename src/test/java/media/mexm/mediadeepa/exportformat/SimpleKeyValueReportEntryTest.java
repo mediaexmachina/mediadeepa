@@ -35,7 +35,7 @@ class SimpleKeyValueReportEntryTest extends BaseReportEntryTest {
 	NumberUtils numberUtils;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		numberUtils = new NumberUtils();
 		value = faker.numerify("value###");
 		entry = new SimpleKeyValueReportEntry(key, value);

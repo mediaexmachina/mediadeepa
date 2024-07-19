@@ -32,7 +32,6 @@ class NumericUnitValueReportEntryTest extends BaseReportEntryTest {
 
 	Number value;
 	String unit;
-	@Deprecated
 	NumberUtils numberUtils;
 
 	@BeforeEach
@@ -92,23 +91,5 @@ class NumericUnitValueReportEntryTest extends BaseReportEntryTest {
 		assertTrue(new NumericUnitValueReportEntry(key, Float.NaN, unit).isEmpty());
 		assertTrue(new NumericUnitValueReportEntry(key, null, unit).isEmpty());
 	}
-
-	/*@Test
-	void testValueToString() {
-		assertEquals("?", valueToString(null));
-		assertEquals("12,345", valueToString(12345l));
-		assertEquals("12,345", valueToString(12345));
-		assertEquals("?", valueToString(Float.NaN));
-		assertEquals("-144", valueToString(Float.NEGATIVE_INFINITY));
-		assertEquals("144", valueToString(Float.POSITIVE_INFINITY));
-		assertEquals("12,345.7", valueToString(12345.67f));
-		assertEquals("12,345.6", valueToString(12345.61f));
-		assertEquals("?", valueToString(Double.NaN));
-		assertEquals("-144", valueToString(Double.NEGATIVE_INFINITY));
-		assertEquals("144", valueToString(Double.POSITIVE_INFINITY));
-		assertEquals("12,345.7", valueToString(12345.67d));
-		assertEquals("12,345.6", valueToString(12345.61d));
-		assertEquals("5", valueToString((short) 5));
-	}*/
 
 }

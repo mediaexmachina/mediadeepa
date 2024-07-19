@@ -47,7 +47,7 @@ class E2EGraphicTest extends E2EUtils {
 	}
 
 	@TestFactory
-	Stream<DynamicTest> testGraphics() throws IOException {
+	Stream<DynamicTest> testGraphics() {
 		rawData = prepareMpgForSimpleE2ETests();
 		if (rawData == null) {
 			return Stream.empty();

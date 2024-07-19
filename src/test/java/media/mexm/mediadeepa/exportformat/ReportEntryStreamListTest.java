@@ -42,7 +42,6 @@ class ReportEntryStreamListTest {
 	String codecType;
 	int index;
 
-	@Deprecated
 	NumberUtils numberUtils;
 
 	@BeforeEach
@@ -84,7 +83,7 @@ class ReportEntryStreamListTest {
 		String value1C;
 
 		@BeforeEach
-		void init() throws Exception {
+		void init() {
 			key0 = faker.numerify("key0###");
 			key1 = faker.numerify("key1###");
 			value0A = faker.numerify("valueA###");

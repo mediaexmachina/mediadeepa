@@ -53,7 +53,6 @@ class ReportEntrySubsetTest {
 	@Mock
 	ReportSection addToSection;
 
-	@Deprecated
 	NumberUtils numberUtils;
 
 	@BeforeEach

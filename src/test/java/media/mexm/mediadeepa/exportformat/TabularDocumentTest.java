@@ -47,7 +47,7 @@ import net.datafaker.Faker;
 
 class TabularDocumentTest {
 
-	final static Faker faker = Faker.instance();
+	static final Faker faker = Faker.instance();
 
 	TabularDocument doc;
 	String fileName;
@@ -128,8 +128,8 @@ class TabularDocumentTest {
 
 	@Test
 	void testRowObjectArray() throws MalformedURLException {
-		final var head = List.of("1", "2", "3", "4", "5", "6", "7", "8", "9");
-		doc.head(head);
+		final var headList = List.of("1", "2", "3", "4", "5", "6", "7", "8", "9");
+		doc.head(headList);
 
 		final var str = faker.numerify("item###");
 		final var duration = Duration.ofMillis(5);
@@ -148,7 +148,7 @@ class TabularDocumentTest {
 				numb,
 				url));
 
-		final var row = List.of(
+		final var rowList = List.of(
 				"",
 				str,
 				"00:00:00.005",
@@ -161,7 +161,7 @@ class TabularDocumentTest {
 
 		assertEquals(expectedOutputFile, doc.exportToFile(outputFileSupplier, result).get());
 
-		verify(exporter, times(1)).getDocument(head, List.of(row));
+		verify(exporter, times(1)).getDocument(headList, List.of(rowList));
 		verify(exporter, times(1)).getDocumentFileExtension();
 		verify(exporter, atLeast(1)).getNumberUtils();
 		verify(exporter, atLeast(1)).formatNumberHighPrecision(anyFloat());
