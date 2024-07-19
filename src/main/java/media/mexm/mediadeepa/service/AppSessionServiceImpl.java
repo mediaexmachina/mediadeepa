@@ -193,20 +193,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 		return 0;
 	}
 
-	private void miminalOptsChecksToProcessFile() {
-		if ((appCommand.getInput() == null || appCommand.getInput().isEmpty())
-			&& (appCommand.getInputList() == null || appCommand.getInputList().isEmpty())) {
-			cleanTempDir(appCommand.getTempDir());
-			throw new ParameterException(commandLine, "No input file/dir!");
-		}
-
-		final var oc = appCommand.getOutputCmd();
-		if (oc.getExportToCmd() == null && oc.getSingleExportCmd() == null) {
-			cleanTempDir(appCommand.getTempDir());
-			throw new ParameterException(commandLine, "Nothing to do with input file/dir!");
-		}
-	}
-
 	private void inputFileWorkChooser(final File inputFile) {
 		setupTempDir();
 		final var extractToCmd = appCommand.getOutputCmd().getExtractToCmd();
@@ -220,7 +206,11 @@ public class AppSessionServiceImpl implements AppSessionService {
 			startKeyPressExit();
 			createOfflineProcessingSession(inputFile);
 		} else {
-			miminalOptsChecksToProcessFile();
+			if ((appCommand.getInput() == null || appCommand.getInput().isEmpty())
+				&& (appCommand.getInputList() == null || appCommand.getInputList().isEmpty())) {
+				cleanTempDir(appCommand.getTempDir());
+				throw new ParameterException(commandLine, "No input file/dir!");
+			}
 			if (extractToCmd != null) {
 				log.info("Prepare extraction session from media file: {}", inputFile);
 				startKeyPressExit();
