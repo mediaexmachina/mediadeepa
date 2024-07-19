@@ -16,11 +16,118 @@
  */
 package media.mexm.mediadeepa.exportformat;
 
-public record ImageArtifact(String name, byte[] data) {// NOSONAR S6218
+import static j2html.TagCreator.img;
+import static org.apache.commons.codec.binary.Base64.encodeBase64String;
+
+import java.awt.Dimension;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Arrays;
+import java.util.Objects;
+
+import org.apache.commons.io.FileUtils;
+import org.jfree.chart.ChartUtils;
+import org.jfree.chart.JFreeChart;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import j2html.tags.specialized.ImgTag;
+
+public record ImageArtifact(String name, Dimension size, String contentType, byte[] data) {
+
+	public static final String IMAGE_PNG = "image/png";
+	public static final String IMAGE_JPEG = "image/jpeg";
+
+	@JsonIgnore
+	public boolean isPNG() {
+		return IMAGE_PNG.equalsIgnoreCase(contentType);
+	}
+
+	@JsonIgnore
+	public boolean isJPEG() {
+		return IMAGE_JPEG.equalsIgnoreCase(contentType);
+	}
+
+	public void writeToFile(final File file) {
+		try {
+			FileUtils.writeByteArrayToFile(file, data, false);
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't write to file " + file, e);
+		}
+	}
+
+	public static ImageArtifact renderChartToJPEGImage(final String name,
+													   final JFreeChart chart,
+													   final Dimension imageSize,
+													   final float jpegCompressRatio) {
+		try {
+			final var b = new ByteArrayOutputStream();
+			ChartUtils.writeChartAsJPEG(b, jpegCompressRatio, chart, imageSize.width, imageSize.height);
+			return new ImageArtifact(name, imageSize, IMAGE_JPEG, b.toByteArray());
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't export JPG", e);
+		}
+	}
+
+	public static ImageArtifact renderChartToPNGImage(final String name,
+													  final JFreeChart chart,
+													  final Dimension imageSize) {
+		try {
+			final var b = new ByteArrayOutputStream();
+			ChartUtils.writeChartAsPNG(b, chart, imageSize.width, imageSize.height);
+			return new ImageArtifact(name, imageSize, IMAGE_PNG, b.toByteArray());
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't export PNG", e);
+		}
+	}
+
+	public ImgTag makeEmbeddedHTMLImage(final String alt) {
+		return img()
+				.withAlt(alt)
+				.withWidth(String.valueOf(size.width / 2))
+				.withHeight(String.valueOf(size.height / 2))
+				.withSrc("data:" + contentType + ";base64," + encodeBase64String(data));
+	}
 
 	@Override
-	public final String toString() {
-		return name + " [" + data.length + " bytes]";
+	public String toString() {
+		final var builder = new StringBuilder();
+		builder.append("ImageArtifact [name=");
+		builder.append(name);
+		builder.append(", data=");
+		builder.append(data.length);
+		builder.append(" bytes, imageSize=");
+		builder.append(size);
+		builder.append(", contentType=");
+		builder.append(contentType);
+		builder.append("]");
+		return builder.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		final var prime = 31;
+		var result = 1;
+		result = prime * result + Arrays.hashCode(data);
+		result = prime * result + Objects.hash(name);
+		return result;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final var other = (ImageArtifact) obj;
+		return Arrays.equals(data, other.data) && Objects.equals(name, other.name);
 	}
 
 }

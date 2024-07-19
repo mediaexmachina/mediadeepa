@@ -38,6 +38,7 @@ import media.mexm.mediadeepa.rendererengine.components.EventsRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.FramesDurationRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.GopStatsRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.IdetRendererEngine;
+import media.mexm.mediadeepa.rendererengine.components.ImageWaveformRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.MediaSummaryRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.PacketsRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.SITIRendererEngine;
@@ -52,6 +53,8 @@ public class RendererEngineComparator implements Comparator<ReportRendererEngine
 	private static final List<Class<?>> ENGINE_DISPLAY_ORDER = List.of(
 			MediaSummaryRendererEngine.class,
 			FFProbeXMLExportFormat.class,
+
+			ImageWaveformRendererEngine.class,
 
 			Ebur128SummaryRendererEngine.class,
 			Ebur128RendererEngine.class,

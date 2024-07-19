@@ -19,9 +19,12 @@ package media.mexm.mediadeepa.rendererengine.components;
 import static java.awt.BasicStroke.CAP_BUTT;
 import static java.awt.BasicStroke.JOIN_MITER;
 import static java.awt.Color.BLACK;
+import static media.mexm.mediadeepa.exportformat.ImageArtifact.renderChartToPNGImage;
+import static media.mexm.mediadeepa.exportformat.report.ReportSectionCategory.AUDIO;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.util.List;
 import java.util.Optional;
 import java.util.TimeZone;
@@ -38,28 +41,34 @@ import org.jfree.data.time.TimeSeriesCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import j2html.TagCreator;
+import j2html.tags.DomContent;
+import media.mexm.mediadeepa.ConstStrings;
+import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ImageArtifact;
-import media.mexm.mediadeepa.rendererengine.RenderChartTraits;
+import media.mexm.mediadeepa.exportformat.report.ReportDocument;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
+import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 import media.mexm.mediadeepa.rendererengine.SignalImageRendererEngine;
 import tv.hd3g.fflauncher.recipes.wavmeasure.MeasuredWav;
 import tv.hd3g.fflauncher.recipes.wavmeasure.MeasuredWavEntry;
 
 @Component
-public class ImageWaveformRendererEngine implements SignalImageRendererEngine, RenderChartTraits {
+public class ImageWaveformRendererEngine implements SignalImageRendererEngine, ReportRendererEngine, ConstStrings {
 
 	@Autowired
 	private AppConfig appConfig;
 
 	@Override
 	public Optional<ImageArtifact> makeimagePNG(final DataResult result) {
-		final var width = (int) appConfig.getWavFormConfig().getImageSize().getWidth();
-		final var height = (int) appConfig.getWavFormConfig().getImageSize().getHeight();
+		final var imageSize = new Dimension(
+				(int) appConfig.getWavFormConfig().getImageSize().getWidth(),
+				(int) appConfig.getWavFormConfig().getImageSize().getHeight());
 
 		return extractAndMakeChart(result)
-				.map(chart -> renderPNGFromChart(chart, width, height))
-				.map(b -> new ImageArtifact(getManagedReturnName(), b));
+				.map(chart -> renderChartToPNGImage(getManagedReturnName(), chart, imageSize));
 	}
 
 	private Optional<JFreeChart> extractAndMakeChart(final DataResult result) {
@@ -172,5 +181,20 @@ public class ImageWaveformRendererEngine implements SignalImageRendererEngine, R
 	@Override
 	public String getDefaultInternalFileName() {
 		return appConfig.getWavFormConfig().getPngFilename();
+	}
+
+	@Override
+	public DomContent toDomContent(final NumberUtils numberUtils) {
+		return TagCreator.span("Mono view (peak and RMS)");
+	}
+
+	@Override
+	public void addToReport(final DataResult result, final ReportDocument document) {
+		if (result.getWavForm().isEmpty()) {
+			return;
+		}
+		final var section = new ReportSection(AUDIO, AUDIO_WAVEFORM);
+		addAllSignalImageToReport(this, result, section, appConfig);
+		document.add(section);
 	}
 }

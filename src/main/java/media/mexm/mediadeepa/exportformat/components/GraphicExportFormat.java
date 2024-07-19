@@ -78,7 +78,7 @@ public class GraphicExportFormat implements ExportFormat {
 				.filter(engine -> engine.getGraphicInternalProducedBaseFileNames().contains(baseFileName))
 				.findFirst()
 				.flatMap(engine -> engine.toSingleGraphic(baseFileName, result))
-				.map(ga -> ga.getRawData(appCommand, appConfig));
+				.map(ga -> ga.getImage(appCommand, appConfig).data());
 	}
 
 	@Override

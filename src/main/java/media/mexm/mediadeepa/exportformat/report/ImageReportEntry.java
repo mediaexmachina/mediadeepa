@@ -20,37 +20,30 @@ import static j2html.TagCreator.attrs;
 import static j2html.TagCreator.figcaption;
 import static j2html.TagCreator.figure;
 
-import java.awt.Dimension;
 import java.io.IOException;
 import java.util.Objects;
-
-import org.apache.commons.codec.binary.Base64;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
-import j2html.TagCreator;
 import j2html.tags.DomContent;
 import media.mexm.mediadeepa.components.NumberUtils;
+import media.mexm.mediadeepa.exportformat.ImageArtifact;
 
-public record GraphicReportEntry(DomContentProvider caption,
-								 Dimension imageSize,
-								 byte[] rawContent,
-								 String contentType) implements ReportEntry, JsonContentProvider {
+public record ImageReportEntry(ImageArtifact image,
+							   DomContentProvider caption) implements ReportEntry, JsonContentProvider {
 
 	@Override
 	public boolean isEmpty() {
-		return rawContent == null || rawContent.length == 0;
+		return false;
 	}
 
 	@Override
 	public DomContent toDomContent(final NumberUtils numberUtils) {
-		final var img = TagCreator.img()
-				.withAlt("Graphic image")
-				.withHeight(String.valueOf(imageSize.height / 2))
-				.withWidth(String.valueOf(imageSize.width / 2))
-				.withSrc("data:" + contentType + ";base64," + Base64.encodeBase64String(rawContent));
-		return figure(attrs(".graphic"), img, figcaption(caption.toDomContent(numberUtils)));
+		final var img = image.makeEmbeddedHTMLImage("Image " + image.name());
+		return figure(attrs(".image"),
+				img,
+				figcaption(caption.toDomContent(numberUtils)));
 	}
 
 	@Override
@@ -76,19 +69,17 @@ public record GraphicReportEntry(DomContentProvider caption,
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		final var other = (GraphicReportEntry) obj;
+		final var other = (ImageReportEntry) obj;
 		return Objects.equals(caption, other.caption);
 	}
 
 	@Override
 	public String toString() {
 		final var builder = new StringBuilder();
-		builder.append("GraphicReportEntry [caption=");
+		builder.append("ImageReportEntry [caption=");
 		builder.append(caption);
-		builder.append(", imageSize=");
-		builder.append(imageSize);
-		builder.append(", contentType=");
-		builder.append(contentType);
+		builder.append(", image=");
+		builder.append(image);
 		builder.append("]");
 		return builder.toString();
 	}

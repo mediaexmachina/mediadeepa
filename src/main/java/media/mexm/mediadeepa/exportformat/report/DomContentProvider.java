@@ -19,6 +19,7 @@ package media.mexm.mediadeepa.exportformat.report;
 import j2html.tags.DomContent;
 import media.mexm.mediadeepa.components.NumberUtils;
 
+@FunctionalInterface
 public interface DomContentProvider {
 
 	DomContent toDomContent(NumberUtils numberUtils);

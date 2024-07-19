@@ -25,7 +25,7 @@ window.addEventListener('load', (event) => {
     modalPopup.style.display = 'none';
   });
 
-  document.querySelectorAll('figure.graphic img').forEach(img => {
+  document.querySelectorAll('figure.image img').forEach(img => {
     img.addEventListener('click', e => {
       body.style.overflow = 'hidden';
       e.stopPropagation();

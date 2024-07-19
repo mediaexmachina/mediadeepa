@@ -20,8 +20,9 @@ import java.util.Optional;
 
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ImageArtifact;
+import media.mexm.mediadeepa.exportformat.report.DomContentProvider;
 
-public interface SignalImageRendererEngine {
+public interface SignalImageRendererEngine extends DomContentProvider {
 
 	Optional<ImageArtifact> makeimagePNG(DataResult result);
 

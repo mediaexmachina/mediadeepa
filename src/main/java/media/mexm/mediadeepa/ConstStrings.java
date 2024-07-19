@@ -283,6 +283,7 @@ public interface ConstStrings {// NOSONAR
 	String IMAGE_COMPRESSION_ARTIFACT_DETECTION = "Image compression artifact detection";
 	String SIGNAL_STATS = "Signal stats";
 	String AUDIO_FRAMES = "Audio frames";
+	String AUDIO_WAVEFORM = "Audio waveform";
 	String AUDIO_MEDIA_FILE_INFORMATION = "Audio media file information";
 	String FFMPEG_FILTERS_USED_IN_THIS_MEASURE = "FFmpeg filters used in this measure";
 

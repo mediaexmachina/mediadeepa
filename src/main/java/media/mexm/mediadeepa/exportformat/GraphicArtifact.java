@@ -16,22 +16,20 @@
  */
 package media.mexm.mediadeepa.exportformat;
 
+import static media.mexm.mediadeepa.exportformat.ImageArtifact.renderChartToJPEGImage;
+import static media.mexm.mediadeepa.exportformat.ImageArtifact.renderChartToPNGImage;
+
 import java.awt.Dimension;
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Objects;
-
-import org.apache.commons.io.FileUtils;
 
 import lombok.Getter;
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.config.AppConfig;
-import media.mexm.mediadeepa.exportformat.report.GraphicReportEntry;
-import media.mexm.mediadeepa.rendererengine.RenderChartTraits;
+import media.mexm.mediadeepa.exportformat.report.ImageReportEntry;
 
-public class GraphicArtifact implements RenderChartTraits {
+public class GraphicArtifact {
 
 	public static final String DOT_PNG = ".png";
 	public static final String DOT_JPEG = ".jpeg";
@@ -50,18 +48,12 @@ public class GraphicArtifact implements RenderChartTraits {
 		this.imageSize = Objects.requireNonNull(imageSize, "\"imageSize\" can't to be null");
 	}
 
-	public byte[] getRawData(final AppCommand appCommand, final AppConfig appConfig) {
+	public ImageArtifact getImage(final AppCommand appCommand, final AppConfig appConfig) {
 		if (appCommand.isGraphicJpg()) {
-			return renderJPEGFromChart(
-					graphic.chart(),
-					imageSize.width,
-					imageSize.height,
-					appConfig.getGraphicConfig().getJpegCompressionRatio());
+			final var cRatio = appConfig.getGraphicConfig().getJpegCompressionRatio();
+			return renderChartToJPEGImage(fileNameWOExt, graphic.chart(), imageSize, cRatio);
 		} else {
-			return renderPNGFromChart(
-					graphic.chart(),
-					imageSize.width,
-					imageSize.height);
+			return renderChartToPNGImage(fileNameWOExt, graphic.chart(), imageSize);
 		}
 	}
 
@@ -69,31 +61,23 @@ public class GraphicArtifact implements RenderChartTraits {
 					 final AppConfig appConfig,
 					 final OutputFileSupplier outputFileSupplier,
 					 final DataResult result) {
-		final var rawImage = getRawData(appCommand, appConfig);
+		final var image = getImage(appCommand, appConfig);
 
 		String fileName;
-		if (appCommand.isGraphicJpg()) {
+		if (image.isJPEG()) {
 			fileName = fileNameWOExt + DOT_JPEG;
 		} else {
 			fileName = fileNameWOExt + DOT_PNG;
 		}
 
 		final var outputFile = outputFileSupplier.makeOutputFile(result, fileName);
-		try {
-			FileUtils.writeByteArrayToFile(outputFile, rawImage, false);
-		} catch (final IOException e) {
-			throw new UncheckedIOException("Can't write file", e);
-		}
+		image.writeToFile(outputFile);
 		return outputFile;
 
 	}
 
-	public GraphicReportEntry toGraphicReportEntry(final AppCommand appCommand, final AppConfig appConfig) {
-		return new GraphicReportEntry(
-				graphic,
-				imageSize,
-				getRawData(appCommand, appConfig),
-				appCommand.isGraphicJpg() ? "image/jpeg" : "image/png");
+	public ImageReportEntry toGraphicReportEntry(final AppCommand appCommand, final AppConfig appConfig) {
+		return new ImageReportEntry(getImage(appCommand, appConfig), graphic);
 	}
 
 }

@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
+import media.mexm.mediadeepa.exportformat.report.ImageReportEntry;
 import media.mexm.mediadeepa.exportformat.report.ReportDocument;
 import media.mexm.mediadeepa.exportformat.report.ReportSection;
 
@@ -36,7 +37,7 @@ public interface ReportRendererEngine {
 										final ReportSection section,
 										final AppConfig appConfig,
 										final AppCommand appCommand) {
-		if (appConfig.getReportConfig().isAddGraphics() == false) {
+		if (appConfig.getReportConfig().isAddImages() == false) {
 			internalLog.debug("Don't compute graphic for report producing, by conf");
 			return;
 		}
@@ -51,6 +52,20 @@ public interface ReportRendererEngine {
 		graphics.stream()
 				.map(f -> f.toGraphicReportEntry(appCommand, appConfig))
 				.forEach(section::add);
+	}
+
+	default void addAllSignalImageToReport(final SignalImageRendererEngine signalImageRendererEngine,
+										   final DataResult result,
+										   final ReportSection section,
+										   final AppConfig appConfig) {
+		if (appConfig.getReportConfig().isAddImages() == false) {
+			internalLog.debug("Don't compute signal images for report producing, by conf");
+			return;
+		}
+
+		signalImageRendererEngine.makeimagePNG(result)
+				.map(image -> new ImageReportEntry(image, signalImageRendererEngine))
+				.ifPresent(section::add);
 	}
 
 }

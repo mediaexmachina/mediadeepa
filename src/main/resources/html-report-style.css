@@ -268,16 +268,16 @@ div.cropevent span.pos {
 	padding-right: 0rem;
 }
 
-figure.graphic span.rangename {
+figure.image span.rangename {
     font-weight: bold;
 }
 
-figure.graphic figcaption {
+figure.image figcaption {
     margin-left: 2em;
     margin-top: .4em;
 }
 
-figure.graphic span.serie span.color {
+figure.image span.serie span.color {
     display: inline-block;
     width: 1.3em;
     height: .9em;
@@ -285,7 +285,7 @@ figure.graphic span.serie span.color {
     margin-left: .3em;
 }
 
-figure.graphic img {
+figure.image img {
 	cursor: zoom-in;
 }
   

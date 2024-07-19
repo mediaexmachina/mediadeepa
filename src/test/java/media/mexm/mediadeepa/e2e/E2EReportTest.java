@@ -34,11 +34,11 @@ import media.mexm.mediadeepa.ConstStrings;
 
 class E2EReportTest extends E2EUtils implements ConstStrings {
 
-	private static final String MEDIADEEPA_REPORT_CONFIG_ADD_GRAPHICS = "mediadeepa.reportConfig.addGraphics";
+	private static final String MEDIADEEPA_REPORT_CONFIG_ADD_IMAGES = "mediadeepa.reportConfig.addImages";
 
 	@AfterAll
 	static void close() {
-		System.clearProperty(MEDIADEEPA_REPORT_CONFIG_ADD_GRAPHICS);
+		System.clearProperty(MEDIADEEPA_REPORT_CONFIG_ADD_IMAGES);
 	}
 
 	@Test
@@ -48,7 +48,7 @@ class E2EReportTest extends E2EUtils implements ConstStrings {
 			return;
 		}
 
-		System.setProperty(MEDIADEEPA_REPORT_CONFIG_ADD_GRAPHICS, "false");
+		System.setProperty(MEDIADEEPA_REPORT_CONFIG_ADD_IMAGES, "false");
 		final var outputFile = new File("target/e2e-export", "mpg-nographic_report.html");
 		runApp(
 				"--temp", "target/e2e-temp",
@@ -57,7 +57,7 @@ class E2EReportTest extends E2EUtils implements ConstStrings {
 				"-e", "target/e2e-export",
 				"--export-base-filename", "mpg-nographic");
 
-		System.clearProperty(MEDIADEEPA_REPORT_CONFIG_ADD_GRAPHICS);
+		System.clearProperty(MEDIADEEPA_REPORT_CONFIG_ADD_IMAGES);
 
 		assertTrue(outputFile.exists());
 		assertThat(outputFile.length()).isGreaterThan(30_000);
@@ -106,8 +106,8 @@ class E2EReportTest extends E2EUtils implements ConstStrings {
 				VIDEO_COMPRESSION_GROUP_OF_PICTURES,
 				VIDEO_MEDIA_FILE_INFORMATION,
 				VIDEO_FRAMES,
+				AUDIO_WAVEFORM,
 				"Event",
-				"<img alt=\"Graphic image\"",
 				"src=\"data:image/png;base64,")
 				.forEach(f -> assertThat(strContent).contains(f));
 	}
