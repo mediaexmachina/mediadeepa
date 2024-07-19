@@ -2,10 +2,10 @@
 .\"     Title: mediadeepa
 .\"    Author: Media ex Machina / hdsdi3g 
 .\" Generator: mediadeepa
-.\"      Date: 06/15/2024
-.\"    Source: mediadeepa 0.0.41
+.\"      Date: 07/19/2024
+.\"    Source: mediadeepa 0.0.42
 .\"  Language: English
-.TH "MEDIADEEPA" "1" "06/15/2024" "mediadeepa 0\&.0\&.41" ""
+.TH "MEDIADEEPA" "1" "07/19/2024" "mediadeepa 0\&.0\&.42" ""
 .\" -----------------------------------------------------------------
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
@@ -319,6 +319,13 @@ Disable media analysing (ffmpeg)
 .PP
 .RE
 
+\fB\-wfn\fR, \fB\-\-wavform\-no\fR
+.PP
+.RS 4
+Disable wavform measuring (ffmpeg)
+.PP
+.RE
+
 ==== Media type exclusive ====
 .PP
 \fB\-an\fR, \fB\-\-audio\-no\fR (required)
@@ -619,7 +626,7 @@ Send bug reports on GitHub project page \fIhttps://github\&.com/mediaexmachina/m
 If you have any questions, feel free to reach out via any contact method listed on https://mexm\&.media \fIhttps://mexm\&.media\fR\&.
 .PP
 
-Mediadeepa 0\&.0\&.41
+Mediadeepa 0\&.0\&.42
 .PP
 Copyright (C) 2022\-2024 Media ex Machina, under the GNU General Public License\&.
 .PP
