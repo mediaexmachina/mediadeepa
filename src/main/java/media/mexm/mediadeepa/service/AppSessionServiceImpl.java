@@ -58,6 +58,7 @@ import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.cli.OutputCmd;
+import media.mexm.mediadeepa.cli.ProcessFileCmd;
 import media.mexm.mediadeepa.components.ExportFormatComparator;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -192,9 +193,22 @@ public class AppSessionServiceImpl implements AppSessionService {
 		return 0;
 	}
 
+	private void miminalOptsChecksToProcessFile() {
+		if ((appCommand.getInput() == null || appCommand.getInput().isEmpty())
+			&& (appCommand.getInputList() == null || appCommand.getInputList().isEmpty())) {
+			cleanTempDir(appCommand.getTempDir());
+			throw new ParameterException(commandLine, "No input file/dir!");
+		}
+
+		final var oc = appCommand.getOutputCmd();
+		if (oc.getExportToCmd() == null && oc.getSingleExportCmd() == null) {
+			cleanTempDir(appCommand.getTempDir());
+			throw new ParameterException(commandLine, "Nothing to do with input file/dir!");
+		}
+	}
+
 	private void inputFileWorkChooser(final File inputFile) {
 		setupTempDir();
-		final var processFileCmd = appCommand.getProcessFileCmd();
 		final var extractToCmd = appCommand.getOutputCmd().getExtractToCmd();
 		if (checkIfSourceIsZIP(inputFile)) {
 			if (extractToCmd != null) {
@@ -205,7 +219,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 			log.info("Prepare processing session from offline ffmpeg/ffprobe exports: {}", inputFile);
 			startKeyPressExit();
 			createOfflineProcessingSession(inputFile);
-		} else if (processFileCmd != null) {
+		} else {
+			miminalOptsChecksToProcessFile();
 			if (extractToCmd != null) {
 				log.info("Prepare extraction session from media file: {}", inputFile);
 				startKeyPressExit();
@@ -215,9 +230,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 				startKeyPressExit();
 				createProcessingSession(inputFile);
 			}
-		} else {
-			cleanTempDir(appCommand.getTempDir());
-			throw new ParameterException(commandLine, "Nothing to do with " + inputFile.getAbsolutePath() + "!");
 		}
 		cleanTempDir(appCommand.getTempDir());
 	}
@@ -370,7 +382,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 	}
 
 	private void createExtractionSession(final File inputFile) {
-		final var processFileCmd = appCommand.getProcessFileCmd();
+		final var processFileCmd = Optional.ofNullable(appCommand.getProcessFileCmd()).orElse(new ProcessFileCmd());
 		final var extractToCmd = appCommand.getOutputCmd().getExtractToCmd();
 		final var tempDir = appCommand.getTempDir();
 		final var zippedTxtFileNames = appConfig.getZippedArchive();
@@ -443,7 +455,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 	}
 
 	private void createProcessingSession(final File inputFile) {
-		final var processFileCmd = appCommand.getProcessFileCmd();
+		final var processFileCmd = Optional.ofNullable(appCommand.getProcessFileCmd()).orElse(new ProcessFileCmd());
 		final var tempDir = appCommand.getTempDir();
 
 		final var dataResult = new DataResult(inputFile.getName(), getVersion());
