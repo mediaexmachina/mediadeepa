@@ -203,7 +203,7 @@ public interface ConstStrings {// NOSONAR
 	String FRAME_COUNT = "Frame count";
 	String INITIAL_PADDING = "Initial padding";
 	String START_TIME = "Start time";
-	String START_PTS = "Start PTS";
+	String START_PTS = "Start pres. TS";
 	String FILM_GRAIN = "Film grain";
 	String CLOSED_CAPTIONS = "Closed captions";
 	String EXTRADATA = "Extradata";

@@ -110,7 +110,7 @@ public class FramesDurationRendererEngine implements
 				new RangeAxis("Frame duration (milliseconds)", minRange, maxRange),
 				allFrames.size());
 
-		dataGraphic.addSeries(new SeriesStyle("DTS video frame duration", BLUE, THIN_STROKE),
+		dataGraphic.addSeries(new SeriesStyle("Decoding time stamp video frame duration", BLUE, THIN_STROKE),
 				pktDtsTimeDerivative);
 		dataGraphic.addSeries(new SeriesStyle("Best effort video frame duration", RED, THICK_STROKE),
 				bestEffortTimestampTimeDerivative);
