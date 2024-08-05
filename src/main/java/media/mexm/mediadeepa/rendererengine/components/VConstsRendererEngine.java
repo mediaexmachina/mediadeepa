@@ -170,9 +170,10 @@ public class VConstsRendererEngine implements
 					vConstSection.add(new NumericUnitValueReportEntry(
 							PIXEL_SURFACE, videoConst.width() * videoConst.height(), PIXEL_S));
 
+					final var vSAR = Optional.ofNullable(videoConst.sampleAspectRatio()).orElse("0:0");
 					try {
-						final var sarW = Integer.parseInt(videoConst.sampleAspectRatio().split(":")[0]);
-						final var sarH = Integer.parseInt(videoConst.sampleAspectRatio().split(":")[1]);
+						final var sarW = Integer.parseInt(vSAR.split(":")[0]);
+						final var sarH = Integer.parseInt(vSAR.split(":")[1]);
 
 						vConstSection.add(new RatioReportEntry(
 								DISPLAY_ASPECT_RATIO, sarW, sarH,
