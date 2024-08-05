@@ -141,13 +141,11 @@ public class MediaSummaryRendererEngine implements
 	private void saveFFprobeStreamToReportEntries(final FFProbeStream stream, final ReportEntryStream reportEntry) {
 		reportEntry.add(CODEC_NAME, stream.codecLongName());
 		reportEntry.add(CODEC_INTERNAL_NAME, stream.codecName());
-		reportEntry.add(CODEC_TAG, stream.codecTag() + "/" + stream.codecTagString() + ")");
+		reportEntry.add(CODEC_TAG, stream.codecTagString() + " (" + stream.codecTag() + ")");
+		reportEntry.add(CODEC_PROFILE, stream.profile());
 
-		Optional.ofNullable(stream.tags())
-				.map(List::stream)
-				.stream()
-				.flatMap(identity())
-				.forEach(tag -> reportEntry.add("Tag: " + tag.key(), tag.value()));
+		Optional.ofNullable(stream.level())
+				.ifPresent(c -> reportEntry.add(CODEC_LEVEL, getLevelTag(stream.codecName(), c)));
 
 		reportEntry.add(DISPOSITION,
 				Optional.ofNullable(stream.disposition())
@@ -158,22 +156,13 @@ public class MediaSummaryRendererEngine implements
 		reportEntry.add(BITRATE_INDICATED, stream.bitRate(), BYTE_S_SEC);
 		reportEntry.add(MAX_BITRATE_INDICATED, stream.maxBitRate(), BYTE_S_SEC);
 		reportEntry.add(BITS_PER_RAW_SAMPLE, stream.bitsPerRawSample(), BIT_S);
-		if (stream.bitsPerSample() > 0) {
-			reportEntry.add(BITS_PER_SAMPLE, stream.bitsPerSample(), BIT_S);
-		}
+		reportEntry.add(BITS_PER_SAMPLE, stream.bitsPerSample(), BIT_S, stream.bitsPerSample() > 0);
 		reportEntry.add(REAL_FRAME_RATE, stream.rFrameRate(), "0/0");
 		reportEntry.add(AVERAGE_FRAME_RATE, stream.avgFrameRate(), "0/0");
-		if (stream.extradata() != null && stream.extradata().isEmpty() == false) {
 			reportEntry.add(EXTRADATA, stream.extradata() + ", " +
 									   stream.extradataSize() + " " + BIT_S + " (" +
-									   stream.extradataHash() + ")");
-		}
-		if (TRUE.equals(stream.closedCaptions())) {
-			reportEntry.add(CLOSED_CAPTIONS, CAN_CONTAIN);
-		}
-		if (TRUE.equals(stream.filmGrain())) {
-			reportEntry.add(FILM_GRAIN, CAN_CONTAIN);
-		}
+								   stream.extradataHash() + ")",
+				stream.extradata() != null && stream.extradata().isEmpty() == false);
 
 		reportEntry.add(START_PTS, stream.startPts(), "");
 		reportEntry.add(START_TIME, durationToString(stream.startTime()));
@@ -183,40 +172,42 @@ public class MediaSummaryRendererEngine implements
 		reportEntry.add(DURATION_TS, stream.durationTs(), "");
 		reportEntry.add(TIME_BASE, stream.timeBase());
 
-		reportEntry.add(WIDTH, stream.width(), PIXEL_S);
-		reportEntry.add(HEIGHT, stream.height(), PIXEL_S);
-		if (stream.codedWidth() > 0) {
-			reportEntry.add(CODED_WIDTH, stream.codedWidth(), PIXEL_S);
+		reportEntry.add(CLOSED_CAPTIONS, CAN_CONTAIN,
+				TRUE.equals(stream.closedCaptions()));
+
+		if ("video".equalsIgnoreCase(stream.codecType())) {
+			reportEntry.add(WIDTH, stream.width(), PIXEL_S);
+			reportEntry.add(HEIGHT, stream.height(), PIXEL_S);
+			reportEntry.add(CODED_WIDTH, stream.codedWidth(), PIXEL_S, stream.codedWidth() > 0);
+			reportEntry.add(CODED_HEIGHT, stream.codedHeight(), PIXEL_S, stream.codedHeight() > 0);
+			reportEntry.add(HAS_B_FRAMES, stream.hasBFrames() ? CAN_CONTAIN : "No");
+			reportEntry.add(SAMPLE_ASPECT_RATIO, stream.sampleAspectRatio());
+			reportEntry.add(DISPLAY_ASPECT_RATIO, stream.displayAspectRatio());
+			reportEntry.add(PIXEL_FORMAT, stream.pixFmt());
+			reportEntry.add(CHROMA_LOCATION, stream.chromaLocation());
+			reportEntry.add(COLOR_PRIMARIES, stream.colorPrimaries());
+			reportEntry.add(COLOR_SPACE, stream.colorSpace());
+			reportEntry.add(COLOR_TRANSFERT, stream.colorTransfer());
+			reportEntry.add(FILM_GRAIN, CAN_CONTAIN, TRUE.equals(stream.filmGrain()));
+			reportEntry.add(FIELD_ORDER, stream.fieldOrder());
+			reportEntry.add(REFS, stream.refs(), REFS_MIN);
 		}
-		if (stream.codedHeight() > 0) {
-			reportEntry.add(CODED_HEIGHT, stream.codedHeight(), PIXEL_S);
+
+		if ("audio".equalsIgnoreCase(stream.codecType())) {
+			reportEntry.add(SAMPLE_FORMAT, stream.sampleFmt());
+			reportEntry.add(SAMPLE_RATE, stream.sampleRate(), HZ_SEC);
+			reportEntry.add(CHANNEL_COUNT, stream.channels(), CHANNEL_S);
+			reportEntry.add(CHANNEL_LAYOUT, stream.channelLayout());
 		}
 
-		reportEntry.add(HAS_B_FRAMES, stream.hasBFrames() ? CAN_CONTAIN : "No");
-		reportEntry.add(SAMPLE_ASPECT_RATIO, stream.sampleAspectRatio());
-		reportEntry.add(DISPLAY_ASPECT_RATIO, stream.displayAspectRatio());
-		reportEntry.add(PIXEL_FORMAT, stream.pixFmt());
-		reportEntry.add(CHROMA_LOCATION, stream.chromaLocation());
-		reportEntry.add(COLOR_PRIMARIES, stream.colorPrimaries());
-		reportEntry.add(COLOR_SPACE, stream.colorSpace());
-		reportEntry.add(COLOR_TRANSFERT, stream.colorTransfer());
+		reportEntry.add(NB_READ_FRAMES, stream.nbReadFrames(), FRAME_S, stream.nbReadFrames() > 0);
+		reportEntry.add(NB_READ_PACKETS, stream.nbReadPackets(), PACKET_S, stream.nbReadPackets() > 0);
 
-		reportEntry.add(CODEC_PROFILE, stream.profile());
-
-		Optional.ofNullable(stream.level())
-				.ifPresent(c -> reportEntry.add(CODEC_LEVEL, getLevelTag(stream.codecName(), c)));
-
-		reportEntry.add(FIELD_ORDER, stream.fieldOrder());
-		reportEntry.add(REFS, stream.refs(), REFS_MIN);
-
-		reportEntry.add(SAMPLE_FORMAT, stream.sampleFmt());
-		reportEntry.add(SAMPLE_RATE, stream.sampleRate(), HZ_SEC);
-
-		reportEntry.add(CHANNEL_COUNT, stream.channels(), CHANNEL_S);
-		reportEntry.add(CHANNEL_LAYOUT, stream.channelLayout());
-
-		reportEntry.add(NB_READ_FRAMES, stream.nbReadFrames(), FRAME_S);
-		reportEntry.add(NB_READ_PACKETS, stream.nbReadPackets(), PACKET_S);
+		Optional.ofNullable(stream.tags())
+				.map(List::stream)
+				.stream()
+				.flatMap(identity())
+				.forEach(tag -> reportEntry.add("Tag: " + tag.key(), tag.value()));
 
 		reportEntry.add(SIDE_DATA,
 				stream.sideDataList().stream().map(f -> {

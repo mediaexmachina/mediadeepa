@@ -66,6 +66,14 @@ public final class ReportEntryStream implements ReportEntry, JsonContentProvider
 		return this;
 	}
 
+	public ReportEntryStream add(final String key, final String value, final boolean addIf) {
+		if (addIf == false) {
+			return this;
+		}
+
+		return add(key, value);
+	}
+
 	private void checkNull(final ReportEntry previous) {
 		if (previous == null) {
 			return;
@@ -89,6 +97,13 @@ public final class ReportEntryStream implements ReportEntry, JsonContentProvider
 			return;
 		}
 		checkNull(entries.put(key, new NumericUnitValueReportEntry(key, value, unit)));
+	}
+
+	public void add(final String key, final Number value, final String unit, final boolean addIf) {
+		if (addIf == false) {
+			return;
+		}
+		add(key, value, unit);
 	}
 
 	private static final Predicate<Entry<String, ReportEntry>> notEmpty = entry -> entry.getValue().isEmpty() == false;
