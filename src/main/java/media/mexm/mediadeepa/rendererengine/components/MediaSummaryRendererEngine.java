@@ -144,8 +144,9 @@ public class MediaSummaryRendererEngine implements
 		reportEntry.add(CODEC_TAG, stream.codecTagString() + " (" + stream.codecTag() + ")");
 		reportEntry.add(CODEC_PROFILE, stream.profile());
 
-		Optional.ofNullable(stream.level())
-				.ifPresent(c -> reportEntry.add(CODEC_LEVEL, getLevelTag(stream.codecName(), c)));
+		if (stream.level() > 0 && stream.codecName() != null) {
+			reportEntry.add(CODEC_LEVEL, getLevelTag(stream.codecName(), stream.level()));
+		}
 
 		reportEntry.add(DISPOSITION,
 				Optional.ofNullable(stream.disposition())
@@ -159,8 +160,8 @@ public class MediaSummaryRendererEngine implements
 		reportEntry.add(BITS_PER_SAMPLE, stream.bitsPerSample(), BIT_S, stream.bitsPerSample() > 0);
 		reportEntry.add(REAL_FRAME_RATE, stream.rFrameRate(), "0/0");
 		reportEntry.add(AVERAGE_FRAME_RATE, stream.avgFrameRate(), "0/0");
-			reportEntry.add(EXTRADATA, stream.extradata() + ", " +
-									   stream.extradataSize() + " " + BIT_S + " (" +
+		reportEntry.add(EXTRADATA, stream.extradata() + ", " +
+								   stream.extradataSize() + " " + BIT_S + " (" +
 								   stream.extradataHash() + ")",
 				stream.extradata() != null && stream.extradata().isEmpty() == false);
 
