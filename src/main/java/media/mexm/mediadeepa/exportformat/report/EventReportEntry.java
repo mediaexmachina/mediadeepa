@@ -22,7 +22,6 @@ import static j2html.TagCreator.span;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -35,7 +34,9 @@ import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 
 public record EventReportEntry(String eventType,
 							   LavfiMtdEvent event,
-							   Optional<Duration> sourceDuration)
+							   Optional<Duration> sourceDuration,
+							   boolean mustKeepEndSpacePresent,
+							   boolean mustKeepScopeSpacePresent)
 							  implements ReportEntry, JsonContentProvider {
 
 	public static final class EventReportEntryHeader implements ReportEntry, JsonContentProvider {
@@ -43,15 +44,10 @@ public record EventReportEntry(String eventType,
 		final boolean hasScope;
 		final boolean hasEnd;
 
-		public EventReportEntryHeader(final List<LavfiMtdEvent> events, final Optional<Duration> sourceDuration) {
-			hasScope = events.stream()
-					.anyMatch(event -> event.scope() != null
-									   && event.scope().isEmpty() == false);
-			hasEnd = events.stream()
-					.map(LavfiMtdEvent::end)
-					.anyMatch(end -> end != null
-									 && end.toMillis() > 0
-									 || sourceDuration.isPresent());
+		public EventReportEntryHeader(final boolean hasScope,
+									  final boolean hasEnd) {
+			this.hasScope = hasScope;
+			this.hasEnd = hasEnd;
 		}
 
 		@Override
@@ -76,21 +72,24 @@ public record EventReportEntry(String eventType,
 
 	}
 
-	public static EventReportEntryHeader createHeader(final List<LavfiMtdEvent> events,
-													  final Optional<Duration> sourceDuration) {
-		return new EventReportEntryHeader(events, sourceDuration);
+	public static boolean haveEnd(final LavfiMtdEvent event, final Optional<Duration> sourceDuration) {
+		return event.end() != null && event.end().toMillis() > 0 || sourceDuration.isPresent();
 	}
 
 	private Optional<Duration> getEnd() {
-		if (event.end() != null && event.end().toMillis() > 0 || sourceDuration.isPresent()) {
+		if (haveEnd(event, sourceDuration)) {
 			return Optional.ofNullable(event.getEndOr(sourceDuration.get()));
 		} else {
 			return Optional.empty();
 		}
 	}
 
+	public static boolean haveScope(final LavfiMtdEvent event) {
+		return event.scope() != null && event.scope().isEmpty() == false;
+	}
+
 	private Optional<String> getScope() {
-		if (event.scope() != null && event.scope().isEmpty() == false) {
+		if (haveScope(event)) {
 			return Optional.ofNullable(event.scope());
 		}
 		return Optional.empty();
@@ -102,7 +101,7 @@ public record EventReportEntry(String eventType,
 
 		final var spanScope = getScope()
 				.map(s -> span(attrs(".scope.value"), s))
-				.orElse(span());
+				.orElse(mustKeepScopeSpacePresent ? span(attrs(".value")) : span());
 
 		final var spanStart = span(attrs(".start.value"), numberUtils.durationToString(event.start()));
 		final var oEnd = getEnd();
@@ -115,7 +114,7 @@ public record EventReportEntry(String eventType,
 		final var spanDuration = oEnd
 				.map(end -> span(attrs(".duration.value"),
 						numberUtils.durationToString(end.minus(event.start()))))
-				.orElse(span());
+				.orElse(mustKeepEndSpacePresent ? span(attrs(".value")) : span());
 
 		return div(attrs(".entry.event"), spanType, spanScope, spanStart, spanEnd, spanDuration);
 	}

@@ -22,6 +22,7 @@ import static java.awt.Color.RED;
 import static java.awt.Color.YELLOW;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THICK_STROKE;
 import static media.mexm.mediadeepa.exportformat.DataGraphic.THIN_STROKE;
+import static media.mexm.mediadeepa.exportformat.report.EventReportEntry.haveEnd;
 
 import java.awt.Color;
 import java.awt.Stroke;
@@ -47,6 +48,7 @@ import media.mexm.mediadeepa.exportformat.TabularDocument;
 import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.TimedDataGraphic;
 import media.mexm.mediadeepa.exportformat.report.EventReportEntry;
+import media.mexm.mediadeepa.exportformat.report.EventReportEntry.EventReportEntryHeader;
 import media.mexm.mediadeepa.exportformat.report.ReportDocument;
 import media.mexm.mediadeepa.exportformat.report.ReportSection;
 import media.mexm.mediadeepa.exportformat.report.ReportSectionCategory;
@@ -215,10 +217,9 @@ public class EventsRendererEngine implements
 				.map(MediaAnalyserProcessResult::lavfiMetadatas)
 				.ifPresent(lavfiMetadatas -> {
 					final var duration = result.getSourceDuration();
-
 					final var section = new ReportSection(ReportSectionCategory.EVENTS, EVENTS2);
 
-					final var allEvents = Stream.of(
+					final var tEvents = Stream.of(
 							Event.getEvents(AUDIO_SILENCE, lavfiMetadatas.getSilenceEvents()),
 							Event.getEvents(AUDIO_MONO, lavfiMetadatas.getMonoEvents()),
 							Event.getEvents(BLACK_FRAMES, lavfiMetadatas.getBlackEvents()),
@@ -227,12 +228,20 @@ public class EventsRendererEngine implements
 							.sorted()
 							.toList();
 
+					final var someHaveEnd = tEvents.stream()
+							.map(Event::mtdEvent)
+							.anyMatch(event -> haveEnd(event, duration));
+					final var someHaveScope = tEvents.stream()
+							.map(Event::mtdEvent)
+							.anyMatch(EventReportEntry::haveScope);
+
+					final var allEvents = tEvents.stream()
+							.map(event -> event.toEventReportEntry(duration, someHaveEnd, someHaveScope))
+							.toList();
+
 					Stream.concat(
-							Stream.of(EventReportEntry.createHeader(
-									allEvents.stream().map(Event::mtdEvent).toList(),
-									duration)),
-							allEvents.stream()
-									.map(event -> event.toEventReportEntry(duration)))
+							Stream.of(new EventReportEntryHeader(someHaveScope, someHaveEnd)),
+							allEvents.stream())
 							.forEach(section::add);
 
 					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
@@ -251,8 +260,10 @@ public class EventsRendererEngine implements
 			return mtdEvent.stream().map(event -> new Event(type, event));
 		}
 
-		EventReportEntry toEventReportEntry(final Optional<Duration> duration) {
-			return new EventReportEntry(type, mtdEvent, duration);
+		EventReportEntry toEventReportEntry(final Optional<Duration> duration,
+											final boolean someHaveEnd,
+											final boolean someHaveScope) {
+			return new EventReportEntry(type, mtdEvent, duration, someHaveEnd, someHaveScope);
 		}
 
 	}
