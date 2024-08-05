@@ -313,3 +313,7 @@ div.image-modal-popup img {
 	max-height: 100vh;
     max-width: 100%;
 }
+
+div.chapters {
+    display: block;
+}

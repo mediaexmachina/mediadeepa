@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import media.mexm.mediadeepa.exportformat.report.EventReportEntry.EventReportEntryHeader;
+import media.mexm.mediadeepa.exportformat.report.ReportEntryChapters.ReportEntryChapter;
 
 public sealed interface JsonContentProvider
 											permits
@@ -50,6 +51,8 @@ public sealed interface JsonContentProvider
 											ReportEntryStream,
 											ReportEntryStreamList,
 											ReportEntrySubset,
+											ReportEntryChapters,
+											ReportEntryChapter,
 											StatisticsUnitValueReportEntry,
 											ImageReportEntry {
 	Logger internalLog = getLogger(JsonContentProvider.class);

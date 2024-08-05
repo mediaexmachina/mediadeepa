@@ -37,6 +37,7 @@ import media.mexm.mediadeepa.exportformat.TabularExportFormat;
 import media.mexm.mediadeepa.exportformat.report.NumericUnitValueReportEntry;
 import media.mexm.mediadeepa.exportformat.report.ReportDocument;
 import media.mexm.mediadeepa.exportformat.report.ReportEntry;
+import media.mexm.mediadeepa.exportformat.report.ReportEntryChapters;
 import media.mexm.mediadeepa.exportformat.report.ReportEntryStream;
 import media.mexm.mediadeepa.exportformat.report.ReportEntryStreamList;
 import media.mexm.mediadeepa.exportformat.report.ReportSection;
@@ -124,9 +125,7 @@ public class MediaSummaryRendererEngine implements
 							});
 
 					section.add(saveFFprobeStreamList(ffprobe.getStreams()));
-
-					section.add(new NumericUnitValueReportEntry(
-							CHAPTERS, ffprobe.getChapters().size(), CHAPTER_S));
+					section.add(new ReportEntryChapters(ffprobe.getChapters()));
 					document.add(section);
 				});
 	}
