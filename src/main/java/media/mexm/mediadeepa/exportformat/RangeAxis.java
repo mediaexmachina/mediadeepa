@@ -17,6 +17,7 @@
 package media.mexm.mediadeepa.exportformat;
 
 import static java.awt.Color.GRAY;
+import static java.lang.Double.isFinite;
 import static java.lang.Double.isNaN;
 import static java.lang.Math.abs;
 
@@ -90,7 +91,10 @@ public record RangeAxis(String name, Number min, Number max) {
 	}
 
 	private void setRangeAxisParam(final Font font, final NumberAxis rangeAxis) {
-		if (min != null && max != null) {
+		if (min != null
+			&& max != null
+			&& isFinite(min.doubleValue())
+			&& isFinite(max.doubleValue())) {
 			rangeAxis.setRange(min.doubleValue(), max.doubleValue());
 			rangeAxis.setAutoRange(false);
 		} else {
