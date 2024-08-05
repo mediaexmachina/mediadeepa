@@ -26,13 +26,16 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.jfree.chart.ChartFactory;
+import org.jfree.data.general.SeriesException;
 import org.jfree.data.time.FixedMillisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class TimedDataGraphic extends DataGraphic {
 
 	private static final String RANGE_AXIS_CAN_T_TO_BE_NULL = "\"rangeAxis\" can't to be null";
@@ -126,7 +129,16 @@ public class TimedDataGraphic extends DataGraphic {
 		private TimeSeries getTimeSeries() {
 			final var ts = new TimeSeries(getName());
 			IntStream.range(0, datas.size())
-					.forEach(pos -> ts.add(positions.get(pos), datas.get(pos)));
+					.forEach(pos -> {
+						final var valuePos = positions.get(pos);
+						final var data = datas.get(pos);
+						try {
+							ts.add(valuePos, data);
+						} catch (final SeriesException se) {
+							log.warn("Duplicate values added on \"{}\": {} was previouly set. New value ignored: {}.",
+									getName(), valuePos.getSerialIndex(), data);
+						}
+					});
 			return ts;
 		}
 

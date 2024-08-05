@@ -181,7 +181,7 @@ public class VFramesRendererEngine implements
 		final var dataGraphic = TimedDataGraphic.create(
 				videoFramesReport.stream()
 						.filter(f -> f.streamIndex() == firstStreamIndex)
-						.map(FFprobeBaseFrame::pktDtsTime),
+						.map(f -> f.ptsTime() < 0f ? f.pktDtsTime() : f.ptsTime()),
 				RangeAxis.createFromRelativesValueSet(
 						"Frame size (kbytes)", 0,
 						values.stream()));

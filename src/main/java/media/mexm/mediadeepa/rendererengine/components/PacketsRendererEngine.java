@@ -135,15 +135,18 @@ public class PacketsRendererEngine implements
 					final var sumSizes = packets.stream().reduce(
 							sumList,
 							(list, packet) -> {
-								final var position = (int) Math.round(Math.ceil(packet.dtsTime()));
+								final var time = packet.ptsTime() < 0f ? packet.dtsTime() : packet.ptsTime();
+								final var position = (int) Math.round(Math.ceil(time));
 								if (position >= list.size()) {
 									final var map = new EnumMap<FFprobeCodecType, Integer>(FFprobeCodecType.class);
 									map.put(packet.codecType(), packet.size());
 									list.add(map);
-								} else {
+								} else if (list.isEmpty() == false) {
 									final var pos = list.size() - 1;
-									list.get(pos).merge(packet.codecType(), packet.size(), (actual, pSize) -> actual
-																											  + pSize);
+									list.get(pos).merge(
+											packet.codecType(),
+											packet.size(),
+											(actual, pSize) -> actual + pSize);
 								}
 								return list;
 							},
