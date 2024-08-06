@@ -37,7 +37,7 @@ jobs:
       - name: Extract version tag
         run: echo "VERSION=$(git describe --tags)" >> $GITHUB_ENV
       - name: Extract JAR file name
-        run: echo "JAR_FILE=$(find "target" -type f -name "*.jar")" >> $GITHUB_ENV
+        run: echo "JAR_FILE=$(find "target" -maxdepth 1 -type f -name "*.jar")" >> $GITHUB_ENV
       - name: Create release
         run: |
           curl --request POST -H 'Accept: application/vnd.github+json' -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -H 'X-GitHub-Api-Version: 2022-11-28' --fail \
@@ -66,9 +66,9 @@ jobs:
         env:
           SKIP_BUILD: 1
       - name: Extract RPM file name
-        run: echo "RPM_FILE=$(find "target" -type f -name "*.rpm")" >> $GITHUB_ENV
+        run: echo "RPM_FILE=$(find "target" -maxdepth 1 -type f -name "*.rpm")" >> $GITHUB_ENV
       - name: Extract DEB file name
-        run: echo "DEB_FILE=$(find "target" -type f -name "*.deb")" >> $GITHUB_ENV
+        run: echo "DEB_FILE=$(find "target" -maxdepth 1 -type f -name "*.deb")" >> $GITHUB_ENV
       - name: Push created RPM file to release
         run: |
           curl --request POST -H "Accept: application/vnd.github+json" -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -H "X-GitHub-Api-Version: 2022-11-28" --fail \
