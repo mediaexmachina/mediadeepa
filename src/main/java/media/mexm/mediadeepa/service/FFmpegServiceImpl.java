@@ -265,12 +265,6 @@ public class FFmpegServiceImpl implements FFmpegService {
 		final var progress = progressSupplier.get();
 		ca.setProgressWatcher(new FFprobeXMLProgressWatcher(
 				programDuration,
-				r -> {
-					final var t = new Thread(r);
-					t.setDaemon(true);
-					t.setName("Watcher for ffprobe container analyser");
-					return t;
-				},
 				s -> progress.displayProgress(0, 1),
 				event -> progress.displayProgress(event.progress(), event.speed()),
 				s -> progress.end()));
