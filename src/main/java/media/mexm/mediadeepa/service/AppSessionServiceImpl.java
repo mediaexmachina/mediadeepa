@@ -135,13 +135,13 @@ public class AppSessionServiceImpl implements AppSessionService {
 		final var isSingleExportCmd = appCommand.getOutputCmd().getSingleExportCmd() != null;
 		new WorkingSession(
 				appCommand.getInput(),
+				this::inputFileWorkChooser,
 				this::validateInputFile,
 				isSingleExportCmd,
 				() -> {
 					throw new ParameterException(commandLine,
 							"Can't process multiple input sources on single export mode (only one in, one out)!");
-				})
-						.startWork(this::inputFileWorkChooser);
+				}).startWork();
 
 		/**
 		 * TODO after that, all will be deprecated
