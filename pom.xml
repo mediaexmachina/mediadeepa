@@ -63,6 +63,7 @@
             <groupId>tv.hd3g.commons</groupId>
             <artifactId>testtools</artifactId>
             <version>${prodlib.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>info.picocli</groupId>
