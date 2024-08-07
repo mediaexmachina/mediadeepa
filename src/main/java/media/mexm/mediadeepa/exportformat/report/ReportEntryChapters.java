@@ -44,12 +44,14 @@ public final class ReportEntryChapters implements ConstStrings, ReportEntry, Jso
 											Duration position,
 											Map<String, String> tags) implements JsonContentProvider {
 
+		private static final String TITLE_ = "title";
+
 		private static ReportEntryChapter getFromFFprobe(final FFProbeChapter ffprobeChapter) {
 			final Map<String, String> tags = ffprobeChapter.tags().stream()
-					.filter(c -> c.key().equalsIgnoreCase("title") == false)
+					.filter(c -> c.key().equalsIgnoreCase(TITLE_) == false)
 					.collect(toUnmodifiableMap(f -> f.key().toLowerCase(), FFProbeKeyValue::value));
 			final var title = ffprobeChapter.tags().stream()
-					.filter(c -> c.key().equalsIgnoreCase("title"))
+					.filter(c -> c.key().equalsIgnoreCase(TITLE_))
 					.findFirst().map(FFProbeKeyValue::value)
 					.orElse("");
 
@@ -68,7 +70,7 @@ public final class ReportEntryChapters implements ConstStrings, ReportEntry, Jso
 		@Override
 		public void toJson(final JsonGenerator gen, final SerializerProvider provider) throws IOException {
 			gen.writeStartObject();
-			gen.writeStringField("title", title);
+			gen.writeStringField(TITLE_, title);
 			gen.writeNumberField("position", position.toMillis());
 			gen.writeEndObject();
 		}

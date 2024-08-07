@@ -23,7 +23,7 @@
         <target>System.err</target>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>
-                %-5level %msg%n
+                %d{HH:mm:ss.SSS} %-5level %logger{0} &#8249;%thread&#8250;&#9;&#8220;%msg&#8221;%n &#8227; %C.%M\(%F:%L\)%n%n
             </pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
@@ -36,6 +36,8 @@
     <logger name="tv.hd3g" level="warn" />
     <logger name="media.mexm.mediadeepa.components.RendererEngineComparator" level="error" />
     <logger name="media.mexm.mediadeepa.components.ExportFormatComparator" level="error" />
+    <logger name="tv.hd3g.jobkit.engine" level="error" />
+    <!--logger name="tv.hd3g.jobkit" level="" /-->
 
     <root level="warn">
         <appender-ref ref="Console OUT" />

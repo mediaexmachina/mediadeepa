@@ -18,6 +18,7 @@ package media.mexm.mediadeepa.service;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -27,8 +28,8 @@ import media.mexm.mediadeepa.exportformat.ExportFormat;
 
 public interface MediaAnalyticsTransformerService {
 
-	void exportAnalytics(DataResult result,
-						 ExportToCmd exportToCmd);
+	Map<String, File> exportAnalytics(DataResult result,
+									  ExportToCmd exportToCmd);
 
 	void singleExportAnalytics(String internalFileName,
 							   DataResult result,

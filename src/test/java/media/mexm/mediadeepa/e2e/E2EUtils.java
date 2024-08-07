@@ -66,6 +66,7 @@ abstract class E2EUtils {
 	static {
 		App.setDefaultProps();
 		System.setProperty("mediadeepa.disableKeyPressExit", "true");
+		System.setProperty("mediadeepa.addSourceExtToOutputDirectories", "true");
 	}
 
 	static void runApp(final Supplier<Boolean> dontExecIf, final String... rawParams) {
@@ -87,7 +88,7 @@ abstract class E2EUtils {
 		runApp(() -> false, params);
 	}
 
-	static void extractRawTXT(final E2ERawOutDataFiles rawData) {
+	static void extractToZip(final E2ERawOutDataFiles rawData) {
 		runApp(() -> rawData.allOutExists(),
 				"-i", rawData.mediaFile().getPath(), "-c",
 				"--temp", "target/e2e-temp",
@@ -134,23 +135,23 @@ abstract class E2EUtils {
 	}
 
 	static E2ERawOutDataFiles prepareMovForSimpleE2ETests() {
-		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_MOV);
+		return prepareForSimpleE2ETests(MEDIA_FILE_NAME_MOV);
 	}
 
 	static E2ERawOutDataFiles prepareMpgForSimpleE2ETests() {
-		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_MPG);
+		return prepareForSimpleE2ETests(MEDIA_FILE_NAME_MPG);
 	}
 
 	static E2ERawOutDataFiles prepareTsForSimpleE2ETests() {
-		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_TS);
+		return prepareForSimpleE2ETests(MEDIA_FILE_NAME_TS);
 	}
 
-	static E2ERawOutDataFiles prepareMovForSimpleE2ETests(final File mediaFile) {
+	static E2ERawOutDataFiles prepareForSimpleE2ETests(final File mediaFile) {
 		final var rawData = E2ERawOutDataFiles.create(mediaFile);
 		if (mediaFile.exists() == false) {
 			return null;
 		}
-		extractRawTXT(rawData);
+		extractToZip(rawData);
 		assertTrue(rawData.allOutExists());
 		return rawData;
 	}

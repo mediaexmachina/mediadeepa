@@ -48,6 +48,40 @@ mediadeepa -i analysing-archive.zip -i videofile.mov -i anotherfile.wav -f repor
 
 You can mix archive zip files and media files, but beware to not *import* with *extract* (zip to zip) or use single output file mode (`--single-export`).
 
+## Directory scan to input files
+
+With the same restrictions as _Multiple Import or Process_, you can use a directory with `-i` parameter.
+
+```
+mediadeepa -i /some/directory -i /some/another/directory -f report -f graphic -e .
+```
+
+All _non hidden_ founded files, not recursively (ignore the sub directories) will be used. You should use include/exclude parameter to manage the file selection criteria.
+
+Use:
+
+```
+mediadeepa -i /some/directory --recursive --exclude-path never-this --include-ext ".mkv" -f report -f graphic -e .
+```
+
+To
+
+ - scan recursively `/some/directory` directory
+ - with the `/some/directory/never-this/*` directory ignored
+ - only for MKV files
+
+More options are available.
+
+## Realities directory scan to input files
+
+With the same options and restrictions as _Directory scan to input files_, just add `--scan 10` to scan every 10 seconds all provided directories (simple `-i` files will be processed on application starts), like:
+
+```
+mediadeepa -i /some/directory --scan 10 -f report -f graphic -e .
+```
+
+Stop the scans with a key-press, or just with `CTRL+C`.
+
 ## Load files to process from a text file
 
 With the `-il`, as *input list* option:

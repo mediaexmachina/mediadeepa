@@ -4,6 +4,8 @@ You can found some documentation:
  - On the Mediadeepa command line interface.
  - On the integrated app man page.
 
+This documentation source is located on `src/main/resources/doc/en` directory.
+
 Send bug reports on [GitHub project page](https://github.com/mediaexmachina/mediadeepa/issues)
  - Help with the documentation.
  - Propose pull requests.

@@ -18,6 +18,7 @@ package media.mexm.mediadeepa.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import picocli.CommandLine.ParameterException;
 
@@ -30,5 +31,7 @@ public interface AppSessionService {
 	void validateOutputFile(File file) throws ParameterException;
 
 	void validateOutputDir(File dir) throws ParameterException;
+
+	Map<String, File> fileWork(File inputFile, boolean multipleSources);
 
 }

@@ -16,10 +16,12 @@
  */
 package media.mexm.mediadeepa.components;
 
+import static org.apache.commons.io.FilenameUtils.getBaseName;
+import static org.apache.commons.io.FilenameUtils.getExtension;
+
 import java.io.File;
 import java.util.Optional;
 
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,15 +42,14 @@ public class OutputFileSupplier {
 	@Autowired
 	private AppConfig appConfig;
 
-	public File makeOutputFile(final DataResult result, final String suffix) {
+	public File makeOutputFile(final DataResult dataResult, final String suffix) {
 		var filePrefix = "";
-		if (appCommand.getInput() != null && appCommand.getInput().size() > 1
-			|| appCommand.getInputList() != null && appCommand.getInputList().isEmpty() == false) {
-			final var rawSource = result.getSource();
-			var correctedSource = FilenameUtils.getBaseName(rawSource);
-			final var sourceExt = FilenameUtils.getExtension(rawSource);
+		if (dataResult.isInMultipleSourcesSet()) {
+			final var rawSource = dataResult.getSource();
+			var correctedSource = getBaseName(rawSource);
+			final var sourceExt = getExtension(rawSource);
 			if (appConfig.isAddSourceExtToOutputDirectories() && sourceExt.isEmpty() == false) {
-				correctedSource = correctedSource + "." + sourceExt;
+				correctedSource = correctedSource + "-" + sourceExt;
 			}
 			filePrefix = correctedSource + "_";
 		}
@@ -58,22 +59,27 @@ public class OutputFileSupplier {
 		final var baseFileName = oExportToCmd.map(ExportToCmd::getBaseFileName).orElse(null);
 		final var export = oExportToCmd.map(ExportToCmd::getExport).orElseThrow();
 
+		final var result = assembleOutputParams(suffix, filePrefix, baseFileName, export);
+		log.trace(MAKE_OUTPUT_FILE_NAME, result);
+		return result;
+	}
+
+	private File assembleOutputParams(final String suffix,
+									  final String filePrefix,
+									  final String baseFileName,
+									  final File export) {
 		if (baseFileName != null && baseFileName.isEmpty() == false) {
 			if (baseFileName.endsWith("_")
 				|| baseFileName.endsWith(" ")
 				|| baseFileName.endsWith("-")
 				|| baseFileName.endsWith("|")) {
-				final var f = new File(export, filePrefix + baseFileName + suffix);
-				log.trace(MAKE_OUTPUT_FILE_NAME, f);
-				return f;
+				return new File(export, filePrefix + baseFileName + suffix);
+			} else {
+				return new File(export, filePrefix + baseFileName + "_" + suffix);
 			}
-			final var f = new File(export, filePrefix + baseFileName + "_" + suffix);
-			log.trace(MAKE_OUTPUT_FILE_NAME, f);
-			return f;
+		} else {
+			return new File(export, filePrefix + suffix);
 		}
-		final var f = new File(export, filePrefix + suffix);
-		log.trace(MAKE_OUTPUT_FILE_NAME, f);
-		return f;
 	}
 
 }

@@ -79,7 +79,7 @@ class OutputFileSupplierTest {
 	String suffix;
 	String baseFileName;
 	File export;
-	File inputFile;
+	String inputFile;
 
 	@BeforeEach
 	void init() throws Exception {
@@ -88,10 +88,10 @@ class OutputFileSupplierTest {
 		suffix = faker.numerify("suffix###");
 		baseFileName = faker.numerify("baseFileName###");
 
-		inputFile = new File(faker.numerify("inputDir###")
-							 + separator
-							 + faker.numerify("inputFile###")
-							 + "." + faker.numerify("ext###"));
+		inputFile = faker.numerify("inputDir###")
+					+ separator
+					+ faker.numerify("inputFile###")
+					+ "." + faker.numerify("ext###");
 		when(appCommand.getInput()).thenReturn(List.of(inputFile));
 		when(appCommand.getOutputCmd()).thenReturn(outputCmd);
 		when(outputCmd.getExportToCmd()).thenReturn(exportToCmd);
@@ -102,12 +102,13 @@ class OutputFileSupplierTest {
 
 	@AfterEach
 	void ends() {
-		verify(appCommand, atLeastOnce()).getInput();
+		verify(appCommand, atLeast(0)).getInput();
 		verify(appCommand, atLeast(0)).getInputList();
 		verify(appCommand, atLeastOnce()).getOutputCmd();
 		verify(outputCmd, atLeastOnce()).getExportToCmd();
 		verify(exportToCmd, atLeastOnce()).getExport();
 		verify(exportToCmd, atLeastOnce()).getBaseFileName();
+		verify(result, atLeast(0)).isInMultipleSourcesSet();
 
 		verifyNoMoreInteractions(result, appCommand, outputCmd, exportToCmd);
 
@@ -139,35 +140,38 @@ class OutputFileSupplierTest {
 
 		@BeforeEach
 		void init() {
-			inputFileName = FilenameUtils.getBaseName(inputFile.getPath());
+			inputFileName = FilenameUtils.getBaseName(inputFile);
 			when(appCommand.getInput()).thenReturn(List.of(inputFile, inputFile));
-			when(result.getSource()).thenReturn(inputFile.getPath());
+			when(result.getSource()).thenReturn(inputFile);
+			when(result.isInMultipleSourcesSet()).thenReturn(true);
 		}
 
 		@AfterEach
 		void ends() {
 			verify(result, atLeastOnce()).getSource();
+			verify(result, atLeastOnce()).isInMultipleSourcesSet();
 			appConfig.setAddSourceExtToOutputDirectories(false);
 		}
 
 		@Test
 		void testMakeOutputFile_noBaseFileName() {
-			assertEquals(new File(export, inputFileName + "_" + suffix), ofs.makeOutputFile(result, suffix));
+			assertEquals(new File(export, inputFileName + "_" + suffix),
+					ofs.makeOutputFile(result, suffix));
 		}
 
 		@Test
 		void testMakeOutputFile_simpleBaseFileName() {
 			when(exportToCmd.getBaseFileName()).thenReturn(baseFileName);
-			assertEquals(new File(export, inputFileName + "_" + baseFileName + "_" + suffix), ofs.makeOutputFile(result,
-					suffix));
+			assertEquals(new File(export, inputFileName + "_" + baseFileName + "_" + suffix),
+					ofs.makeOutputFile(result, suffix));
 		}
 
 		@ParameterizedTest
 		@ValueSource(strings = { "_", " ", "-", "|" })
 		void testMakeOutputFile_separatedBaseFileName(final String sep) {
 			when(exportToCmd.getBaseFileName()).thenReturn(baseFileName + sep);
-			assertEquals(new File(export, inputFileName + "_" + baseFileName + sep + suffix), ofs.makeOutputFile(result,
-					suffix));
+			assertEquals(new File(export, inputFileName + "_" + baseFileName + sep + suffix),
+					ofs.makeOutputFile(result, suffix));
 		}
 
 	}
@@ -179,7 +183,7 @@ class OutputFileSupplierTest {
 		@BeforeEach
 		void init() {
 			super.init();
-			inputFileName = inputFile.getName();
+			inputFileName = FilenameUtils.getName(inputFile).replace(".", "-");
 			appConfig.setAddSourceExtToOutputDirectories(true);
 		}
 

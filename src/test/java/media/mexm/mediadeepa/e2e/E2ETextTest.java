@@ -46,7 +46,6 @@ import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
@@ -87,7 +86,7 @@ class E2ETextTest extends E2EUtils {
 		}
 
 		void checks() throws IOException {
-			extractRawTXT(rawData);
+			extractToZip(rawData);
 			FileUtils.forceMkdir(e2eExportDir);
 			checkZipArchive();
 
@@ -491,7 +490,7 @@ class E2ETextTest extends E2EUtils {
 			return;
 		}
 		final var exportBaseFilename = "long-mkv";
-		extractRawTXT(rawData);
+		extractToZip(rawData);
 		assertTrue(rawData.allOutExists());
 
 		runApp(() -> new File("target/e2e-export", "long-mkv_about.txt").exists(),
@@ -545,22 +544,15 @@ class E2ETextTest extends E2EUtils {
 		List<String> params;
 		String exportBaseFilename;
 
-		@AfterAll
-		static void open() {
-			System.clearProperty("mediadeepa.addSourceExtToOutputDirectories");
-		}
-
 		@BeforeEach
 		void init() throws IOException {
-			System.setProperty("mediadeepa.addSourceExtToOutputDirectories", "true");
-
 			inputs = ALL_MEDIA_FILE_NAME.stream()
 					.filter(File::exists)
 					.map(E2ERawOutDataFiles::create)
 					.toList();
 			if (inputs.isEmpty() == false) {
 				for (final var rawData : inputs) {
-					extractRawTXT(rawData);
+					extractToZip(rawData);
 					assertTrue(rawData.allOutExists());
 				}
 			}
@@ -628,8 +620,6 @@ class E2ETextTest extends E2EUtils {
 
 			final var realFileCountAfter = getCurrentFileCountMultipleInputs();
 			assertThat(realFileCountAfter).isGreaterThanOrEqualTo(expectedFileCount);
-
-			System.clearProperty("mediadeepa.addSourceExtToOutputDirectories");
 		}
 
 		private int getCurrentFileCountMultipleInputs() {
@@ -638,7 +628,8 @@ class E2ETextTest extends E2EUtils {
 					.map(File::getName)
 					.map(sourceName -> sourceName + "_" + exportBaseFilename)
 					.flatMap(fileNamePrefix -> Stream.of(
-							exportDir.listFiles(f -> wildcardMatch(f.getName(), fileNamePrefix + "*"))))
+							exportDir.listFiles(f -> wildcardMatch(f.getName(),
+									fileNamePrefix.replace(".", "-") + "*"))))
 					.filter(f -> f.length() > 0)
 					.count();
 		}

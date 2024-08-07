@@ -15,12 +15,12 @@
     <parent>
         <groupId>tv.hd3g.commons</groupId>
         <artifactId>app</artifactId>
-        <version>21.1.0</version>
+        <version>22.0.0</version>
         <relativePath />
     </parent>
 
     <properties>
-        <prodlib.version>21.1.0</prodlib.version>
+        <prodlib.version>22.0.0</prodlib.version>
         <medialib.version>19.0.0</medialib.version>
 
         <linux-springboot-packager.kind>cli</linux-springboot-packager.kind>
@@ -52,6 +52,11 @@
         <dependency>
             <groupId>tv.hd3g.commons</groupId>
             <artifactId>env-version</artifactId>
+            <version>${prodlib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>tv.hd3g</groupId>
+            <artifactId>jobkit-watchfolder</artifactId>
             <version>${prodlib.version}</version>
         </dependency>
         <dependency>

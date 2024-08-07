@@ -16,6 +16,8 @@
  */
 package media.mexm.mediadeepa.config;
 
+import static java.io.File.pathSeparator;
+
 import java.awt.Dimension;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -97,6 +99,18 @@ public class AppConfig {
 	private String ffmpegExecName = "ffmpeg";
 	private String ffprobeExecName = "ffprobe";
 	private boolean addSourceExtToOutputDirectories = false;
+
+	private ScanDir scanDir = new ScanDir();
+
+	@Data
+	public class ScanDir {
+		private int depthScanDirectories = 10;
+		private String ignoreFiles = "desktop.ini" + pathSeparator
+									 + ".DS_Store" + pathSeparator
+									 + "Thumbs.db";
+		private int retryAfterTimeFactor = 10;
+		private int minFixedStateTime = 500;
+	}
 
 	private WavFormConfig wavFormConfig = new WavFormConfig();
 

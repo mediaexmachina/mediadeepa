@@ -16,13 +16,18 @@
  */
 package media.mexm.mediadeepa.service;
 
+import static java.util.Collections.unmodifiableMap;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -60,12 +65,27 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 	}
 
 	@Override
-	public void exportAnalytics(final DataResult result,
-								final ExportToCmd exportToCmd) {
+	public Map<String, File> exportAnalytics(final DataResult result,
+											 final ExportToCmd exportToCmd) {
 		log.info("Start export result files...");
-		exportToCmd.getFormat().stream()
+		final var resultFiles = exportToCmd.getFormat()
+				.stream()
 				.map(this::getExportFormatByName)
-				.forEach(s -> doExportAnalytic(result, s));
+				.map(s -> doExportAnalytic(result, s))
+				.toList();
+
+		final var exportNames = resultFiles.stream()
+				.map(Map::keySet)
+				.flatMap(Set::stream)
+				.toList();
+		final var distinctCount = (int) exportNames.stream().distinct().count();
+		if (distinctCount != exportNames.size()) {
+			throw new IllegalStateException("Duplicate items on result lists: " + exportNames);
+		}
+
+		final var exported = new LinkedHashMap<String, File>(distinctCount);
+		resultFiles.forEach(rf -> rf.forEach(exported::put));
+		return unmodifiableMap(exported);
 	}
 
 	private void singleExportAnalytics(final String internalFileName,
@@ -124,7 +144,7 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 				});
 	}
 
-	private void doExportAnalytic(final DataResult result, final ExportFormat s) {
+	private Map<String, File> doExportAnalytic(final DataResult result, final ExportFormat s) {
 		final var now = System.currentTimeMillis();
 		log.info("Export with {} ({})...", s.getFormatLongName(), s.getFormatName());
 		final var producedFiles = s.exportResult(result);
@@ -156,6 +176,7 @@ public class MediaAnalyticsTransformerServiceImpl implements MediaAnalyticsTrans
 					.forEach(entry -> log.info("{} has product {}: {}",
 							s.getFormatName(), entry.getKey(), entry.getValue().getPath()));
 		}
+		return producedFiles;
 	}
 
 }
