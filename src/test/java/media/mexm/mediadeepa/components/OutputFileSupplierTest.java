@@ -79,7 +79,7 @@ class OutputFileSupplierTest {
 	String suffix;
 	String baseFileName;
 	File export;
-	File inputFile;
+	String inputFile;
 
 	@BeforeEach
 	void init() throws Exception {
@@ -88,10 +88,10 @@ class OutputFileSupplierTest {
 		suffix = faker.numerify("suffix###");
 		baseFileName = faker.numerify("baseFileName###");
 
-		inputFile = new File(faker.numerify("inputDir###")
-							 + separator
-							 + faker.numerify("inputFile###")
-							 + "." + faker.numerify("ext###"));
+		inputFile = faker.numerify("inputDir###")
+					+ separator
+					+ faker.numerify("inputFile###")
+					+ "." + faker.numerify("ext###");
 		when(appCommand.getInput()).thenReturn(List.of(inputFile));
 		when(appCommand.getOutputCmd()).thenReturn(outputCmd);
 		when(outputCmd.getExportToCmd()).thenReturn(exportToCmd);
@@ -139,9 +139,9 @@ class OutputFileSupplierTest {
 
 		@BeforeEach
 		void init() {
-			inputFileName = FilenameUtils.getBaseName(inputFile.getPath());
+			inputFileName = FilenameUtils.getBaseName(inputFile);
 			when(appCommand.getInput()).thenReturn(List.of(inputFile, inputFile));
-			when(result.getSource()).thenReturn(inputFile.getPath());
+			when(result.getSource()).thenReturn(inputFile);
 		}
 
 		@AfterEach
@@ -179,7 +179,7 @@ class OutputFileSupplierTest {
 		@BeforeEach
 		void init() {
 			super.init();
-			inputFileName = inputFile.getName();
+			inputFileName = FilenameUtils.getName(inputFile);
 			appConfig.setAddSourceExtToOutputDirectories(true);
 		}
 

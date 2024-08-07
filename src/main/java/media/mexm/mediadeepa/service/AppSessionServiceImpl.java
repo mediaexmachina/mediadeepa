@@ -122,28 +122,37 @@ public class AppSessionServiceImpl implements AppSessionService {
 			throw new ParameterException(commandLine, "Nothing to do, missing an output action!");
 		}
 
+		final var inputFiles = appCommand.getInput();
+		final var inputList = appCommand.getInputList();
+		if ((inputFiles == null || inputFiles.isEmpty())
+			&& (inputList == null || inputList.isEmpty())) {
+			throw new ParameterException(commandLine, "You must set at least an input file");
+		}
+
 		verifyExtractToCmdOutput();
 		verifyExportToCmdOutput();
 
-		new WorkingSession(appCommand.getInput())
-				.startWork(this::inputFileWorkChooser);
+		final var isSingleExportCmd = appCommand.getOutputCmd().getSingleExportCmd() != null;
+		new WorkingSession(
+				appCommand.getInput(),
+				this::validateInputFile,
+				isSingleExportCmd,
+				() -> {
+					throw new ParameterException(commandLine,
+							"Can't process multiple input sources on single export mode (only one in, one out)!");
+				})
+						.startWork(this::inputFileWorkChooser);
 
 		/**
 		 * TODO after that, all will be deprecated
 		 */
 
-		final var inputFiles = Optional.ofNullable(appCommand.getInput())
-				.orElse(List.of())
-				.stream()
-				.map(File::new)
-				.toList();
-		if (inputFiles.size() > 1) {
-			inputFiles.forEach(f -> log.info("Prepare to work on {}", f.getAbsolutePath()));
+		if (inputList != null) {
+			inputList.stream()
+					.map(File::new)
+					.forEach(this::validateInputFile);
 		}
 
-		verifyInputs(inputFiles);
-
-		final var inputList = appCommand.getInputList();
 		List<File> inputListFile = List.of();
 		if (inputList != null && inputList.isEmpty() == false) {
 			inputListFile = inputList.stream()
@@ -157,7 +166,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 					.toList();
 		}
 
-		inputFiles.forEach(this::inputFileWorkChooser);
 		inputListFile.forEach(this::inputFileWorkChooser);
 
 		return 0;
@@ -272,30 +280,6 @@ public class AppSessionServiceImpl implements AppSessionService {
 			} catch (final IOException e) {
 				throw new UncheckedIOException("Can't delete temp directory: " + tempDir.getAbsolutePath(), e);
 			}
-		}
-	}
-
-	private void verifyInputs(final List<File> inputFiles) {
-		if (inputFiles.isEmpty() == false) {
-			final var isSingleExportCmd = appCommand.getOutputCmd().getSingleExportCmd() != null;
-			if (inputFiles.size() > 1 && isSingleExportCmd) {
-				throw new ParameterException(commandLine,
-						"Can't process multiple input sources on single export mode (only one in, one out)!");
-			}
-
-			inputFiles.forEach(this::validateInputFile);
-		}
-
-		final var inputList = appCommand.getInputList();
-		if (inputList != null) {
-			inputList.stream()
-					.map(File::new)
-					.forEach(this::validateInputFile);
-		}
-
-		if ((inputFiles == null || inputFiles.isEmpty())
-			&& (inputList == null || inputList.isEmpty())) {
-			throw new ParameterException(commandLine, "You must set at least an input file");
 		}
 	}
 

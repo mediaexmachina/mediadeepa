@@ -111,7 +111,7 @@ class AppSessionServiceTest {
 		when(ffmpegService.getMtdFiltersAvaliable()).thenReturn(Map.of());
 
 		processFileCmd = new ProcessFileCmd();
-		appCommand.setInput(List.of(File.createTempFile("mediadeepa", ".tmp")));
+		appCommand.setInput(List.of(File.createTempFile("mediadeepa", ".tmp").getAbsolutePath()));
 		appCommand.setProcessFileCmd(null);
 	}
 
@@ -195,7 +195,7 @@ class AppSessionServiceTest {
 		assertThrows(UncheckedIOException.class,
 				() -> appSessionService.validateOutputDir(dirFile));
 
-		final var regularFile = appCommand.getInput().get(0);
+		final var regularFile = new File(appCommand.getInput().get(0));
 		assertTrue(regularFile.exists());
 		assertThrows(ParameterException.class,
 				() -> appSessionService.validateOutputDir(regularFile));
