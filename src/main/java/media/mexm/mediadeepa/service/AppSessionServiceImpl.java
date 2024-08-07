@@ -57,12 +57,12 @@ import media.mexm.mediadeepa.ImpExArchiveExtractionSession.ExtractedFileEntry;
 import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.cli.AppCommand;
-import media.mexm.mediadeepa.cli.OutputCmd;
 import media.mexm.mediadeepa.cli.ProcessFileCmd;
 import media.mexm.mediadeepa.components.ExportFormatComparator;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
+import media.mexm.mediadeepa.workingsession.WorkingSession;
 import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.Help;
@@ -105,70 +105,43 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 	@Override
 	public int runCli() throws IOException {
-		final var out = commandLine.getOut();
-
 		if (appCommand.isVersion()) {
-			commandLine.printVersionHelp(
-					out,
-					Help.Ansi.AUTO,
-					environmentVersion.appVersion(),
-					LocalDate.now().getYear());
+			displayVersion();
 			return 0;
 		}
-
 		if (appCommand.isOptions()) {
-			final var versions = ffmpegService.getVersions();
-			out.println("Use:");
-			out.format("%-15s%-15s\n", "ffmpeg", executableFinder.get(appConfig.getFfmpegExecName())); // NOSONAR S3457
-			out.format("%-15s%-15s\n", "", versions.get("ffmpeg"));// NOSONAR S3457
-			out.println("");
-			out.format("%-15s%-15s\n", "ffprobe", executableFinder.get(appConfig.getFfprobeExecName())); // NOSONAR S3457
-			out.format("%-15s%-15s\n", "", versions.get("ffprobe"));// NOSONAR S3457
-			out.println("");
-			out.println("Detected (and usable) filters:");
-			ffmpegService.getMtdFiltersAvaliable()
-					.forEach((k, v) -> out.format("%-15s%-15s\n", k, v)); // NOSONAR S3457
-			out.println("");
-			out.println("Export formats available (and produced files):");
-			exportFormatList.stream()
-					.sorted(exportFormatComparator)
-					.forEach(eF -> {
-						final var files = eF.getInternalProducedFileNames();
-						final var fileList = files.stream().sorted().collect(joining(", "));
-						if (files.size() > 1) {
-							out.format("%-15s%-15s\n%-15s%-15s\n", // NOSONAR S3457
-									eF.getFormatName(),
-									eF.getFormatLongName(),
-									"",
-									" > " + fileList);
-						} else {
-							out.format("%-15s%-15s\n", // NOSONAR S3457
-									eF.getFormatName(),
-									eF.getFormatLongName() + " > " + fileList);
-						}
-					});
-
+			displayOptions();
 			return 0;
 		}
-
 		if (appCommand.isAutocomplete()) {
-			out.println(AutoComplete.bash(NAME, commandLine).replace(
-					"# " + NAME + " Bash Completion",
-					"# " + NAME + " " + environmentVersion.appVersion() + " Bash Completion"));
+			displayAutocomplete();
 			return 0;
 		}
 
-		final var outputCmd = Optional.ofNullable(appCommand.getOutputCmd())
-				.orElseThrow(() -> new ParameterException(commandLine,
-						"Nothing to do, missing an output action!"));
-		verifyInputs(outputCmd);
-		verifyExtractToCmd(outputCmd);
-		verifyExportToCmd(outputCmd);
+		if (appCommand.getOutputCmd() == null) {
+			throw new ParameterException(commandLine, "Nothing to do, missing an output action!");
+		}
 
-		final var inputFiles = appCommand.getInput();
-		if (inputFiles != null && inputFiles.size() > 1) {
+		verifyExtractToCmdOutput();
+		verifyExportToCmdOutput();
+
+		new WorkingSession(appCommand.getInput())
+				.startWork(this::inputFileWorkChooser);
+
+		/**
+		 * TODO after that, all will be deprecated
+		 */
+
+		final var inputFiles = Optional.ofNullable(appCommand.getInput())
+				.orElse(List.of())
+				.stream()
+				.map(File::new)
+				.toList();
+		if (inputFiles.size() > 1) {
 			inputFiles.forEach(f -> log.info("Prepare to work on {}", f.getAbsolutePath()));
 		}
+
+		verifyInputs(inputFiles);
 
 		final var inputList = appCommand.getInputList();
 		List<File> inputListFile = List.of();
@@ -184,13 +157,59 @@ public class AppSessionServiceImpl implements AppSessionService {
 					.toList();
 		}
 
-		Optional.ofNullable(inputFiles)
-				.stream()
-				.flatMap(List::stream)
-				.forEach(this::inputFileWorkChooser);
+		inputFiles.forEach(this::inputFileWorkChooser);
 		inputListFile.forEach(this::inputFileWorkChooser);
 
 		return 0;
+	}
+
+	private void displayAutocomplete() {
+		commandLine.getOut()
+				.println(AutoComplete.bash(NAME, commandLine).replace(
+						"# " + NAME + " Bash Completion",
+						"# " + NAME + " " + environmentVersion.appVersion() + " Bash Completion"));
+	}
+
+	private void displayOptions() throws FileNotFoundException {
+		final var out = commandLine.getOut();
+		final var versions = ffmpegService.getVersions();
+		out.println("Use:");
+		out.format("%-15s%-15s\n", "ffmpeg", executableFinder.get(appConfig.getFfmpegExecName())); // NOSONAR S3457
+		out.format("%-15s%-15s\n", "", versions.get("ffmpeg"));// NOSONAR S3457
+		out.println("");
+		out.format("%-15s%-15s\n", "ffprobe", executableFinder.get(appConfig.getFfprobeExecName())); // NOSONAR S3457
+		out.format("%-15s%-15s\n", "", versions.get("ffprobe"));// NOSONAR S3457
+		out.println("");
+		out.println("Detected (and usable) filters:");
+		ffmpegService.getMtdFiltersAvaliable()
+				.forEach((k, v) -> out.format("%-15s%-15s\n", k, v)); // NOSONAR S3457
+		out.println("");
+		out.println("Export formats available (and produced files):");
+		exportFormatList.stream()
+				.sorted(exportFormatComparator)
+				.forEach(eF -> {
+					final var files = eF.getInternalProducedFileNames();
+					final var fileList = files.stream().sorted().collect(joining(", "));
+					if (files.size() > 1) {
+						out.format("%-15s%-15s\n%-15s%-15s\n", // NOSONAR S3457
+								eF.getFormatName(),
+								eF.getFormatLongName(),
+								"",
+								" > " + fileList);
+					} else {
+						out.format("%-15s%-15s\n", // NOSONAR S3457
+								eF.getFormatName(),
+								eF.getFormatLongName() + " > " + fileList);
+					}
+				});
+	}
+
+	private void displayVersion() {
+		commandLine.printVersionHelp(
+				commandLine.getOut(),
+				Help.Ansi.AUTO,
+				environmentVersion.appVersion(),
+				LocalDate.now().getYear());
 	}
 
 	private void inputFileWorkChooser(final File inputFile) {
@@ -256,10 +275,10 @@ public class AppSessionServiceImpl implements AppSessionService {
 		}
 	}
 
-	private void verifyInputs(final OutputCmd outputCmd) {
-		final var inputFiles = appCommand.getInput();
-		if (inputFiles != null && inputFiles.isEmpty() == false) {
-			if (inputFiles.size() > 1 && outputCmd.getSingleExportCmd() != null) {
+	private void verifyInputs(final List<File> inputFiles) {
+		if (inputFiles.isEmpty() == false) {
+			final var isSingleExportCmd = appCommand.getOutputCmd().getSingleExportCmd() != null;
+			if (inputFiles.size() > 1 && isSingleExportCmd) {
 				throw new ParameterException(commandLine,
 						"Can't process multiple input sources on single export mode (only one in, one out)!");
 			}
@@ -280,14 +299,14 @@ public class AppSessionServiceImpl implements AppSessionService {
 		}
 	}
 
-	private void verifyExtractToCmd(final OutputCmd outputCmd) {
-		Optional.ofNullable(outputCmd.getExtractToCmd())
+	private void verifyExtractToCmdOutput() {
+		Optional.ofNullable(appCommand.getOutputCmd().getExtractToCmd())
 				.ifPresent(et -> Optional.ofNullable(et.getArchiveFile())
 						.ifPresent(this::validateOutputFile));
 	}
 
-	private void verifyExportToCmd(final OutputCmd outputCmd) {
-		Optional.ofNullable(outputCmd.getExportToCmd())
+	private void verifyExportToCmdOutput() {
+		Optional.ofNullable(appCommand.getOutputCmd().getExportToCmd())
 				.ifPresent(et -> {
 					validateOutputDir(et.getExport());
 					if (et.getFormat() == null || et.getFormat().isEmpty()) {

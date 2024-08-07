@@ -69,12 +69,12 @@ public class AppCommand implements Callable<Integer> {
 	private boolean autocomplete;
 
 	@Option(names = { "-i", "--input" },
-			description = "Input (media) file to process, or raw ffmpeg datas from a Mediadeepa archive file",
+			description = "Input (media) file to process, or raw ffmpeg datas from a Mediadeepa archive file", // TODO update descr
 			paramLabel = "FILE")
-	private List<File> input;
+	private List<String> input;
 
 	@Option(names = { "-il", "--input-list" },
-			description = "Read input files from a text list",
+			description = "Read input files from a text list", // TODO update descr
 			paramLabel = "TEXT_FILE_LIST")
 	private List<String> inputList;
 
