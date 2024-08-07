@@ -134,18 +134,18 @@ abstract class E2EUtils {
 	}
 
 	static E2ERawOutDataFiles prepareMovForSimpleE2ETests() {
-		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_MOV);
+		return prepareForSimpleE2ETests(MEDIA_FILE_NAME_MOV);
 	}
 
 	static E2ERawOutDataFiles prepareMpgForSimpleE2ETests() {
-		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_MPG);
+		return prepareForSimpleE2ETests(MEDIA_FILE_NAME_MPG);
 	}
 
 	static E2ERawOutDataFiles prepareTsForSimpleE2ETests() {
-		return prepareMovForSimpleE2ETests(MEDIA_FILE_NAME_TS);
+		return prepareForSimpleE2ETests(MEDIA_FILE_NAME_TS);
 	}
 
-	static E2ERawOutDataFiles prepareMovForSimpleE2ETests(final File mediaFile) {
+	static E2ERawOutDataFiles prepareForSimpleE2ETests(final File mediaFile) {
 		final var rawData = E2ERawOutDataFiles.create(mediaFile);
 		if (mediaFile.exists() == false) {
 			return null;

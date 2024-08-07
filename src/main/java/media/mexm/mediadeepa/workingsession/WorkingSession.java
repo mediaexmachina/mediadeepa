@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
@@ -74,8 +73,8 @@ public class WorkingSession {// TODO test
 				.toList();
 
 		if (limitOneFile
-			&& inputRegularFiles.size() > 1
-			|| inputRegularDirs.isEmpty() == false) {
+			&& (inputRegularFiles.size() > 1
+				|| inputRegularDirs.isEmpty() == false)) {
 			onMoreThanLimitOneFile.run();
 		}
 
@@ -100,36 +99,42 @@ public class WorkingSession {// TODO test
 				.map(dir -> {
 					final var observedFolder = new ObservedFolder();
 					observedFolder.setTargetFolder(dir.getAbsolutePath());
+					observedFolder.setLabel(dir.getName());
+					observedFolder.setMinFixedStateTime(Duration.ZERO);
+					observedFolder.setTimeBetweenScans(Duration.ofMillis(1));
 					return observedFolder;
 				})
 				.toList();
 
-		final var lockToEnd = new CountDownLatch(allObservedFolders.size());
-
 		class Founded implements FolderActivity {
+
+			@Override
+			public void onBeforeScan(final ObservedFolder observedFolder) throws IOException {
+				log.info("BEFORE");// TODO remove
+			}
 
 			@Override
 			public void onAfterScan(final ObservedFolder observedFolder,
 									final Duration scanTime,
 									final WatchedFiles scanResult) throws IOException {
 				final var foundedAndUpdated = scanResult.foundedAndUpdated();
-				log.info("Start to work with {} file(s) found on \"{}\" directory",
-						foundedAndUpdated.size(),
-						observedFolder.getTargetFolder());
 
-				foundedAndUpdated.stream()
-						.map(CachedFileAttributes::getAbstractFile)
-						.map(f -> (LocalFile) f)
-						.map(LocalFile::getInternalFile)
-						.forEach(onFoundFile::accept);
+				if (foundedAndUpdated.isEmpty() == false) {
+					log.info("Start to work with {} file(s) found on \"{}\" directory",
+							foundedAndUpdated.size(),
+							observedFolder.getTargetFolder());
 
-				lockToEnd.countDown();
+					foundedAndUpdated.stream()
+							.map(CachedFileAttributes::getAbstractFile)
+							.map(f -> (LocalFile) f)
+							.map(LocalFile::getInternalFile)
+							.forEach(onFoundFile::accept);
+				}
 			}
 
 			@Override
 			public void onScanErrorFolder(final ObservedFolder observedFolder, final Exception e) throws IOException {
 				log.error("Can't scan {}", observedFolder.getTargetFolder(), e);
-				lockToEnd.countDown();
 			}
 		}
 
@@ -141,15 +146,11 @@ public class WorkingSession {// TODO test
 				"internalwatch",
 				"internalrun",
 				() -> db);
-		w.startScans();
 
-		try {
-			lockToEnd.await();
-		} catch (final InterruptedException e) {
-			log.error("Can't to wait to scan dir(s)", e);
-			Thread.currentThread().interrupt();
-		}
-		w.stopScans();
+		// w.startScans();
+
+		w.doManualScan();
+		w.doManualScan();
 	}
 
 }

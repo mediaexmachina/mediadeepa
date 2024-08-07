@@ -36,6 +36,7 @@
     <logger name="tv.hd3g" level="warn" />
     <logger name="media.mexm.mediadeepa.components.RendererEngineComparator" level="error" />
     <logger name="media.mexm.mediadeepa.components.ExportFormatComparator" level="error" />
+    <logger name="tv.hd3g.jobkit.engine" level="error" />
 
     <root level="warn">
         <appender-ref ref="Console OUT" />
