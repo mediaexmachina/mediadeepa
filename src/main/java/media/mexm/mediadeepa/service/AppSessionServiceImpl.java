@@ -71,6 +71,7 @@ import tv.hd3g.commons.version.EnvironmentVersion;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
+import tv.hd3g.jobkit.engine.JobKitEngine;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Service
@@ -99,6 +100,10 @@ public class AppSessionServiceImpl implements AppSessionService {
 	private List<ExportFormat> exportFormatList;
 	@Autowired
 	private ExportFormatComparator exportFormatComparator;
+	@Autowired
+	private JobKitEngine jobKitEngine;
+	@Autowired
+	private String spoolNameWatchfolder;
 
 	@Value("${mediadeepa.disableKeyPressExit:false}")
 	private boolean disableKeyPressExit;
@@ -133,15 +138,19 @@ public class AppSessionServiceImpl implements AppSessionService {
 		verifyExportToCmdOutput();
 
 		final var isSingleExportCmd = appCommand.getOutputCmd().getSingleExportCmd() != null;
+
 		new WorkingSession(
 				appCommand.getInput(),
-				this::inputFileWorkChooser,
 				this::validateInputFile,
 				isSingleExportCmd,
 				() -> {
 					throw new ParameterException(commandLine,
 							"Can't process multiple input sources on single export mode (only one in, one out)!");
-				}).startWork();
+				}).startWork(
+						this::inputFileWorkChooser,
+						jobKitEngine,
+						spoolNameWatchfolder,
+						10);// TODO set
 
 		/**
 		 * TODO after that, all will be deprecated
@@ -221,6 +230,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 	}
 
 	private void inputFileWorkChooser(final File inputFile) {
+		// TODO NEXT Manage overwrite dest file in directory target...
 		setupTempDir();
 		final var extractToCmd = appCommand.getOutputCmd().getExtractToCmd();
 		if (checkIfSourceIsZIP(inputFile)) {

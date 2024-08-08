@@ -87,7 +87,7 @@ abstract class E2EUtils {
 		runApp(() -> false, params);
 	}
 
-	static void extractRawTXT(final E2ERawOutDataFiles rawData) {
+	static void extractToZip(final E2ERawOutDataFiles rawData) {
 		runApp(() -> rawData.allOutExists(),
 				"-i", rawData.mediaFile().getPath(), "-c",
 				"--temp", "target/e2e-temp",
@@ -150,7 +150,7 @@ abstract class E2EUtils {
 		if (mediaFile.exists() == false) {
 			return null;
 		}
-		extractRawTXT(rawData);
+		extractToZip(rawData);
 		assertTrue(rawData.allOutExists());
 		return rawData;
 	}

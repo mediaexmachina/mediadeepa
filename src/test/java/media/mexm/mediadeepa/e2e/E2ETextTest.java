@@ -87,7 +87,7 @@ class E2ETextTest extends E2EUtils {
 		}
 
 		void checks() throws IOException {
-			extractRawTXT(rawData);
+			extractToZip(rawData);
 			FileUtils.forceMkdir(e2eExportDir);
 			checkZipArchive();
 
@@ -491,7 +491,7 @@ class E2ETextTest extends E2EUtils {
 			return;
 		}
 		final var exportBaseFilename = "long-mkv";
-		extractRawTXT(rawData);
+		extractToZip(rawData);
 		assertTrue(rawData.allOutExists());
 
 		runApp(() -> new File("target/e2e-export", "long-mkv_about.txt").exists(),
@@ -560,7 +560,7 @@ class E2ETextTest extends E2EUtils {
 					.toList();
 			if (inputs.isEmpty() == false) {
 				for (final var rawData : inputs) {
-					extractRawTXT(rawData);
+					extractToZip(rawData);
 					assertTrue(rawData.allOutExists());
 				}
 			}

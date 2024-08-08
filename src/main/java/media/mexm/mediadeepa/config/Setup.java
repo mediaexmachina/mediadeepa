@@ -16,7 +16,8 @@
  */
 package media.mexm.mediadeepa.config;
 
-import java.util.concurrent.Executors;
+import static java.util.concurrent.Executors.newScheduledThreadPool;
+
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 
@@ -39,6 +40,9 @@ import tv.hd3g.fflauncher.FFmpeg;
 import tv.hd3g.fflauncher.FFprobe;
 import tv.hd3g.fflauncher.about.FFAbout;
 import tv.hd3g.fflauncher.progress.ProgressListener;
+import tv.hd3g.jobkit.engine.BackgroundServiceEvent;
+import tv.hd3g.jobkit.engine.ExecutionEvent;
+import tv.hd3g.jobkit.engine.JobKitEngine;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Configuration
@@ -64,8 +68,10 @@ public class Setup {
 	}
 
 	@Bean
-	ScheduledExecutorService getMaxExecTimeScheduler() {
-		return Executors.newSingleThreadScheduledExecutor();
+	ScheduledExecutorService getScheduledExecutorService() {
+		return newScheduledThreadPool(
+				Runtime.getRuntime().availableProcessors(),
+				Thread.ofVirtual().factory());
 	}
 
 	@Bean
@@ -116,6 +122,18 @@ public class Setup {
 	@Bean
 	RunnedJavaCmdLine runnedJavaCmdLine() {
 		return new RunnedJavaCmdLine();
+	}
+
+	@Bean
+	JobKitEngine getJobKitEngine(final ScheduledExecutorService scheduledExecutorService) {
+		return new JobKitEngine(scheduledExecutorService,
+				new ExecutionEvent() {},
+				new BackgroundServiceEvent() {});
+	}
+
+	@Bean("spoolNameWatchfolder")
+	String getSpoolNameWatchfolder() {
+		return "internalwf";
 	}
 
 }

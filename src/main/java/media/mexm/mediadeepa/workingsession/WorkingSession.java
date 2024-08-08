@@ -17,18 +17,18 @@
 package media.mexm.mediadeepa.workingsession;
 
 import static java.lang.Integer.MAX_VALUE;
+import static java.util.Collections.synchronizedList;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import lombok.extern.slf4j.Slf4j;
-import tv.hd3g.jobkit.engine.BackgroundServiceEvent;
-import tv.hd3g.jobkit.engine.ExecutionEvent;
 import tv.hd3g.jobkit.engine.JobKitEngine;
 import tv.hd3g.jobkit.watchfolder.FolderActivity;
 import tv.hd3g.jobkit.watchfolder.ObservedFolder;
@@ -43,22 +43,12 @@ public class WorkingSession {// TODO test
 
 	private final List<File> inputRegularFiles;
 	private final List<File> inputRegularDirs;
-	private final Consumer<File> onFoundFile;
-
-	private final WatchedFilesInMemoryDb db;
-	private final JobKitEngine jobKitEngine;
+	private final List<File> processedFiles;
 
 	public WorkingSession(final List<String> rawInput,
-						  final Consumer<File> onFoundFile,
 						  final Consumer<File> validateInputFile,
 						  final boolean limitOneFile,
 						  final Runnable onMoreThanLimitOneFile) {
-		this.onFoundFile = onFoundFile;
-
-		db = new WatchedFilesInMemoryDb();// TODO set max deep;
-		final var scheduledExecutor = Executors.newScheduledThreadPool(1);// TODO provided
-		jobKitEngine = new JobKitEngine(scheduledExecutor, new ExecutionEvent() {}, new BackgroundServiceEvent() {}); // TODO provided
-
 		final var inputFiles = Optional.ofNullable(rawInput)
 				.orElse(List.of())
 				.stream()
@@ -71,6 +61,7 @@ public class WorkingSession {// TODO test
 		inputRegularFiles = inputFiles.stream()
 				.filter(File::isFile)
 				.toList();
+		processedFiles = synchronizedList(new ArrayList<>());
 
 		if (limitOneFile
 			&& (inputRegularFiles.size() > 1
@@ -88,7 +79,19 @@ public class WorkingSession {// TODO test
 		// TODO willcard process, only here
 	}
 
-	public void startWork() {
+	/**
+	 * Will be blocking on scan, and no limit blocking during watch dir.
+	 */
+	public void startWork(final Consumer<File> processFile,
+						  final JobKitEngine jobKitEngine,
+						  final String spoolNameWatchfolder,
+						  final int maxDeep) {
+
+		final Consumer<File> onFoundFile = f -> {
+			processFile.accept(f);
+			processedFiles.add(f);
+		};
+
 		inputRegularFiles.forEach(onFoundFile::accept);
 
 		if (inputRegularDirs.isEmpty()) {
@@ -100,18 +103,13 @@ public class WorkingSession {// TODO test
 					final var observedFolder = new ObservedFolder();
 					observedFolder.setTargetFolder(dir.getAbsolutePath());
 					observedFolder.setLabel(dir.getName());
-					observedFolder.setMinFixedStateTime(Duration.ZERO);
-					observedFolder.setTimeBetweenScans(Duration.ofMillis(1));
+					observedFolder.setMinFixedStateTime(Duration.ZERO);// TODO set by conf (regular)
+					observedFolder.setTimeBetweenScans(Duration.ofSeconds(5));// TODO set by conf (regular)
 					return observedFolder;
 				})
 				.toList();
 
 		class Founded implements FolderActivity {
-
-			@Override
-			public void onBeforeScan(final ObservedFolder observedFolder) throws IOException {
-				log.info("BEFORE");// TODO remove
-			}
 
 			@Override
 			public void onAfterScan(final ObservedFolder observedFolder,
@@ -138,19 +136,40 @@ public class WorkingSession {// TODO test
 			}
 		}
 
+		final var db = new WatchedFilesInMemoryDb(maxDeep);
+
 		final var w = new Watchfolders(
 				allObservedFolders,
 				new Founded(),
 				Duration.ofDays(MAX_VALUE),
 				jobKitEngine,
-				"internalwatch",
-				"internalrun",
+				spoolNameWatchfolder,
+				spoolNameWatchfolder,
 				() -> db);
 
-		// w.startScans();
+		/**
+		 * Setup the WF database
+		 */
+		w.queueManualScan();
 
-		w.doManualScan();
-		w.doManualScan();
+		// XXX just w.startScans(); (regular)
+		w.queueManualScan();
+
+		try {
+			jobKitEngine.getSpooler()
+					.getExecutor(spoolNameWatchfolder)
+					.waitToEndQueue(Runnable::run)
+					.get();
+		} catch (InterruptedException | ExecutionException e) {
+			Thread.currentThread().interrupt();
+			log.error("Can't wait the work ends", e);
+		}
+
+		if (processedFiles.isEmpty()) {
+			log.warn("No file founded in provided path(s): {}", inputRegularDirs);
+		} else if (processedFiles.size() > 1) {
+			log.info("Working file count: {}", processedFiles.size());
+		}
 	}
 
 }

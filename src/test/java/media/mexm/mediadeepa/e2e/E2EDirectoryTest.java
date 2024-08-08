@@ -17,16 +17,18 @@
 package media.mexm.mediadeepa.e2e;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 
 class E2EDirectoryTest extends E2EUtils {
 
 	@Test
-	void test() {
+	void testOneDir() {
 		final var inputs = ALL_MEDIA_FILE_NAME.stream()
 				.filter(File::exists)
-				.map(E2ERawOutDataFiles::create)
+				.map(E2EUtils::prepareForSimpleE2ETests)
 				.toList();
 		if (inputs.isEmpty()) {
 			return;
@@ -41,6 +43,23 @@ class E2EDirectoryTest extends E2EUtils {
 				"-e", "target/e2e-export",
 				"--export-base-filename", "directory");
 
+		// TODO check result...
 	}
+
+	@Test
+	void testNoFiles_emptyDir() throws IOException {// NOSONAR S2699
+		final var empty = new File("target/e2e-temp/always-empty");
+		FileUtils.forceMkdir(empty);
+		FileUtils.cleanDirectory(empty);
+
+		runApp(
+				"-i", empty.getPath(),
+				"-f", "ffprobexml",
+				"-e", "target/e2e-export",
+				"--export-base-filename", "directory");
+	}
+
+	// TODO test 2 files
+	// TODO test 2 dir (one empty and one full)
 
 }
