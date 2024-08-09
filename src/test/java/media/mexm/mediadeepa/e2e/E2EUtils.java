@@ -66,6 +66,7 @@ abstract class E2EUtils {
 	static {
 		App.setDefaultProps();
 		System.setProperty("mediadeepa.disableKeyPressExit", "true");
+		System.setProperty("mediadeepa.addSourceExtToOutputDirectories", "true");
 	}
 
 	static void runApp(final Supplier<Boolean> dontExecIf, final String... rawParams) {

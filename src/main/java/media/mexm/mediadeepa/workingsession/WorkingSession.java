@@ -26,9 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
 
 import lombok.extern.slf4j.Slf4j;
+import media.mexm.mediadeepa.service.AppSessionService;
 import tv.hd3g.jobkit.engine.JobKitEngine;
 import tv.hd3g.jobkit.watchfolder.FolderActivity;
 import tv.hd3g.jobkit.watchfolder.ObservedFolder;
@@ -39,16 +39,19 @@ import tv.hd3g.transfertfiles.CachedFileAttributes;
 import tv.hd3g.transfertfiles.local.LocalFile;
 
 @Slf4j
-public class WorkingSession {// TODO test
+public class WorkingSession {
 
+	private final AppSessionService appService;
 	private final List<File> inputRegularFiles;
 	private final List<File> inputRegularDirs;
 	private final List<File> processedFiles;
+	private final boolean multipleSources;
 
 	public WorkingSession(final List<String> rawInput,
-						  final Consumer<File> validateInputFile,
+						  final AppSessionService appService,
 						  final boolean limitOneFile,
 						  final Runnable onMoreThanLimitOneFile) {
+		this.appService = appService;
 		final var inputFiles = Optional.ofNullable(rawInput)
 				.orElse(List.of())
 				.stream()
@@ -69,30 +72,29 @@ public class WorkingSession {// TODO test
 			onMoreThanLimitOneFile.run();
 		}
 
-		if (inputRegularFiles.size() + inputRegularDirs.size() > 1) {
+		multipleSources = inputRegularFiles.size() > 1 || inputRegularDirs.isEmpty() == false;
+		if (multipleSources) {
 			inputRegularFiles.forEach(f -> log.info("Prepare to work on \"{}\"", f.getAbsolutePath()));
 			inputRegularDirs.forEach(f -> log.info("Prepare to work on \"{}\" directory", f.getAbsolutePath()));
 		}
 
-		inputRegularFiles.forEach(validateInputFile::accept);
+		inputRegularFiles.forEach(appService::validateInputFile);
 
-		// TODO willcard process, only here
+		// TODO AFTER willcard process, only here
+	}
+
+	private void onFoundFile(final File inputFile) {
+		appService.fileWork(inputFile, multipleSources);
+		processedFiles.add(inputFile);
 	}
 
 	/**
 	 * Will be blocking on scan, and no limit blocking during watch dir.
 	 */
-	public void startWork(final Consumer<File> processFile,
-						  final JobKitEngine jobKitEngine,
+	public void startWork(final JobKitEngine jobKitEngine,
 						  final String spoolNameWatchfolder,
 						  final int maxDeep) {
-
-		final Consumer<File> onFoundFile = f -> {
-			processFile.accept(f);
-			processedFiles.add(f);
-		};
-
-		inputRegularFiles.forEach(onFoundFile::accept);
+		inputRegularFiles.forEach(this::onFoundFile);
 
 		if (inputRegularDirs.isEmpty()) {
 			return;
@@ -102,14 +104,19 @@ public class WorkingSession {// TODO test
 				.map(dir -> {
 					final var observedFolder = new ObservedFolder();
 					observedFolder.setTargetFolder(dir.getAbsolutePath());
-					observedFolder.setLabel(dir.getName());
-					observedFolder.setMinFixedStateTime(Duration.ZERO);// TODO set by conf (regular)
-					observedFolder.setTimeBetweenScans(Duration.ofSeconds(5));// TODO set by conf (regular)
+					observedFolder.setLabel(dir.getName() + " (" + dir.getAbsolutePath() + ")");
+					observedFolder.setMinFixedStateTime(Duration.ZERO);// TODO AFTER set by conf (regular)
+					observedFolder.setTimeBetweenScans(Duration.ofSeconds(5));// TODO AFTER set by conf (regular)
 					return observedFolder;
 				})
 				.toList();
 
 		class Founded implements FolderActivity {
+
+			@Override
+			public void onBeforeScan(final ObservedFolder observedFolder) throws IOException {
+				log.debug("Start directory scan on {}", observedFolder.getLabel());
+			}
 
 			@Override
 			public void onAfterScan(final ObservedFolder observedFolder,
@@ -126,7 +133,7 @@ public class WorkingSession {// TODO test
 							.map(CachedFileAttributes::getAbstractFile)
 							.map(f -> (LocalFile) f)
 							.map(LocalFile::getInternalFile)
-							.forEach(onFoundFile::accept);
+							.forEach(f -> onFoundFile(f));
 				}
 			}
 
@@ -136,7 +143,7 @@ public class WorkingSession {// TODO test
 			}
 		}
 
-		final var db = new WatchedFilesInMemoryDb(maxDeep);
+		log.debug("Set recursive to {} deep dir", maxDeep);
 
 		final var w = new Watchfolders(
 				allObservedFolders,
@@ -145,14 +152,14 @@ public class WorkingSession {// TODO test
 				jobKitEngine,
 				spoolNameWatchfolder,
 				spoolNameWatchfolder,
-				() -> db);
+				() -> new WatchedFilesInMemoryDb(maxDeep));
 
 		/**
-		 * Setup the WF database
+		 * 1st to Setup the WF database
 		 */
 		w.queueManualScan();
 
-		// XXX just w.startScans(); (regular)
+		// TODO AFTER just w.startScans(); (regular)
 		w.queueManualScan();
 
 		try {

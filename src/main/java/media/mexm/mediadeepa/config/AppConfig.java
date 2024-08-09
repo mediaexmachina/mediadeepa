@@ -97,6 +97,7 @@ public class AppConfig {
 	private String ffmpegExecName = "ffmpeg";
 	private String ffprobeExecName = "ffprobe";
 	private boolean addSourceExtToOutputDirectories = false;
+	private int depthScanDirectories = 10;
 
 	private WavFormConfig wavFormConfig = new WavFormConfig();
 

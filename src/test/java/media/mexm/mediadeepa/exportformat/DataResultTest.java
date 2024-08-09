@@ -74,7 +74,7 @@ class DataResultTest {
 		source = faker.numerify("source###");
 		width = faker.random().nextInt(100, 10000);
 		height = faker.random().nextInt(100, 10000);
-		dr = new DataResult(source, versions);
+		dr = new DataResult(source, versions, false);
 	}
 
 	@AfterEach

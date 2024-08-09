@@ -29,6 +29,7 @@ import static media.mexm.mediadeepa.ExportOnlyParamConfiguration.fromOutputCmd;
 import static media.mexm.mediadeepa.ImpExArchiveExtractionSession.TEN_MB;
 import static org.apache.commons.io.FileUtils.forceMkdir;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
+import static org.apache.commons.io.FilenameUtils.getExtension;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -141,19 +142,18 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		new WorkingSession(
 				appCommand.getInput(),
-				this::validateInputFile,
+				this,
 				isSingleExportCmd,
 				() -> {
 					throw new ParameterException(commandLine,
 							"Can't process multiple input sources on single export mode (only one in, one out)!");
 				}).startWork(
-						this::inputFileWorkChooser,
 						jobKitEngine,
 						spoolNameWatchfolder,
-						10);// TODO set
+						appCommand.isRecursive() ? appConfig.getDepthScanDirectories() : 0);
 
 		/**
-		 * TODO after that, all will be deprecated
+		 * TODO AFTER after that, all will be deprecated
 		 */
 
 		if (inputList != null) {
@@ -175,7 +175,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 					.toList();
 		}
 
-		inputListFile.forEach(this::inputFileWorkChooser);
+		inputListFile.forEach(f -> fileWork(f, true));
 
 		return 0;
 	}
@@ -229,8 +229,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 				LocalDate.now().getYear());
 	}
 
-	private void inputFileWorkChooser(final File inputFile) {
-		// TODO NEXT Manage overwrite dest file in directory target...
+	@Override
+	public void fileWork(final File inputFile, final boolean multipleSources) {
 		setupTempDir();
 		final var extractToCmd = appCommand.getOutputCmd().getExtractToCmd();
 		if (checkIfSourceIsZIP(inputFile)) {
@@ -241,7 +241,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 			}
 			log.info("Prepare processing session from offline ffmpeg/ffprobe exports: {}", inputFile);
 			startKeyPressExit();
-			createOfflineProcessingSession(inputFile);
+			createOfflineProcessingSession(inputFile, multipleSources);
 		} else {
 			if ((appCommand.getInput() == null || appCommand.getInput().isEmpty())
 				&& (appCommand.getInputList() == null || appCommand.getInputList().isEmpty())) {
@@ -251,11 +251,11 @@ public class AppSessionServiceImpl implements AppSessionService {
 			if (extractToCmd != null) {
 				log.info("Prepare extraction session from media file: {}", inputFile);
 				startKeyPressExit();
-				createExtractionSession(inputFile);
+				createExtractionSession(inputFile, multipleSources);
 			} else {
 				log.info("Prepare processing session from media file: {}", inputFile);
 				startKeyPressExit();
-				createProcessingSession(inputFile);
+				createProcessingSession(inputFile, multipleSources);
 			}
 		}
 		cleanTempDir(appCommand.getTempDir());
@@ -384,7 +384,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		}
 	}
 
-	private void createExtractionSession(final File inputFile) {
+	private void createExtractionSession(final File inputFile, final boolean inMultipleSourcesSet) {
 		final var processFileCmd = Optional.ofNullable(appCommand.getProcessFileCmd()).orElse(new ProcessFileCmd());
 		final var extractToCmd = appCommand.getOutputCmd().getExtractToCmd();
 		final var tempDir = appCommand.getTempDir();
@@ -438,7 +438,17 @@ public class AppSessionServiceImpl implements AppSessionService {
 				.ifPresent(measuredWav -> extractSession.addMeasuredWav(zippedTxtFileNames.getMeasuredWavJson(),
 						measuredWav));
 
-		extractSession.saveToZip(extractToCmd.getArchiveFile());
+		if (inMultipleSourcesSet) {
+			final var inputFileName = inputFile.getName();
+			final var inputExt = getExtension(inputFileName);
+			final var prefix = getBaseName(inputFileName)
+							   + (inputExt.isEmpty() ? "" : "-" + inputExt);
+			final var archiveFile = extractToCmd.getArchiveFile();
+			final var outFileName = prefix + "_" + archiveFile.getName();
+			extractSession.saveToZip(new File(archiveFile.getParentFile(), outFileName));
+		} else {
+			extractSession.saveToZip(extractToCmd.getArchiveFile());
+		}
 	}
 
 	private List<String> readLines(final File lavfiSecondaryFile) {
@@ -457,11 +467,11 @@ public class AppSessionServiceImpl implements AppSessionService {
 		return unmodifiableMap(version);
 	}
 
-	private void createProcessingSession(final File inputFile) {
+	private void createProcessingSession(final File inputFile, final boolean inMultipleSourcesSet) {
 		final var processFileCmd = Optional.ofNullable(appCommand.getProcessFileCmd()).orElse(new ProcessFileCmd());
 		final var tempDir = appCommand.getTempDir();
 
-		final var dataResult = new DataResult(inputFile.getName(), getVersion());
+		final var dataResult = new DataResult(inputFile.getName(), getVersion(), inMultipleSourcesSet);
 
 		final var ffprobeResult = ffmpegService.getFFprobeJAXBFromFileToProcess(inputFile, processFileCmd);
 		log.info("Source file: {}", ffprobeResult);
@@ -519,7 +529,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 		}
 	}
 
-	private void createOfflineProcessingSession(final File archiveFile) {
+	private void createOfflineProcessingSession(final File archiveFile, final boolean inMultipleSourcesSet) {
 		final var zippedTxtFileNames = appConfig.getZippedArchive();
 
 		final var extractSession = new ImpExArchiveExtractionSession().readFromZip(archiveFile);
@@ -529,7 +539,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 		final var dataResult = new DataResult(
 				extractEntries.getOrDefault(zippedTxtFileNames.getSourceNameTxt(),
 						getBaseName(archiveFile.getName())),
-				extractSession.getVersions(zippedTxtFileNames.getVersionJson()));
+				extractSession.getVersions(zippedTxtFileNames.getVersionJson()),
+				inMultipleSourcesSet);
 
 		final var zipAppVersion = dataResult.getVersions().getOrDefault(NAME, "Unknown");
 		final var currentAppVersion = environmentVersion.appVersion();

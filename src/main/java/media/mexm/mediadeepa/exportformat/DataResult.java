@@ -42,6 +42,9 @@ public class DataResult {
 
 	@Getter
 	private final String source;
+	@Getter
+	private final boolean inMultipleSourcesSet;
+
 	private MediaAnalyserProcessResult mediaAnalyserResult;
 	@Setter
 	private Duration sourceDuration;
@@ -56,9 +59,10 @@ public class DataResult {
 	@Setter
 	private MeasuredWav wavForm;
 
-	public DataResult(final String source, final Map<String, String> versions) {
+	public DataResult(final String source, final Map<String, String> versions, final boolean inMultipleSourcesSet) {
 		this.source = requireNonNull(source);
 		this.versions = versions;
+		this.inMultipleSourcesSet = inMultipleSourcesSet;
 	}
 
 	public void setMediaAnalyserProcessResult(final MediaAnalyserProcessResult mediaAnalyserResult) {
