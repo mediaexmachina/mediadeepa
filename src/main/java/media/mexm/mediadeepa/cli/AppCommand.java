@@ -73,8 +73,9 @@ public class AppCommand implements Callable<Integer> {
 			paramLabel = "FILE")
 	private List<String> input;
 
-	@Option(names = { "-r", "--recursive" }, description = "Scan a directory and all its sub directory to work with")
-	private boolean recursive;
+	@ArgGroup(exclusive = false,
+			  heading = "Scan directory options%n")
+	private ScanDirCmd scanDirCmd;
 
 	@Option(names = { "-il", "--input-list" },
 			description = "Read input files from a text list", // TODO AFTER update descr

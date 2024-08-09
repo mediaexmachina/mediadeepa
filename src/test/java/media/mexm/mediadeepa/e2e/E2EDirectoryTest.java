@@ -20,6 +20,8 @@ import static java.util.function.Predicate.not;
 import static org.apache.commons.io.FileUtils.cleanDirectory;
 import static org.apache.commons.io.FileUtils.delete;
 import static org.apache.commons.io.FileUtils.forceMkdir;
+import static org.apache.commons.io.FileUtils.forceMkdirParent;
+import static org.apache.commons.io.FileUtils.touch;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -72,10 +74,17 @@ class E2EDirectoryTest extends E2EUtils {
 	}
 
 	@Test
-	void testOneDir() {
+	void testOneDir() throws IOException {
 		if (inputs.isEmpty()) {
 			return;
 		}
+
+		/**
+		 * Test not recursive by default
+		 */
+		final var ignoreMe = new File("target/e2e-export/ignore-me/ignore-me.txt");
+		forceMkdirParent(ignoreMe);
+		touch(ignoreMe);
 
 		runApp(
 				"--temp", "target/e2e-temp",
@@ -178,6 +187,20 @@ class E2EDirectoryTest extends E2EUtils {
 
 		assertThat(results).isEmpty();
 	}
+
+	/*
+	TODO test + recursive
+		setIgnoreFiles
+		setAllowedExtentions
+		setBlockedExtentions
+		setIgnoreRelativePaths
+		setAllowedFileNames
+		setAllowedDirNames
+		setBlockedFileNames
+		setBlockedDirNames
+		setAllowedLinks
+		setAllowedHidden
+	*/
 
 	private void checkAllOutExists() {
 		final var results = getTargetedResults()

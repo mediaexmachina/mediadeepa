@@ -59,6 +59,7 @@ import media.mexm.mediadeepa.KeyPressToExit;
 import media.mexm.mediadeepa.RunnedJavaCmdLine;
 import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.cli.ProcessFileCmd;
+import media.mexm.mediadeepa.cli.ScanDirCmd;
 import media.mexm.mediadeepa.components.ExportFormatComparator;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
@@ -141,6 +142,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 		final var isSingleExportCmd = appCommand.getOutputCmd().getSingleExportCmd() != null;
 
 		new WorkingSession(
+				appConfig,
+				Optional.ofNullable(appCommand.getScanDirCmd()).orElse(new ScanDirCmd()),
 				appCommand.getInput(),
 				this,
 				isSingleExportCmd,
@@ -149,8 +152,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 							"Can't process multiple input sources on single export mode (only one in, one out)!");
 				}).startWork(
 						jobKitEngine,
-						spoolNameWatchfolder,
-						appCommand.isRecursive() ? appConfig.getDepthScanDirectories() : 0);
+						spoolNameWatchfolder);
 
 		/**
 		 * TODO AFTER after that, all will be deprecated

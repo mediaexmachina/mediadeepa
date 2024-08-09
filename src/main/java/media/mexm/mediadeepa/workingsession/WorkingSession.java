@@ -16,8 +16,12 @@
  */
 package media.mexm.mediadeepa.workingsession;
 
+import static java.io.File.pathSeparator;
 import static java.lang.Integer.MAX_VALUE;
+import static java.time.Duration.ZERO;
+import static java.time.Duration.ofMillis;
 import static java.util.Collections.synchronizedList;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,9 +29,13 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
+import media.mexm.mediadeepa.cli.ScanDirCmd;
+import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.service.AppSessionService;
 import tv.hd3g.jobkit.engine.JobKitEngine;
 import tv.hd3g.jobkit.watchfolder.FolderActivity;
@@ -41,17 +49,24 @@ import tv.hd3g.transfertfiles.local.LocalFile;
 @Slf4j
 public class WorkingSession {
 
+	private final AppConfig appConfig;
+	private final ScanDirCmd scanDirCmd;
 	private final AppSessionService appService;
 	private final List<File> inputRegularFiles;
 	private final List<File> inputRegularDirs;
 	private final List<File> processedFiles;
 	private final boolean multipleSources;
 
-	public WorkingSession(final List<String> rawInput,
+	public WorkingSession(final AppConfig appConfig,
+						  final ScanDirCmd scanDirCmd,
+						  final List<String> rawInput,
 						  final AppSessionService appService,
 						  final boolean limitOneFile,
 						  final Runnable onMoreThanLimitOneFile) {
+		this.appConfig = appConfig;
+		this.scanDirCmd = scanDirCmd;
 		this.appService = appService;
+
 		final var inputFiles = Optional.ofNullable(rawInput)
 				.orElse(List.of())
 				.stream()
@@ -88,12 +103,50 @@ public class WorkingSession {
 		processedFiles.add(inputFile);
 	}
 
+	private Set<String> toSet(final List<String> l) {
+		return Optional.ofNullable(l)
+				.orElse(List.of())
+				.stream()
+				.distinct()
+				.collect(toUnmodifiableSet());
+	}
+
+	private ObservedFolder makeObservedFolder(final File rootDirectory) {
+		final var observedFolder = new ObservedFolder();
+		observedFolder.setTargetFolder(rootDirectory.getAbsolutePath());
+		observedFolder.setLabel(rootDirectory.getName() + " (" + rootDirectory.getAbsolutePath() + ")");
+
+		final var timeBetweenScans = Duration.ofSeconds(scanDirCmd.getTimeBetweenScans());
+		observedFolder.setTimeBetweenScans(timeBetweenScans);
+
+		if (timeBetweenScans.isPositive()) {
+			observedFolder.setMinFixedStateTime(ofMillis(appConfig.getScanDir().getMinFixedStateTime()));
+		} else {
+			observedFolder.setMinFixedStateTime(ZERO);
+		}
+
+		observedFolder.setIgnoreFiles(Stream.of(appConfig.getScanDir().getIgnoreFiles()
+				.split(pathSeparator))
+				.distinct()
+				.collect(toUnmodifiableSet()));
+		observedFolder.setRetryAfterTimeFactor(appConfig.getScanDir().getRetryAfterTimeFactor());
+		observedFolder.setAllowedExtentions(toSet(scanDirCmd.getAllowedExtentions()));
+		observedFolder.setBlockedExtentions(toSet(scanDirCmd.getBlockedExtentions()));
+		observedFolder.setIgnoreRelativePaths(toSet(scanDirCmd.getIgnoreRelativePaths()));
+		observedFolder.setAllowedFileNames(toSet(scanDirCmd.getAllowedFileNames()));
+		observedFolder.setAllowedDirNames(toSet(scanDirCmd.getAllowedDirNames()));
+		observedFolder.setBlockedFileNames(toSet(scanDirCmd.getBlockedFileNames()));
+		observedFolder.setBlockedDirNames(toSet(scanDirCmd.getBlockedDirNames()));
+		observedFolder.setAllowedLinks(scanDirCmd.isAllowedLinks());
+		observedFolder.setAllowedHidden(scanDirCmd.isAllowedHidden());
+		return observedFolder;
+	}
+
 	/**
 	 * Will be blocking on scan, and no limit blocking during watch dir.
 	 */
 	public void startWork(final JobKitEngine jobKitEngine,
-						  final String spoolNameWatchfolder,
-						  final int maxDeep) {
+						  final String spoolNameWatchfolder) {
 		inputRegularFiles.forEach(this::onFoundFile);
 
 		if (inputRegularDirs.isEmpty()) {
@@ -101,14 +154,7 @@ public class WorkingSession {
 		}
 
 		final var allObservedFolders = inputRegularDirs.stream()
-				.map(dir -> {
-					final var observedFolder = new ObservedFolder();
-					observedFolder.setTargetFolder(dir.getAbsolutePath());
-					observedFolder.setLabel(dir.getName() + " (" + dir.getAbsolutePath() + ")");
-					observedFolder.setMinFixedStateTime(Duration.ZERO);// TODO AFTER set by conf (regular)
-					observedFolder.setTimeBetweenScans(Duration.ofSeconds(5));// TODO AFTER set by conf (regular)
-					return observedFolder;
-				})
+				.map(this::makeObservedFolder)
 				.toList();
 
 		class Founded implements FolderActivity {
@@ -143,6 +189,8 @@ public class WorkingSession {
 			}
 		}
 
+		final var maxDeep = scanDirCmd.isRecursive() ? appConfig.getScanDir().getDepthScanDirectories()
+													 : 0;
 		log.debug("Set recursive to {} deep dir", maxDeep);
 
 		final var w = new Watchfolders(
@@ -159,8 +207,12 @@ public class WorkingSession {
 		 */
 		w.queueManualScan();
 
-		// TODO AFTER just w.startScans(); (regular)
-		w.queueManualScan();
+		if (scanDirCmd.getTimeBetweenScans() > 0) {
+			log.info("Start to scan directories, every {} second(s)...", scanDirCmd.getTimeBetweenScans());
+			w.startScans();
+		} else {
+			w.queueManualScan();
+		}
 
 		try {
 			jobKitEngine.getSpooler()
