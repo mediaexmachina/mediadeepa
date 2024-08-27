@@ -67,6 +67,7 @@ abstract class E2EUtils {
 		App.setDefaultProps();
 		System.setProperty("mediadeepa.disableKeyPressExit", "true");
 		System.setProperty("mediadeepa.addSourceExtToOutputDirectories", "true");
+		System.setProperty("mediadeepa.silentWarnMismatchZipArchiveVersion", "true");
 	}
 
 	static void runApp(final Supplier<Boolean> dontExecIf, final String... rawParams) {

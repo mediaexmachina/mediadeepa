@@ -30,6 +30,12 @@ import lombok.Data;
 @Data
 public class AppConfig {
 
+	private String logtofilePattern = "%d{ISO8601} %-5level %msg%n";
+	private String ffmpegExecName = "ffmpeg";
+	private String ffprobeExecName = "ffprobe";
+	private boolean addSourceExtToOutputDirectories = false;
+	private boolean silentWarnMismatchZipArchiveVersion = false;
+
 	private ZippedArchive zippedArchive = new ZippedArchive();
 
 	@Data
@@ -94,11 +100,6 @@ public class AppConfig {
 		private Dimension imageSizeHalfSize = new Dimension(2000, 600);
 		private float jpegCompressionRatio = 0.95f;
 	}
-
-	private String logtofilePattern = "%d{ISO8601} %-5level %msg%n";
-	private String ffmpegExecName = "ffmpeg";
-	private String ffprobeExecName = "ffprobe";
-	private boolean addSourceExtToOutputDirectories = false;
 
 	private ScanDir scanDir = new ScanDir();
 

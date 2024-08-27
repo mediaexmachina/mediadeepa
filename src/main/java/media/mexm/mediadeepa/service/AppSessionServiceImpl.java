@@ -549,7 +549,8 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		final var zipAppVersion = dataResult.getVersions().getOrDefault(NAME, "Unknown");
 		final var currentAppVersion = environmentVersion.appVersion();
-		if (currentAppVersion.equalsIgnoreCase(zipAppVersion) == false) {
+		if (appConfig.isSilentWarnMismatchZipArchiveVersion() == false
+			&& currentAppVersion.equalsIgnoreCase(zipAppVersion) == false) {
 			log.warn("Mismatch Zip archive version ({}) and current app version ({}).",
 					zipAppVersion, currentAppVersion);
 		}
