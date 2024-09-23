@@ -59,7 +59,7 @@ This application can run on three different "modes":
  - **Process to extract**: sometimes, you don't need to process data during the analysis session. So, Mediadeepa can just extract to raw text/xml files (zipped in one archive file) all the gathered data from FFmpeg.
  - **Import to export**: to load in Mediadeepa all gathered raw data files. Mediadeepa is **very tolerant** with the zip content, notably if they were not created by Mediadeepa (originally). **No one is mandatory in zip.**
 
-You can process multiple files in one run, as well as load a text file as file list to process.
+You can process multiple files and directory scans in one run, as well as load a text file as file list to process.
 
 ## Known limitations for Mediadeepa
 
@@ -87,10 +87,10 @@ Install/update with
 
 ```bash
 # DEB file on Debian/Ubuntu Linux distribs
-sudo dpkg -i mediadeepa-0.0.45.deb
+sudo dpkg -i mediadeepa-0.0.46.deb
 
 # RPM file on RHEL/CentOS Linux distribs
-sudo rpm -U mediadeepa-0.0.45.rpm
+sudo rpm -U mediadeepa-0.0.46.rpm
 ```
 
 Remove with `sudo dpkg -r mediadeepa` or `rpm -e mediadeepa`.
@@ -99,13 +99,13 @@ After, on Linux, run `mediadeepa [parameters]`, and `man mediadeepa` for the int
 
 ### Run simple JAR file
 
-On Windows/macOS, just run `java -jar mediadeepa-0.0.45.jar [options]`.
+On Windows/macOS, just run `java -jar mediadeepa-0.0.46.jar [options]`.
 
-And simply run the application with `java -jar mediadeepa-0.0.45.jar`.
+And simply run the application with `java -jar mediadeepa-0.0.46.jar`.
 
 Mediadeepa contain embedded help, displayed with the `-h` parameter.
 
-You can set the command line parameters with `java -jar mediadeepa-0.0.45.jar [parameters]`.
+You can set the command line parameters with `java -jar mediadeepa-0.0.46.jar [parameters]`.
 
 ### Make a Java executable JAR file
 
@@ -119,7 +119,7 @@ cd mediadeepa
 mvn install -DskipTests
 ```
 
-Build jar will be founded on `target` directory as `mediadeepa-0.0.45.jar`
+Build jar will be founded on `target` directory as `mediadeepa-0.0.46.jar`
 
 <h2 id="examples">🛫 Examples</h2>
 
@@ -173,6 +173,40 @@ mediadeepa -i analysing-archive.zip -i videofile.mov -i anotherfile.wav -f repor
 
 You can mix archive zip files and media files, but beware to not *import* with *extract* (zip to zip) or use single output file mode (`--single-export`).
 
+## Directory scan to input files
+
+With the same restrictions as _Multiple Import or Process_, you can use a directory with `-i` parameter.
+
+```
+mediadeepa -i /some/directory -i /some/another/directory -f report -f graphic -e .
+```
+
+All _non hidden_ founded files, not recursively (ignore the sub directories) will be used. You should use include/exclude parameter to manage the file selection criteria.
+
+Use:
+
+```
+mediadeepa -i /some/directory --recursive --exclude-path never-this --include-ext ".mkv" -f report -f graphic -e .
+```
+
+To
+
+ - scan recursively `/some/directory` directory
+ - with the `/some/directory/never-this/*` directory ignored
+ - only for MKV files
+
+More options are available.
+
+## Realities directory scan to input files
+
+With the same options and restrictions as _Directory scan to input files_, just add `--scan 10` to scan every 10 seconds all provided directories (simple `-i` files will be processed on application starts), like:
+
+```
+mediadeepa -i /some/directory --scan 10 -f report -f graphic -e .
+```
+
+Stop the scans with a key-press, or just with `CTRL+C`.
+
 ## Load files to process from a text file
 
 With the `-il`, as *input list* option:
@@ -206,6 +240,8 @@ You can found some documentation:
  - On the project's README on [GitHub](https://github.com/mediaexmachina/mediadeepa).
  - On the Mediadeepa command line interface.
  - On the integrated app man page.
+
+This documentation source is located on `src/main/resources/doc/en` directory.
 
 Send bug reports on [GitHub project page](https://github.com/mediaexmachina/mediadeepa/issues)
  - Help with the documentation.

@@ -2,10 +2,10 @@
 .\"     Title: mediadeepa
 .\"    Author: Media ex Machina / hdsdi3g 
 .\" Generator: mediadeepa
-.\"      Date: 08/06/2024
-.\"    Source: mediadeepa 0.0.45
+.\"      Date: 09/23/2024
+.\"    Source: mediadeepa 0.0.46
 .\"  Language: English
-.TH "MEDIADEEPA" "1" "08/06/2024" "mediadeepa 0\&.0\&.45" ""
+.TH "MEDIADEEPA" "1" "09/23/2024" "mediadeepa 0\&.0\&.46" ""
 .\" -----------------------------------------------------------------
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
@@ -94,7 +94,7 @@ This application can run on three different "modes":
 \- \fIImport to export\fR: to load in Mediadeepa all gathered raw data files\&. Mediadeepa is \fIvery tolerant\fR with the zip content, notably if they were not created by Mediadeepa (originally)\&. \fINo one is mandatory in zip\&.\fR
 .PP
 .RE
-You can process multiple files in one run, as well as load a text file as file list to process\&.
+You can process multiple files and directory scans in one run, as well as load a text file as file list to process\&.
 .PP
 Known limitations for Mediadeepa
 .RS 4
@@ -158,6 +158,42 @@ mediadeepa \-i analysing\-archive\&.zip \-i videofile\&.mov \-i anotherfile\&.wa
 .PP
 You can mix archive zip files and media files, but beware to not import with extract (zip to zip) or use single output file mode (\fB\-\-single\-export\fR)\&.
 .PP
+Directory scan to input files
+With the same restrictions as Multiple Import or Process, you can use a directory with \fB\-i\fR parameter\&.
+.PP
+.RS 4
+mediadeepa \-i /some/directory \-i /some/another/directory \-f report \-f graphic \-e \&.
+.RE
+.PP
+All non hidden founded files, not recursively (ignore the sub directories) will be used\&. You should use include/exclude parameter to manage the file selection criteria\&.
+.PP
+Use:
+.PP
+.RS 4
+mediadeepa \-i /some/directory \-\-recursive \-\-exclude\-path never\-this \-\-include\-ext "\&.mkv" \-f report \-f graphic \-e \&.
+.RE
+.PP
+To
+.PP
+.RS 4
+\- scan recursively \fB/some/directory\fR directory
+.PP
+\- with the \fB/some/directory/never\-this/*\fR directory ignored
+.PP
+\- only for MKV files
+.PP
+.RE
+More options are available\&.
+.PP
+Realities directory scan to input files
+With the same options and restrictions as Directory scan to input files, just add \fB\-\-scan 10\fR to scan every 10 seconds all provided directories (simple \fB\-i\fR files will be processed on application starts), like:
+.PP
+.RS 4
+mediadeepa \-i /some/directory \-\-scan 10 \-f report \-f graphic \-e \&.
+.RE
+.PP
+Stop the scans with a key\-press, or just with \fBCTRL+C\fR\&.
+.PP
 Load files to process from a text file
 With the \fB\-il\fR, as input list option:
 .PP
@@ -218,7 +254,7 @@ Show the autocomplete bash script for this application
 \fB\-i\fR, \fB\-\-input\fR \fIFILE\fR [can be used multiple times]
 .PP
 .RS 4
-Input (media) file to process, or raw ffmpeg datas from a Mediadeepa archive file
+Input (source media or Mediadeepa archive) file or full directory to work with
 .PP
 .RE
 
@@ -261,6 +297,85 @@ Redirect all log messages to text file
 .PP
 .RS 4
 Export to JPEG instead to PNG the produced graphic images
+.PP
+.RE
+
+==== Scan directory options ====
+.PP
+\fB\-r\fR, \fB\-\-recursive\fR
+.PP
+.RS 4
+Scan a directory and all its sub directory to work with
+.PP
+.RE
+
+\fB\-\-scan\fR \fISECONDS\fR
+.PP
+.RS 4
+Time, in seconds, between two regular scan of input directories, if applicable
+.PP
+.RE
+
+\fB\-\-include\-ext\fR \fIEXTENTION\fR [can be used multiple times]
+.PP
+.RS 4
+Only search files with this extention, during directory scan
+.PP
+.RE
+
+\fB\-\-exclude\-ext\fR \fIEXTENTION\fR [can be used multiple times]
+.PP
+.RS 4
+Ignore files with this extention, during directory scan
+.PP
+.RE
+
+\fB\-\-exclude\-path\fR \fIPATH\fR [can be used multiple times]
+.PP
+.RS 4
+Ignore files founded under this directory, during directory scan
+.PP
+.RE
+
+\fB\-\-include\-file\fR \fIFILE_NAME\fR [can be used multiple times]
+.PP
+.RS 4
+Only search files with this name (with willcards), during directory scan
+.PP
+.RE
+
+\fB\-\-include\-dir\fR \fIDIRECTORY_NAME\fR [can be used multiple times]
+.PP
+.RS 4
+Only search sub\-directories with this name (with willcards), during directory scan
+.PP
+.RE
+
+\fB\-\-exclude\-file\fR \fIDIRECTORY_NAME\fR [can be used multiple times]
+.PP
+.RS 4
+Ignore files with this name (with willcards), during directory scan
+.PP
+.RE
+
+\fB\-\-exclude\-dir\fR \fIDIRECTORY_NAME\fR [can be used multiple times]
+.PP
+.RS 4
+Ignore sub\-directories with this name (with willcards), during directory scan
+.PP
+.RE
+
+\fB\-\-include\-hidden\fR
+.PP
+.RS 4
+Allow hidded files (and dot files), during directory scan
+.PP
+.RE
+
+\fB\-\-include\-link\fR
+.PP
+.RS 4
+Allow symbolic links, during directory scan
 .PP
 .RE
 
@@ -613,6 +728,8 @@ You can found some documentation:
 \- On the integrated app man page\&.
 .PP
 .RE
+This documentation source is located on \fBsrc/main/resources/doc/en\fR directory\&.
+.PP
 Send bug reports on GitHub project page \fIhttps://github\&.com/mediaexmachina/mediadeepa/issues\fR
 .PP
 .RS 4
@@ -626,7 +743,7 @@ Send bug reports on GitHub project page \fIhttps://github\&.com/mediaexmachina/m
 If you have any questions, feel free to reach out via any contact method listed on https://mexm\&.media \fIhttps://mexm\&.media\fR\&.
 .PP
 
-Mediadeepa 0\&.0\&.45
+Mediadeepa 0\&.0\&.46
 .PP
 Copyright (C) 2022\-2024 Media ex Machina, under the GNU General Public License\&.
 .PP
