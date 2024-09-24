@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import media.mexm.mediadeepa.cli.FilterCmd;
 import media.mexm.mediadeepa.cli.ProcessFileCmd;
+import media.mexm.mediadeepa.exportformat.VideoImageSnapshots;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserExtractResult;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserExtractResult;
@@ -59,5 +60,9 @@ public interface FFmpegService {
 	FFprobeJAXB getFFprobeJAXBFromFileToProcess(File inputFile, ProcessFileCmd processFileCmd);
 
 	Optional<MeasuredWav> measureWav(File inputFile, FFprobeJAXB ffprobeJAXB, ProcessFileCmd processFileCmd);
+
+	Optional<VideoImageSnapshots> extractVideoImageSnapshots(File inputFile,
+															 FFprobeJAXB ffprobeJAXB,
+															 ProcessFileCmd processFileCmd);
 
 }

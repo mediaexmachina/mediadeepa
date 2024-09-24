@@ -24,9 +24,13 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Locale.ENGLISH;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.io.FileUtils.forceMkdirParent;
+import static org.apache.commons.io.FilenameUtils.getExtension;
+import static org.apache.commons.io.FilenameUtils.removeExtension;
 
+import java.awt.Dimension;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -37,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -49,18 +54,21 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
+import media.mexm.mediadeepa.exportformat.VideoImageSnapshots;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserSessionFilterContext;
 import tv.hd3g.fflauncher.recipes.wavmeasure.MeasuredWav;
 
 @Slf4j
 public class ImpExArchiveExtractionSession {
 
+	public static final String DATAS_ZIP_DIR = "data/";
 	private static final String CAN_T_READ_FROM_JSON = "Can't read from json";
 	static final String NEWLINE = "\n";
 	public static final int TEN_MB = 0xFFFFFF;
 
 	private final ObjectMapper objectMapper;
 	private final LinkedHashMap<String, String> contentItems;
+	private final LinkedHashMap<String, byte[]> contentDatas;
 
 	public ImpExArchiveExtractionSession() {
 		this(new ObjectMapper());
@@ -73,6 +81,7 @@ public class ImpExArchiveExtractionSession {
 	public ImpExArchiveExtractionSession(final ObjectMapper objectMapper) {
 		this.objectMapper = Objects.requireNonNull(objectMapper, "\"objectMapper\" can't to be null");
 		contentItems = new LinkedHashMap<>();
+		contentDatas = new LinkedHashMap<>();
 	}
 
 	public void add(final String internalFileName, final List<String> lines) {
@@ -144,6 +153,52 @@ public class ImpExArchiveExtractionSession {
 		add(internalFileName, measuredWav);
 	}
 
+	public void addVideoImageSnapshots(final String internalFileNameSignificantJson,
+									   final String internalFileNameSignificantJPG,
+									   final String internalFileNameStripJPG,
+									   final VideoImageSnapshots videoImageSnapshots) {
+		add(internalFileNameSignificantJson, videoImageSnapshots.imageSize());
+		contentDatas.put(internalFileNameSignificantJPG, videoImageSnapshots.significantImageData());
+
+		final var stripImages = videoImageSnapshots.stripImagesData();
+		final var stripBaseName = removeExtension(internalFileNameStripJPG);
+		final var stripExt = getExtension(internalFileNameStripJPG);
+
+		IntStream.range(0, stripImages.size())
+				.forEach(i -> contentDatas.put(stripBaseName + i + "." + stripExt, stripImages.get(i)));
+
+	}
+
+	public Optional<VideoImageSnapshots> getVideoImageSnapshots(final String internalFileNameSignificantJson,
+																final String internalFileNameSignificantJPG,
+																final String internalFileNameStripJPG) {
+		if (contentItems.containsKey(internalFileNameSignificantJson) == false
+			|| contentDatas.containsKey(internalFileNameSignificantJPG) == false) {
+			return Optional.empty();
+		}
+
+		final Dimension imageSize;
+		try {
+			imageSize = objectMapper.readValue(contentItems.get(internalFileNameSignificantJson),
+					new TypeReference<Dimension>() {});
+		} catch (final JsonProcessingException e) {
+			throw new IllegalArgumentException(CAN_T_READ_FROM_JSON, e);
+		}
+
+		final var significantImageData = contentDatas.get(internalFileNameSignificantJPG);
+
+		final var stripBaseName = removeExtension(internalFileNameStripJPG);
+		final var stripExt = getExtension(internalFileNameStripJPG);
+
+		final var stripImagesData = IntStream.range(0, contentDatas.size())
+				.mapToObj(i -> stripBaseName + i + "." + stripExt)
+				.filter(contentDatas::containsKey)
+				.map(contentDatas::get)
+				.toList();
+
+		return Optional.ofNullable(new VideoImageSnapshots(significantImageData, imageSize, stripImagesData));
+	}
+
 	public Optional<MeasuredWav> getMeasuredWav(final String internalFileName) {
 		if (contentItems.containsKey(internalFileName) == false) {
 			return Optional.empty();
@@ -185,32 +240,43 @@ public class ImpExArchiveExtractionSession {
 	}
 
 	public ImpExArchiveExtractionSession readFromZip(final File zipFile) {
-		final var buffer = new byte[TEN_MB];
 		final var maxReadZipEntry = Integer.parseInt(System.getProperty(
 				"mediadeepa.maxReadZipEntry",
 				/**
 				 * Approx. 2 GB
 				 */
-				String.valueOf(MAX_VALUE)));
+				String.valueOf(MAX_VALUE - 1)));
 
 		log.info("Open and load {} zip file", zipFile);
 		try (var zipIn = new ZipInputStream(
-				new BufferedInputStream(new FileInputStream(zipFile), TEN_MB))) {
+				new BufferedInputStream(new FileInputStream(zipFile),
+						TEN_MB > (int) zipFile.length() ? (int) zipFile.length() : TEN_MB))) {
 			ZipEntry zEntry;
-			final var sb = new StringBuilder(10_000);
+			final var byteArray = new ByteArrayOutputStream(TEN_MB);
+
+			int val;
 			while ((zEntry = zipIn.getNextEntry()) != null) {
-				if (sb.length() > maxReadZipEntry) {
-					log.warn(
-							"Max zip entry allowed to readed: {} bytes. Change it with \"mediadeepa.maxReadZipEntry\" system property",
-							maxReadZipEntry);
-					throw new IllegalStateException("Max zip entry readed from an archive file");
+				if (zEntry.getName().equals(DATAS_ZIP_DIR)) {
+					continue;
 				}
-				int len;
-				sb.setLength(0);
-				while ((len = zipIn.read(buffer)) > 0) {
-					sb.append(new String(buffer, 0, len));
+
+				while ((val = zipIn.read()) > -1) {
+					byteArray.write(val);
+
+					if (byteArray.size() >= maxReadZipEntry) {
+						throw new IOException("Zip entry (" + zEntry.getName() + ") is too big: " + maxReadZipEntry);
+					}
 				}
-				add(zEntry.getName(), sb.toString());
+
+				if (zEntry.getName().startsWith(DATAS_ZIP_DIR)) {
+					contentDatas.put(
+							zEntry.getName().substring(DATAS_ZIP_DIR.length()),
+							byteArray.toByteArray());
+				} else {
+					add(zEntry.getName(), new String(byteArray.toByteArray(), UTF_8));
+				}
+
+				byteArray.reset();
 			}
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't open/read input file as ZIP file", e);
@@ -229,7 +295,7 @@ public class ImpExArchiveExtractionSession {
 		}
 
 		final var entries = getEntries().iterator();
-		if (entries.hasNext() == false) {
+		if (entries.hasNext() == false && contentDatas.isEmpty()) {
 			log.warn("Nothing to export in archive file...");
 			return;
 		}
@@ -241,6 +307,8 @@ public class ImpExArchiveExtractionSession {
 			throw new UncheckedIOException("Can't create sub dirs", e);
 		}
 
+		final var rawEntries = contentDatas.entrySet().iterator();
+
 		try (var fileOut = new BufferedOutputStream(new FileOutputStream(zipFile), TEN_MB)) {
 			try (var zipOut = new ZipOutputStream(fileOut)) {
 				while (entries.hasNext()) {
@@ -250,6 +318,17 @@ public class ImpExArchiveExtractionSession {
 					zipOut.write(entry.content().getBytes(UTF_8));
 					zipOut.closeEntry();
 				}
+
+				if (rawEntries.hasNext()) {
+					zipOut.putNextEntry(new ZipEntry(DATAS_ZIP_DIR));
+				}
+				while (rawEntries.hasNext()) {
+					final var entry = rawEntries.next();
+					zipOut.putNextEntry(new ZipEntry(DATAS_ZIP_DIR + entry.getKey()));
+					zipOut.write(entry.getValue());
+					zipOut.closeEntry();
+				}
+
 				zipOut.flush();
 			}
 		} catch (final IOException e) {

@@ -51,6 +51,9 @@ public class AppConfig {
 		private String ffmpegCommandLineTxt = "ffmpeg-cmdline.txt";
 		private String ffprobeCommandLineTxt = "ffprobe-cmdline.txt";
 		private String measuredWavJson = "waveform.json";
+		private String imageSnapshotJson = "significant-image-snapshot.json";
+		private String significantImageSnapshotJpg = "significant-image-snapshot.jpg";
+		private String stripImageSnapshotJpg = "strip-image-snapshot.jpg";
 	}
 
 	private String jsontableFileName = "media-datas.json";
@@ -120,4 +123,16 @@ public class AppConfig {
 		private Dimension imageSize = graphicConfig.getImageSizeHalfSize();
 		private String pngFilename = "waveform.png";
 	}
+
+	private SnapshotImageConfig snapshotImageConfig = new SnapshotImageConfig();
+
+	@Data
+	public class SnapshotImageConfig {
+		private String significantJpegFilename = "snapshot.jpg";
+		private String stripJpegFilename = "snapshot%d.jpg";
+		private int searchBestFrameOnCount = 10;
+		private boolean exportSignificant = true;
+		private int stripExpectedCount = 8;
+	}
+
 }

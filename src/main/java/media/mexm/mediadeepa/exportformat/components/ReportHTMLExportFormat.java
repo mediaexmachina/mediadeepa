@@ -82,6 +82,11 @@ public class ReportHTMLExportFormat implements ExportFormat, ConstStrings {
 	}
 
 	@Override
+	public boolean canHandleSnapshotImage() {
+		return true;
+	}
+
+	@Override
 	public Map<String, File> exportResult(final DataResult result) {
 		try {
 			final var outFile = outputFileSupplier.makeOutputFile(

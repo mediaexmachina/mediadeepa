@@ -40,6 +40,7 @@ import tv.hd3g.fflauncher.FFmpeg;
 import tv.hd3g.fflauncher.FFprobe;
 import tv.hd3g.fflauncher.about.FFAbout;
 import tv.hd3g.fflauncher.progress.ProgressListener;
+import tv.hd3g.fflauncher.recipes.ImageSnapshotExtractor;
 import tv.hd3g.jobkit.engine.BackgroundServiceEvent;
 import tv.hd3g.jobkit.engine.ExecutionEvent;
 import tv.hd3g.jobkit.engine.JobKitEngine;
@@ -65,6 +66,11 @@ public class Setup {
 	@Bean(name = "ffprobeAbout")
 	FFAbout getFFprobeAbout(final ExecutableFinder executableFinder) {
 		return new FFprobe(appConfig.getFfmpegExecName()).getAbout(executableFinder);
+	}
+
+	@Bean
+	ImageSnapshotExtractor getImageSnapshotExtractor(final ExecutableFinder executableFinder) {
+		return new ImageSnapshotExtractor(appConfig.getFfmpegExecName(), executableFinder);
 	}
 
 	@Bean

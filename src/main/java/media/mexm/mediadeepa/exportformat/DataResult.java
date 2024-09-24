@@ -58,6 +58,8 @@ public class DataResult {
 	private String ffprobeCommandLine;
 	@Setter
 	private MeasuredWav wavForm;
+	@Setter
+	private VideoImageSnapshots videoImageSnapshots;
 
 	public DataResult(final String source, final Map<String, String> versions, final boolean inMultipleSourcesSet) {
 		this.source = requireNonNull(source);
@@ -101,6 +103,10 @@ public class DataResult {
 
 	public Optional<MeasuredWav> getWavForm() {
 		return Optional.ofNullable(wavForm);
+	}
+
+	public Optional<VideoImageSnapshots> getVideoImageSnapshots() {
+		return Optional.ofNullable(videoImageSnapshots);
 	}
 
 	public Optional<ContainerAnalyserProcessResult> getContainerAnalyserProcessResult() {

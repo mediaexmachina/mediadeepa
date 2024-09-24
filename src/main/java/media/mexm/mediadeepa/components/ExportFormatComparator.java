@@ -28,6 +28,7 @@ import media.mexm.mediadeepa.exportformat.components.GraphicExportFormat;
 import media.mexm.mediadeepa.exportformat.components.ReportHTMLExportFormat;
 import media.mexm.mediadeepa.exportformat.components.ReportJsonExportFormat;
 import media.mexm.mediadeepa.exportformat.components.SignalImageExportFormat;
+import media.mexm.mediadeepa.exportformat.components.SnapshotImageExportFormat;
 import media.mexm.mediadeepa.exportformat.components.TableJsonExportFormat;
 import media.mexm.mediadeepa.exportformat.components.TableSQLiteExportFormat;
 import media.mexm.mediadeepa.exportformat.components.TableXLSXExportFormat;
@@ -50,6 +51,7 @@ public class ExportFormatComparator implements Comparator<ExportFormat> {
 			TableSQLiteExportFormat.class,
 			GraphicExportFormat.class,
 			SignalImageExportFormat.class,
+			SnapshotImageExportFormat.class,
 			ReportHTMLExportFormat.class,
 			ReportJsonExportFormat.class,
 			FFProbeXMLExportFormat.class);

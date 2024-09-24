@@ -69,4 +69,8 @@ public class ProcessFileCmd {
 			description = "Disable wavform measuring (ffmpeg)")
 	private boolean noWavForm;
 
+	@Option(names = { "-snn", "--snapshot-no" },
+			description = "Disable image snapshot extraction (ffmpeg)")
+	private boolean noSnapshots;
+
 }

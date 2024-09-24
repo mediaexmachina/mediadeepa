@@ -17,10 +17,14 @@
 package media.mexm.mediadeepa.service;
 
 import static java.lang.Math.round;
+import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.apache.commons.lang3.StringUtils.leftPad;
 import static tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult.R128_DEFAULT_LUFS_TARGET;
 
+import java.awt.Dimension;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -37,7 +41,10 @@ import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,6 +55,7 @@ import media.mexm.mediadeepa.cli.FilterCmd;
 import media.mexm.mediadeepa.cli.ProcessFileCmd;
 import media.mexm.mediadeepa.cli.TypeExclusiveCmd;
 import media.mexm.mediadeepa.config.AppConfig;
+import media.mexm.mediadeepa.exportformat.VideoImageSnapshots;
 import tv.hd3g.fflauncher.about.FFAbout;
 import tv.hd3g.fflauncher.about.FFAboutFilter;
 import tv.hd3g.fflauncher.enums.Channel;
@@ -88,6 +96,7 @@ import tv.hd3g.fflauncher.recipes.ContainerAnalyserExtract;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserExtractResult;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcess;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
+import tv.hd3g.fflauncher.recipes.ImageSnapshotExtractor;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserBase;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserExtract;
 import tv.hd3g.fflauncher.recipes.MediaAnalyserExtractResult;
@@ -158,6 +167,8 @@ public class FFmpegServiceImpl implements FFmpegService {
 	private ProgressListener progressListener;
 	@Autowired
 	private Supplier<ProgressCLI> progressSupplier;
+	@Autowired
+	private ImageSnapshotExtractor imageSnapshotExtractor;
 
 	@Override
 	public Map<String, String> getMtdFiltersAvaliable() {
@@ -608,6 +619,77 @@ public class FFmpegServiceImpl implements FFmpegService {
 								fileDuration,
 								appConfig.getWavFormConfig().getImageSize().width))
 						.getResult());
+	}
+
+	private String positionToFFmpegPosition(final long seconds) {
+		final var pos = Duration.ofSeconds(seconds);
+		return leftPad(String.valueOf(pos.toHoursPart()), 2, "0") + ":" +
+			   leftPad(String.valueOf(pos.toMinutesPart()), 2, "0") + ":" +
+			   leftPad(String.valueOf(pos.toSecondsPart()), 2, "0");
+	}
+
+	@Override
+	public Optional<VideoImageSnapshots> extractVideoImageSnapshots(final File inputFile,
+																	final FFprobeJAXB ffprobeJAXB,
+																	final ProcessFileCmd processFileCmd) {
+		if (ffprobeJAXB.getDuration().isEmpty()
+			|| ffprobeJAXB.getFirstVideoStream().isEmpty()
+			|| processFileCmd.isNoSnapshots()) {
+			return empty();
+		}
+
+		final var duration = ffprobeJAXB.getDuration().get();
+		final var durationSec = (int) duration.toSeconds();
+		final var conf = appConfig.getSnapshotImageConfig();
+		final var searchBestFrameOnCount = conf.getSearchBestFrameOnCount();
+
+		var startTime = "00:00:00";
+		if (duration.toMinutes() > 1) {
+			startTime = positionToFFmpegPosition(durationSec / 3);
+		}
+
+		log.info("Extract significant image snapshot at average {}", startTime);
+		final var significantRawImage = imageSnapshotExtractor.bestEffortTimedSnapshot(
+				inputFile, startTime, searchBestFrameOnCount);
+		if (significantRawImage.length < 1) {
+			log.info("Image extraction has not return datas for significant image");
+			return empty();
+		}
+
+		final Dimension outputSize;
+		try {
+			final var bimg = ImageIO.read(new ByteArrayInputStream(significantRawImage));
+			outputSize = new Dimension(bimg.getWidth(), bimg.getHeight());
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Can't open ffmpeg generated image", e);
+		}
+
+		var stripExpectedCount = conf.getStripExpectedCount();
+		if (stripExpectedCount >= durationSec) {
+			stripExpectedCount = durationSec - 1;
+		}
+		List<byte[]> stripRawImages = List.of();
+		if (stripExpectedCount > 1) {
+			final var stripChunkDuration = durationSec / (stripExpectedCount - 1);
+
+			log.info("Extract {} strips images snapshot every {} seconds", stripExpectedCount, stripChunkDuration);
+			stripRawImages = IntStream.range(0, stripExpectedCount)
+					.map(stripId -> stripId * stripChunkDuration)
+					.mapToObj(this::positionToFFmpegPosition)
+					.map(pos -> {
+						log.info("Extract image snapshot from {}", pos);
+						final var data = imageSnapshotExtractor.preciseTimedSnapshot(
+								inputFile, pos, searchBestFrameOnCount);
+						if (data.length == 0) {
+							log.info("No image extracted at {}", pos);
+						}
+						return data;
+					})
+					.filter(data -> data.length > 0)
+					.toList();
+		}
+
+		return Optional.ofNullable(new VideoImageSnapshots(significantRawImage, outputSize, stripRawImages));
 	}
 
 	private static Stream<String> openFileToLineStream(final File file) {

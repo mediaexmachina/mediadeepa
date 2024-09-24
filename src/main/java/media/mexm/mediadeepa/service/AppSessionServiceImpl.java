@@ -438,6 +438,13 @@ public class AppSessionServiceImpl implements AppSessionService {
 				.ifPresent(measuredWav -> extractSession.addMeasuredWav(zippedTxtFileNames.getMeasuredWavJson(),
 						measuredWav));
 
+		ffmpegService.extractVideoImageSnapshots(inputFile, probeResult, processFileCmd)
+				.ifPresent(vis -> extractSession.addVideoImageSnapshots(
+						zippedTxtFileNames.getImageSnapshotJson(),
+						zippedTxtFileNames.getSignificantImageSnapshotJpg(),
+						zippedTxtFileNames.getStripImageSnapshotJpg(),
+						vis));
+
 		File outputFile;
 		if (inMultipleSourcesSet) {
 			final var inputFileName = inputFile.getName();
@@ -503,17 +510,28 @@ public class AppSessionServiceImpl implements AppSessionService {
 			dataResult.setContainerAnalyserProcessResult(caResult);
 		}
 
-		final var canHandleWaveForm = mediaAnalyticsTransformerService.getSelectedExportFormats(
-				appCommand.getOutputCmd().getExportToCmd(),
-				fromOutputCmd(appCommand.getOutputCmd(), commandLine)
-						.map(ExportOnlyParamConfiguration::internalFileName))
+		final var canHandleWaveForm = getSessionUsedExportFormats()
 				.anyMatch(ExportFormat::canHandleMeasuredWaveForm);
 		if (canHandleWaveForm) {
 			ffmpegService.measureWav(inputFile, ffprobeResult, processFileCmd)
 					.ifPresent(dataResult::setWavForm);
 		}
 
+		final var canHandleSnapshots = getSessionUsedExportFormats()
+				.anyMatch(ExportFormat::canHandleSnapshotImage);
+		if (canHandleSnapshots) {
+			ffmpegService.extractVideoImageSnapshots(inputFile, ffprobeResult, processFileCmd)
+					.ifPresent(dataResult::setVideoImageSnapshots);
+		}
+
 		return exportAnalytics(dataResult);
+	}
+
+	private Stream<ExportFormat> getSessionUsedExportFormats() {
+		return mediaAnalyticsTransformerService.getSelectedExportFormats(
+				appCommand.getOutputCmd().getExportToCmd(),
+				fromOutputCmd(appCommand.getOutputCmd(), commandLine)
+						.map(ExportOnlyParamConfiguration::internalFileName));
 	}
 
 	private boolean checkIfSourceIsZIP(final File zipFile) {
@@ -573,7 +591,7 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		log.debug("Load MediaAnalyserSession");
 		final var ffmpegCommandLine = extractSession.getFFmpegCommandLine(
-				zippedTxtFileNames.getFfmpegCommandLineTxt()).orElse("TATA");
+				zippedTxtFileNames.getFfmpegCommandLineTxt()).orElse(null);
 		final var filters = extractSession.getFilterContext(zippedTxtFileNames.getFiltersJson());
 		dataResult.setMediaAnalyserProcessResult(MediaAnalyserProcessResult.importFromOffline(
 				stdOutLines,
@@ -582,13 +600,19 @@ public class AppSessionServiceImpl implements AppSessionService {
 
 		log.debug("Try to load container offline");
 		final var ffprobeCommandLine = extractSession.getFFprobeCommandLine(
-				zippedTxtFileNames.getFfprobeCommandLineTxt()).orElse("TOTO");
+				zippedTxtFileNames.getFfprobeCommandLineTxt()).orElse(null);
 		Optional.ofNullable(extractEntries.get(zippedTxtFileNames.getContainerXml()))
 				.ifPresent(f -> dataResult.setContainerAnalyserProcessResult(ContainerAnalyserProcessResult
 						.importFromOffline(new ByteArrayInputStream(f.getBytes(UTF_8)), ffprobeCommandLine)));
 
 		extractSession.getMeasuredWav(zippedTxtFileNames.getMeasuredWavJson())
 				.ifPresent(dataResult::setWavForm);
+
+		extractSession.getVideoImageSnapshots(
+				zippedTxtFileNames.getImageSnapshotJson(),
+				zippedTxtFileNames.getSignificantImageSnapshotJpg(),
+				zippedTxtFileNames.getStripImageSnapshotJpg())
+				.ifPresent(dataResult::setVideoImageSnapshots);
 
 		return exportAnalytics(dataResult);
 	}

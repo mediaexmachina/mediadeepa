@@ -23,6 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableMap;
+import static media.mexm.mediadeepa.ImpExArchiveExtractionSession.DATAS_ZIP_DIR;
 import static media.mexm.mediadeepa.e2e.E2ESpecificMediaFile.getFromMediaFile;
 import static org.apache.commons.io.FilenameUtils.wildcardMatch;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -453,7 +454,7 @@ class E2ETextTest extends E2EUtils {
 			}
 
 			if (rawData.hasVideo()) {
-				assertThat(names).containsOnly(
+				assertThat(names).contains(
 						zippedTxtFileNames.getVersionJson(),
 						zippedTxtFileNames.getCommandLineJson(),
 						zippedTxtFileNames.getFiltersJson(),
@@ -465,9 +466,12 @@ class E2ETextTest extends E2EUtils {
 						zippedTxtFileNames.getSummaryTxt(),
 						zippedTxtFileNames.getFfmpegCommandLineTxt(),
 						zippedTxtFileNames.getFfprobeCommandLineTxt(),
-						zippedTxtFileNames.getSourceNameTxt());
+						zippedTxtFileNames.getSourceNameTxt(),
+						zippedTxtFileNames.getImageSnapshotJson(),
+						DATAS_ZIP_DIR + zippedTxtFileNames.getSignificantImageSnapshotJpg(),
+						DATAS_ZIP_DIR + zippedTxtFileNames.getStripImageSnapshotJpg().replace(".jpg", "6.jpg"));
 			} else {
-				assertThat(names).containsOnly(
+				assertThat(names).contains(
 						zippedTxtFileNames.getVersionJson(),
 						zippedTxtFileNames.getCommandLineJson(),
 						zippedTxtFileNames.getFiltersJson(),

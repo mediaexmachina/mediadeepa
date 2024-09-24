@@ -11,37 +11,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
- * Copyright (C) Media ex Machina 2023
+ * Copyright (C) hdsdi3g for hd3g.tv 2024
  *
  */
 package media.mexm.mediadeepa.exportformat;
 
-import java.io.File;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.awt.Dimension;
+import java.util.List;
 
-public interface ExportFormat {
+public record VideoImageSnapshots(// NOSONAR S6218
+								  byte[] significantImageData,
+								  Dimension imageSize,
+								  List<byte[]> stripImagesData) {
 
-	Map<String, File> exportResult(DataResult result);
-
-	String getFormatName();
-
-	String getFormatLongName();
-
-	default String getFormatDescription() {
-		return "";
-	}
-
-	Set<String> getInternalProducedFileNames();
-
-	Optional<byte[]> makeSingleExport(DataResult result, String internalFileName);
-
-	default boolean canHandleMeasuredWaveForm() {
-		return false;
-	}
-
-	default boolean canHandleSnapshotImage() {
-		return false;
-	}
 }
