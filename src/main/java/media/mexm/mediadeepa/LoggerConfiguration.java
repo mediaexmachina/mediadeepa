@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Set;
 
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,9 @@ public class LoggerConfiguration {
 		internalCommandLine.setUnmatchedArgumentsAllowed(true);
 		internalCommandLine.setUnmatchedOptionsAllowedAsOptionParameters(true);
 		internalCommandLine.setUnmatchedOptionsArePositionalParams(true);
+		final var sw = new StringWriter();
+		internalCommandLine.setOut(new PrintWriter(sw));
+		internalCommandLine.setErr(new PrintWriter(sw));
 	}
 
 	public void apply(final String[] args,
