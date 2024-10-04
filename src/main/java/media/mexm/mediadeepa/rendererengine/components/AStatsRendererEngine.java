@@ -516,7 +516,7 @@ public class AStatsRendererEngine implements
 							LavfiMtdAstatsChannel::noiseFloorCount,
 							"Noise floor count channel", SAMPLE_S, c);
 
-					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+					addAllGraphicsToReport(result, section, appConfig, appCommand);
 					document.add(section);
 				});
 	}

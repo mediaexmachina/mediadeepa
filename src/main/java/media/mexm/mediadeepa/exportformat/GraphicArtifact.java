@@ -50,7 +50,7 @@ public class GraphicArtifact {
 
 	public ImageArtifact getImage(final AppCommand appCommand, final AppConfig appConfig) {
 		if (appCommand.isGraphicJpg()) {
-			final var cRatio = appConfig.getGraphicConfig().getJpegCompressionRatio();
+			final var cRatio = appConfig.getJpegCompressionRatio();
 			return renderChartToJPEGImage(fileNameWOExt, graphic.chart(), imageSize, cRatio);
 		} else {
 			return renderChartToPNGImage(fileNameWOExt, graphic.chart(), imageSize);
@@ -77,7 +77,10 @@ public class GraphicArtifact {
 	}
 
 	public ImageReportEntry toGraphicReportEntry(final AppCommand appCommand, final AppConfig appConfig) {
-		return new ImageReportEntry(getImage(appCommand, appConfig), graphic);
+		return new ImageReportEntry(
+				getImage(appCommand, appConfig),
+				graphic,
+				appConfig.getReportConfig().getDisplayImageSizeWidth());
 	}
 
 }

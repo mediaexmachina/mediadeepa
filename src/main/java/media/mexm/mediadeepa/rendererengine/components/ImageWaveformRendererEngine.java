@@ -194,7 +194,7 @@ public class ImageWaveformRendererEngine implements SignalImageRendererEngine, R
 			return;
 		}
 		final var section = new ReportSection(AUDIO, AUDIO_WAVEFORM);
-		addAllSignalImageToReport(this, result, section, appConfig);
+		addAllSignalImageToReport(result, section, appConfig);
 		document.add(section);
 	}
 }

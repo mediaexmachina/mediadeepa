@@ -123,7 +123,7 @@ public class APhaseMeterRendererEngine implements
 											.map(LavfiMtdValue::value)
 											.map(v -> Math.round(v * 100d)), "%", numberUtils));
 
-					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+					addAllGraphicsToReport(result, section, appConfig, appCommand);
 					document.add(section);
 				});
 	}

@@ -35,6 +35,7 @@ public class AppConfig {
 	private String ffprobeExecName = "ffprobe";
 	private boolean addSourceExtToOutputDirectories = false;
 	private boolean silentWarnMismatchZipArchiveVersion = false;
+	private float jpegCompressionRatio = 0.95f;
 
 	private ZippedArchive zippedArchive = new ZippedArchive();
 
@@ -71,6 +72,7 @@ public class AppConfig {
 		private int maxCropEventsDisplay = 20;
 		private boolean jsonIdentOutput = true;
 		private boolean addImages = true;
+		private int displayImageSizeWidth = 1000;
 	}
 
 	private GraphicConfig graphicConfig = new GraphicConfig();
@@ -101,7 +103,6 @@ public class AppConfig {
 
 		private Dimension imageSizeFullSize = new Dimension(2000, 1200);
 		private Dimension imageSizeHalfSize = new Dimension(2000, 600);
-		private float jpegCompressionRatio = 0.95f;
 	}
 
 	private ScanDir scanDir = new ScanDir();

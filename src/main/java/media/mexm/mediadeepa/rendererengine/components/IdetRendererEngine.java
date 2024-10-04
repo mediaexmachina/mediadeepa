@@ -274,7 +274,7 @@ public class IdetRendererEngine implements
 								lastIdet.repeated().neither(), frameCount);
 					}
 
-					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+					addAllGraphicsToReport(result, section, appConfig, appCommand);
 					document.add(section);
 				});
 	}

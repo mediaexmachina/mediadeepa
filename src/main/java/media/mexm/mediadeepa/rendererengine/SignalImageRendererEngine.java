@@ -16,18 +16,39 @@
  */
 package media.mexm.mediadeepa.rendererengine;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.Optional;
 
+import org.slf4j.Logger;
+
+import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ImageArtifact;
 import media.mexm.mediadeepa.exportformat.report.DomContentProvider;
+import media.mexm.mediadeepa.exportformat.report.ImageReportEntry;
+import media.mexm.mediadeepa.exportformat.report.ReportSection;
 
 public interface SignalImageRendererEngine extends DomContentProvider {
+	Logger internalLog = getLogger(SignalImageRendererEngine.class);
 
 	Optional<ImageArtifact> makeimagePNG(DataResult result);
 
 	String getManagedReturnName();
 
 	String getDefaultInternalFileName();
+
+	default void addAllSignalImageToReport(final DataResult result,
+										   final ReportSection section,
+										   final AppConfig appConfig) {
+		if (appConfig.getReportConfig().isAddImages() == false) {
+			internalLog.debug("Don't compute signal images for report producing, by conf");
+			return;
+		}
+
+		makeimagePNG(result)
+				.map(image -> new ImageReportEntry(image, this, appConfig.getReportConfig().getDisplayImageSizeWidth()))
+				.ifPresent(section::add);
+	}
 
 }

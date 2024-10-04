@@ -342,7 +342,7 @@ public class GopStatsRendererEngine implements
 			section.add(new SimpleKeyValueReportEntry("B frame presence", "no B frames"));
 		}
 
-		addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+		addAllGraphicsToReport(result, section, appConfig, appCommand);
 		document.add(section);
 	}
 

@@ -232,7 +232,7 @@ public class CropRendererEngine implements
 							sourceResolution,
 							appConfig.getReportConfig().getMaxCropEventsDisplay()));
 
-					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+					addAllGraphicsToReport(result, section, appConfig, appCommand);
 					document.add(section);
 				});
 	}

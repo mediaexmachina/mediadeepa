@@ -230,7 +230,7 @@ public class AFramesRendererEngine implements
 									.filter(f -> f.isNaN() == false)
 									.map(d -> d * 1000f), MILLISECONDS, numberUtils::formatDecimalFull1En));
 
-					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+					addAllGraphicsToReport(result, section, appConfig, appCommand);
 					document.add(section);
 				});
 	}

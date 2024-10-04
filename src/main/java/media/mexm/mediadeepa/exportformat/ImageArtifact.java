@@ -16,9 +16,6 @@
  */
 package media.mexm.mediadeepa.exportformat;
 
-import static j2html.TagCreator.img;
-import static org.apache.commons.codec.binary.Base64.encodeBase64String;
-
 import java.awt.Dimension;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -32,8 +29,6 @@ import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import j2html.tags.specialized.ImgTag;
 
 public record ImageArtifact(String name, Dimension size, String contentType, byte[] data) {
 
@@ -81,14 +76,6 @@ public record ImageArtifact(String name, Dimension size, String contentType, byt
 		} catch (final IOException e) {
 			throw new UncheckedIOException("Can't export PNG", e);
 		}
-	}
-
-	public ImgTag makeEmbeddedHTMLImage(final String alt) {
-		return img()
-				.withAlt(alt)
-				.withWidth(String.valueOf(size.width / 2))
-				.withHeight(String.valueOf(size.height / 2))
-				.withSrc("data:" + contentType + ";base64," + encodeBase64String(data));
 	}
 
 	@Override

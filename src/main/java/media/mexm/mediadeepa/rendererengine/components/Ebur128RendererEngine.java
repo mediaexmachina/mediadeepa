@@ -271,7 +271,7 @@ public class Ebur128RendererEngine implements
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
 		final var section = new ReportSection(AUDIO, LOUDNESS_EBU_R128);
-		addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+		addAllGraphicsToReport(result, section, appConfig, appCommand);
 		document.add(section);
 
 	}

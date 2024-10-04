@@ -152,7 +152,7 @@ public class BlurRendererEngine implements
 											.map(LavfiMtdValue::value),
 									"", numberUtils::formatDecimalFull1En));
 
-					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+					addAllGraphicsToReport(result, section, appConfig, appCommand);
 					document.add(section);
 				});
 	}

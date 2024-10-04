@@ -244,7 +244,7 @@ public class EventsRendererEngine implements
 							allEvents.stream())
 							.forEach(section::add);
 
-					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+					addAllGraphicsToReport(result, section, appConfig, appCommand);
 					document.add(section);
 				});
 	}

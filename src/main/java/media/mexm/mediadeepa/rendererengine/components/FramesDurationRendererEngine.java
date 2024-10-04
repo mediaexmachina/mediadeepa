@@ -130,7 +130,7 @@ public class FramesDurationRendererEngine implements
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
 		final var section = new ReportSection(CONTAINER, "Frame duration");
-		addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+		addAllGraphicsToReport(result, section, appConfig, appCommand);
 		document.add(section);
 	}
 

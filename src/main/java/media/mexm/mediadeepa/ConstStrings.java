@@ -319,4 +319,5 @@ public interface ConstStrings {// NOSONAR
 	String DETECTED_AS_PROGRESSIVE_USING_MULTIPLE_FRAME_DETECTION = "Detected as progressive, using multiple-frame detection";
 	String DETECTED_AS_PROGRESSIVE = "Detected as progressive";
 
+	String SNAPSHOT = "Snapshots images";
 }

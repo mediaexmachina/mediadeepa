@@ -43,6 +43,8 @@ import media.mexm.mediadeepa.rendererengine.components.MediaSummaryRendererEngin
 import media.mexm.mediadeepa.rendererengine.components.PacketsRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.SITIRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.SITIReportRendererEngine;
+import media.mexm.mediadeepa.rendererengine.components.SignificantSnapshotImageRendererEngine;
+import media.mexm.mediadeepa.rendererengine.components.StripSnapshotImagesRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.VConstsRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.VFramesRendererEngine;
 
@@ -52,6 +54,9 @@ public class RendererEngineComparator implements Comparator<ReportRendererEngine
 
 	private static final List<Class<?>> ENGINE_DISPLAY_ORDER = List.of(
 			MediaSummaryRendererEngine.class,
+			SignificantSnapshotImageRendererEngine.class,
+			StripSnapshotImagesRendererEngine.class,
+
 			FFProbeXMLExportFormat.class,
 
 			ImageWaveformRendererEngine.class,

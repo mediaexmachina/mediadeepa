@@ -19,19 +19,19 @@ package media.mexm.mediadeepa.exportformat.report;
 import static j2html.TagCreator.attrs;
 import static j2html.TagCreator.figcaption;
 import static j2html.TagCreator.figure;
+import static j2html.TagCreator.img;
+import static org.apache.commons.codec.binary.Base64.encodeBase64String;
 
-import java.io.IOException;
 import java.util.Objects;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-
 import j2html.tags.DomContent;
+import j2html.tags.specialized.ImgTag;
 import media.mexm.mediadeepa.components.NumberUtils;
 import media.mexm.mediadeepa.exportformat.ImageArtifact;
 
 public record ImageReportEntry(ImageArtifact image,
-							   DomContentProvider caption) implements ReportEntry, JsonContentProvider {
+							   DomContentProvider caption,
+							   int displayWidth) implements ReportEntry {
 
 	@Override
 	public boolean isEmpty() {
@@ -40,17 +40,23 @@ public record ImageReportEntry(ImageArtifact image,
 
 	@Override
 	public DomContent toDomContent(final NumberUtils numberUtils) {
-		final var img = image.makeEmbeddedHTMLImage("Image " + image.name());
+		final var img = makeEmbeddedHTMLImage("Image " + image.name());
 		return figure(attrs(".image"),
 				img,
 				figcaption(caption.toDomContent(numberUtils)));
 	}
 
-	@Override
-	public void toJson(final JsonGenerator gen, final SerializerProvider provider) throws IOException {
-		/**
-		 * No graphic export with json
-		 */
+	public ImgTag makeEmbeddedHTMLImage(final String alt) {
+		final var imageWidth = image.size().width;
+		final var imageHeight = image.size().height;
+
+		final var displayHeight = Math.round((float) displayWidth / (float) imageWidth * imageHeight);
+
+		return img()
+				.withAlt(alt)
+				.withWidth(String.valueOf(displayWidth))
+				.withHeight(String.valueOf(displayHeight))
+				.withSrc("data:" + image.contentType() + ";base64," + encodeBase64String(image.data()));
 	}
 
 	@Override

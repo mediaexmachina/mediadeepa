@@ -156,7 +156,7 @@ public class SITIRendererEngine implements
 	@Override
 	public void addToReport(final DataResult result, final ReportDocument document) {
 		final var section = new ReportSection(VIDEO, SPATIAL_TEMPORAL_INFORMATION);
-		addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+		addAllGraphicsToReport(result, section, appConfig, appCommand);
 		document.add(section);
 	}
 

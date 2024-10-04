@@ -273,7 +273,7 @@ public class VFramesRendererEngine implements
 									.map(FFprobeBaseFrame::bestEffortTimestampTime),
 									allFrames.size()), MILLISECOND_S, numberUtils::formatDecimalFull3En));
 
-					addAllGraphicsToReport(this, result, section, appConfig, appCommand);
+					addAllGraphicsToReport(result, section, appConfig, appCommand);
 					document.add(section);
 				});
 	}

@@ -128,19 +128,6 @@ class ImageArtifactTest {
 	}
 
 	@Test
-	void testMakeEmbeddedHTMLImage() {
-		ia = new ImageArtifact(name, size, contentType, "A FIXED VALUE".getBytes());
-
-		final var img = ia.makeEmbeddedHTMLImage(alt);
-		assertEquals(
-				"<img alt=\"" + alt +
-					 "\" width=\"" + width / 2 +
-					 "\" height=\"" + height / 2
-					 + "\" src=\"data:" + contentType + ";base64,QSBGSVhFRCBWQUxVRQ==\">",
-				img.toString());
-	}
-
-	@Test
 	void testToString() {
 		assertThat(ia.toString()).contains(valueOf(data.length));
 	}

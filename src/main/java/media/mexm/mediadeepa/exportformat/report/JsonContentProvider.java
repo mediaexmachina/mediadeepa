@@ -53,8 +53,7 @@ public sealed interface JsonContentProvider
 											ReportEntrySubset,
 											ReportEntryChapters,
 											ReportEntryChapter,
-											StatisticsUnitValueReportEntry,
-											ImageReportEntry {
+											StatisticsUnitValueReportEntry {
 	Logger internalLog = getLogger(JsonContentProvider.class);
 
 	void toJson(JsonGenerator gen,
@@ -88,6 +87,9 @@ public sealed interface JsonContentProvider
 
 	default void writeObject(final Object value, final JsonGenerator gen) {
 		if (value == null) {
+			return;
+		} else if (value instanceof JsonContentProvider == false) {
+			internalLog.debug("Not configured class {}", value.getClass());
 			return;
 		}
 		try {
