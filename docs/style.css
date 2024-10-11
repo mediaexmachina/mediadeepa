@@ -15,6 +15,10 @@
  *
  */
 
+img[src="https://mexm.media/project-hero.jpg"] {
+    width: 50vw;
+}
+
 body {
 	font-family: "Tahoma", Sans-serif;
     line-height: 1.5;
