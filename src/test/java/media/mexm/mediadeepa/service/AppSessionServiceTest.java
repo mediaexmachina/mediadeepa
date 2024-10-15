@@ -50,6 +50,7 @@ import media.mexm.mediadeepa.components.DocumentationExporter;
 import media.mexm.mediadeepa.config.AppConfig;
 import net.datafaker.Faker;
 import picocli.CommandLine;
+import picocli.CommandLine.Help.ColorScheme;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Model.UsageMessageSpec;
 import picocli.CommandLine.ParameterException;
@@ -104,11 +105,15 @@ class AppSessionServiceTest {
 
 		when(commandLine.getOut()).thenReturn(pw);
 		when(commandLine.getCommandSpec()).thenReturn(commandSpec);
+		when(commandLine.getColorScheme()).thenReturn(new ColorScheme.Builder().build());
 		when(commandSpec.usageMessage()).thenReturn(usageMessageSpec);
 		when(usageMessageSpec.hidden()).thenReturn(true);
 
 		when(ffmpegService.getVersions()).thenReturn(Map.of());
 		when(ffmpegService.getMtdFiltersAvaliable()).thenReturn(Map.of());
+
+		when(executableFinder.get(appConfig.getFfmpegExecName())).thenReturn(new File(""));
+		when(executableFinder.get(appConfig.getFfprobeExecName())).thenReturn(new File(""));
 
 		processFileCmd = new ProcessFileCmd();
 		appCommand.setInput(List.of(File.createTempFile("mediadeepa", ".tmp").getAbsolutePath()));
@@ -146,6 +151,7 @@ class AppSessionServiceTest {
 		verify(ffmpegService, atLeastOnce()).getMtdFiltersAvaliable();
 		verify(executableFinder, atLeastOnce()).get(appConfig.getFfmpegExecName());
 		verify(executableFinder, atLeastOnce()).get(appConfig.getFfprobeExecName());
+		verify(commandLine, atLeastOnce()).getColorScheme();
 	}
 
 	@Test

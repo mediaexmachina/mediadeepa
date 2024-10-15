@@ -30,6 +30,7 @@ import static media.mexm.mediadeepa.ImpExArchiveExtractionSession.TEN_MB;
 import static org.apache.commons.io.FileUtils.forceMkdir;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.io.FilenameUtils.getExtension;
+import static org.apache.commons.lang3.StringUtils.repeat;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -39,6 +40,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +70,9 @@ import media.mexm.mediadeepa.workingsession.WorkingSession;
 import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.Help;
+import picocli.CommandLine.Help.Ansi;
+import picocli.CommandLine.Help.Ansi.IStyle;
+import picocli.CommandLine.Help.ColorScheme;
 import picocli.CommandLine.ParameterException;
 import tv.hd3g.commons.version.EnvironmentVersion;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
@@ -185,38 +190,123 @@ public class AppSessionServiceImpl implements AppSessionService {
 						"# " + NAME + " " + environmentVersion.appVersion() + " Bash Completion"));
 	}
 
+	private interface HelpLine {
+		String print(ColorScheme cs, int maxWidthLeft);
+
+		int getLeftSize();
+	}
+
+	private record HelpLineSimple(String left,
+								  String right,
+								  List<IStyle> styleLeft,
+								  List<IStyle> styleRight) implements HelpLine {
+
+		@Override
+		public String print(final ColorScheme cs, final int maxWidthLeft) {
+			return cs.apply(left, styleLeft).toString()
+				   + repeat(" ", maxWidthLeft - left.length() + 2)
+				   + cs.apply(Optional.ofNullable(right).orElse(""), styleRight).toString();
+		}
+
+		@Override
+		public int getLeftSize() {
+			return left.length();
+		}
+	}
+
+	private record HelpLineList(List<String> right) implements HelpLine {
+
+		@Override
+		public String print(final ColorScheme cs, final int maxWidthLeft) {
+			return repeat(" ", maxWidthLeft + 2)
+				   + cs.apply("> ", List.of(Ansi.Style.faint)).toString()
+				   + right.stream()
+						   .collect(joining(cs.apply(", ", List.of(Ansi.Style.faint)).toString()));
+		}
+
+		@Override
+		public int getLeftSize() {
+			return 0;
+		}
+	}
+
 	private void displayOptions() throws FileNotFoundException {
+		final var cs = commandLine.getColorScheme();
 		final var out = commandLine.getOut();
+
+		class FormatStdoutString {
+
+			List<HelpLine> lines = new ArrayList<>();
+
+			void addLine(final String left,
+						 final String right,
+						 final List<IStyle> styleLeft,
+						 final List<IStyle> styleRight) {
+				lines.add(new HelpLineSimple(left, right, styleLeft, styleRight));
+			}
+
+			void addLine(final List<String> right) {
+				lines.add(new HelpLineList(right));
+			}
+
+			void printAllAndClear() {
+				final var maxWidthLeft = lines.stream()
+						.mapToInt(HelpLine::getLeftSize)
+						.max()
+						.orElse(0);
+
+				lines.stream()
+						.map(l -> l.print(cs, maxWidthLeft))
+						.forEach(out::println);
+				lines.clear();
+			}
+
+		}
+
+		final List<IStyle> bold = List.of(Ansi.Style.bold);
+		final List<IStyle> underline = List.of(Ansi.Style.underline);
+		final List<IStyle> faint = List.of(Ansi.Style.faint);
+		final List<IStyle> yellow = List.of(Ansi.Style.fg_yellow);
+		final List<IStyle> italic = List.of(Ansi.Style.italic);
+		final List<IStyle> green = List.of(Ansi.Style.fg_green);
+		final List<IStyle> italicGreen = List.of(Ansi.Style.fg_green, Ansi.Style.italic);
+
+		final var f = new FormatStdoutString();
+
 		final var versions = ffmpegService.getVersions();
 		out.println("Use:");
-		out.format("%-15s%-15s\n", "ffmpeg", executableFinder.get(appConfig.getFfmpegExecName())); // NOSONAR S3457
-		out.format("%-15s%-15s\n", "", versions.get("ffmpeg"));// NOSONAR S3457
-		out.println("");
-		out.format("%-15s%-15s\n", "ffprobe", executableFinder.get(appConfig.getFfprobeExecName())); // NOSONAR S3457
-		out.format("%-15s%-15s\n", "", versions.get("ffprobe"));// NOSONAR S3457
-		out.println("");
+
+		f.addLine("ffmpeg", executableFinder.get(appConfig.getFfmpegExecName()).getAbsolutePath(), bold, underline);
+		f.addLine("", versions.get("ffmpeg"), List.of(), faint);
+		f.addLine("ffprobe", executableFinder.get(appConfig.getFfprobeExecName()).getAbsolutePath(), bold, underline);
+		f.addLine("", versions.get("ffprobe"), List.of(), faint);
+		f.printAllAndClear();
+
+		out.println();
 		out.println("Detected (and usable) filters:");
+
 		ffmpegService.getMtdFiltersAvaliable()
-				.forEach((k, v) -> out.format("%-15s%-15s\n", k, v)); // NOSONAR S3457
-		out.println("");
+				.forEach((k, v) -> f.addLine(k, v, yellow, italic)); // NOSONAR S3457
+		f.printAllAndClear();
+
+		out.println();
 		out.println("Export formats available (and produced files):");
+
 		exportFormatList.stream()
 				.sorted(exportFormatComparator)
 				.forEach(eF -> {
-					final var files = eF.getInternalProducedFileNames();
-					final var fileList = files.stream().sorted().collect(joining(", "));
-					if (files.size() > 1) {
-						out.format("%-15s%-15s\n%-15s%-15s\n", // NOSONAR S3457
-								eF.getFormatName(),
-								eF.getFormatLongName(),
-								"",
-								" > " + fileList);
-					} else {
-						out.format("%-15s%-15s\n", // NOSONAR S3457
-								eF.getFormatName(),
-								eF.getFormatLongName() + " > " + fileList);
-					}
+					f.addLine(
+							eF.getFormatName(),
+							eF.getFormatLongName(),
+							green, italicGreen);
+
+					final var fileList = eF.getInternalProducedFileNames()
+							.stream()
+							.sorted()
+							.toList();
+					f.addLine(fileList);
 				});
+		f.printAllAndClear();
 	}
 
 	private void displayVersion() {
