@@ -30,7 +30,7 @@
         <apache.poi.version>5.2.3</apache.poi.version>
         <jfreechart.version>1.5.4</jfreechart.version>
         <commonmark.version>0.21.0</commonmark.version>
-        <exec-maven-plugin.version>3.1.1</exec-maven-plugin.version>
+        <exec-maven-plugin.version>3.4.1</exec-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -157,26 +157,19 @@
                     <execution>
                         <phase>package</phase>
                         <goals>
-                            <goal>java</goal>
+                            <goal>exec</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>media.mexm.mediadeepa.App</mainClass>
-                    <systemProperties>
-                        <systemProperty>
-                            <key>exportdocumentation.manpage</key>
-                            <value>docs/mediadeepa-1.man</value>
-                        </systemProperty>
-                        <systemProperty>
-                            <key>exportdocumentation.readme</key>
-                            <value>README.md</value>
-                        </systemProperty>
-                        <systemProperty>
-                            <key>exportdocumentation.website</key>
-                            <value>docs/index.html</value>
-                        </systemProperty>
-                    </systemProperties>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>-Dexportdocumentation.manpage=docs/mediadeepa-1.man</argument>
+                        <argument>-Dexportdocumentation.readme=README.md</argument>
+                        <argument>-Dexportdocumentation.website=docs/index.html</argument>
+                        <argument>-jar</argument>
+                        <argument>target/${project.artifactId}-${project.version}.jar</argument>
+                    </arguments>
                 </configuration>
             </plugin>
         </plugins>
