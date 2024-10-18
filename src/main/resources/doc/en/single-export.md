@@ -10,6 +10,8 @@ All filter options behaves the same way as full export: you should disable some 
 
 Don't input (`-i`) more than one file.
 
+Single export option is not compatible with _french CSVs_, either with multiple image `snapshot%d.jpg`.
+
 ### Syntax
 
 ```
