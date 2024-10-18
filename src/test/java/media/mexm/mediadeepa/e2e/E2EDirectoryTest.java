@@ -228,6 +228,7 @@ class E2EDirectoryTest extends E2EUtils {
 				"--exclude-dir", "*surefire*",
 				"--exclude-dir", "*maven*",
 				"--exclude-dir", "*test*",
+				"--exclude-dir", "*site*",
 				"--exclude-path", "e2e/ignore-me2",
 				"-f", "ffprobexml",
 				"-e", outDir.getPath(),
