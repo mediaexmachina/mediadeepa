@@ -42,7 +42,10 @@ public class KeyPressToExit implements Runnable {
 		exit();
 	}
 
-	public void start() {
+	public synchronized void start() {
+		if (consoleT.isAlive()) {
+			return;
+		}
 		consoleT.setDaemon(true);
 		consoleT.setPriority(Thread.MIN_PRIORITY);
 		consoleT.setName("Wait to console key press");
