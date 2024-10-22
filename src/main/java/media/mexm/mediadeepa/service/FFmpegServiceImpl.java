@@ -20,7 +20,7 @@ import static java.lang.Math.round;
 import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static org.apache.commons.lang3.StringUtils.leftPad;
+import static tv.hd3g.fflauncher.TemporalProcessTraits.ffmpegDurationToDuration;
 import static tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult.R128_DEFAULT_LUFS_TARGET;
 
 import java.awt.Dimension;
@@ -56,6 +56,7 @@ import media.mexm.mediadeepa.cli.ProcessFileCmd;
 import media.mexm.mediadeepa.cli.TypeExclusiveCmd;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.VideoImageSnapshots;
+import tv.hd3g.fflauncher.TemporalProcessTraits;
 import tv.hd3g.fflauncher.about.FFAbout;
 import tv.hd3g.fflauncher.about.FFAboutFilter;
 import tv.hd3g.fflauncher.enums.Channel;
@@ -237,8 +238,11 @@ public class FFmpegServiceImpl implements FFmpegService {
 				avgFrameRate);
 
 		ma.setSource(inputFile);
-		ma.setPgmFFDuration(processFileCmd.getDuration());
-		ma.setPgmFFStartTime(processFileCmd.getStartTime());
+		Optional.ofNullable(processFileCmd.getDuration())
+				.ifPresent(d -> ma.setPgmFFDuration(ffmpegDurationToDuration(d)));
+		Optional.ofNullable(processFileCmd.getStartTime())
+				.ifPresent(d -> ma.setPgmFFStartTime(ffmpegDurationToDuration(d)));
+
 		ma.setFfprobeResult(ffprobeJAXB);
 		ma.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), maxExecTimeScheduler);
 	}
@@ -604,14 +608,6 @@ public class FFmpegServiceImpl implements FFmpegService {
 		setProgress(progressSupplier.get(), fileDuration.getSeconds(), wavMeasure);
 		wavMeasure.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), maxExecTimeScheduler);
 
-		final var ffmpeg = wavMeasure.getFfmpeg();
-		if (processFileCmd.getDuration() != null) {
-			ffmpeg.addDuration(processFileCmd.getDuration());
-		}
-		if (processFileCmd.getStartTime() != null) {
-			ffmpeg.addStartPosition(processFileCmd.getStartTime());
-		}
-
 		return Optional.ofNullable(
 				wavMeasure.process(
 						new WavMeasureSetup(
@@ -622,10 +618,7 @@ public class FFmpegServiceImpl implements FFmpegService {
 	}
 
 	private String positionToFFmpegPosition(final long seconds) {
-		final var pos = Duration.ofSeconds(seconds);
-		return leftPad(String.valueOf(pos.toHoursPart()), 2, "0") + ":" +
-			   leftPad(String.valueOf(pos.toMinutesPart()), 2, "0") + ":" +
-			   leftPad(String.valueOf(pos.toSecondsPart()), 2, "0");
+		return TemporalProcessTraits.positionToFFmpegPosition(Duration.ofSeconds(seconds));
 	}
 
 	@Override

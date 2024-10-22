@@ -32,5 +32,6 @@ You can process multiple files and directory scans in one run, as well as load a
  - Audio mono and stereo only.
  - Some process take (long) time to do, like SITI and container analyzing, caused by poor FFmpeg/FFprobe performances with **these** filters.
  - Loudness EBU R-128,and _audio stats_ measures works correctly with FFmpeg v7+, due to internal bugs/limitations with the previous versions.
+ - Limited file start position time and duration are only applied on media analyzing, not container, image snapshot or audio signal.
 
 An internal warning will by displayed if you try to works with a Zip archive created by a different Mediadeepa version.

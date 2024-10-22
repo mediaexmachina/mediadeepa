@@ -25,14 +25,12 @@ import java.util.stream.IntStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
 import media.mexm.mediadeepa.ConstStrings;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ImageArtifact;
 
 @Component
-@Slf4j
 public class StripSnapshotImagesRendererEngine implements ConstStrings {
 
 	@Autowired
