@@ -20,6 +20,7 @@ import static java.lang.Math.round;
 import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static tv.hd3g.fflauncher.TemporalProcessTraits.ffmpegDurationToDuration;
 import static tv.hd3g.fflauncher.recipes.MediaAnalyserProcessResult.R128_DEFAULT_LUFS_TARGET;
 
 import java.awt.Dimension;
@@ -237,8 +238,8 @@ public class FFmpegServiceImpl implements FFmpegService {
 				avgFrameRate);
 
 		ma.setSource(inputFile);
-		ma.setPgmFFDuration(processFileCmd.getDuration());
-		ma.setPgmFFStartTime(processFileCmd.getStartTime());
+		ma.setPgmFFDuration(ffmpegDurationToDuration(processFileCmd.getDuration()));
+		ma.setPgmFFStartTime(ffmpegDurationToDuration(processFileCmd.getStartTime()));
 		ma.setFfprobeResult(ffprobeJAXB);
 		ma.setMaxExecutionTime(Duration.ofSeconds(processFileCmd.getMaxSec()), maxExecTimeScheduler);
 	}
