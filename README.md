@@ -69,6 +69,7 @@ You can process multiple files and directory scans in one run, as well as load a
  - Audio mono and stereo only.
  - Some process take (long) time to do, like SITI and container analyzing, caused by poor FFmpeg/FFprobe performances with **these** filters.
  - Loudness EBU R-128,and _audio stats_ measures works correctly with FFmpeg v7+, due to internal bugs/limitations with the previous versions.
+ - Limited file start position time and duration are only applied on media analyzing, not container, image snapshot or audio signal.
 
 An internal warning will by displayed if you try to works with a Zip archive created by a different Mediadeepa version.
 
@@ -89,10 +90,10 @@ Install/update with
 
 ```bash
 # DEB file on Debian/Ubuntu Linux distribs
-sudo dpkg -i mediadeepa-0.0.53.deb
+sudo dpkg -i mediadeepa-0.0.54.deb
 
 # RPM file on RHEL/CentOS Linux distribs
-sudo rpm -U mediadeepa-0.0.53.rpm
+sudo rpm -U mediadeepa-0.0.54.rpm
 ```
 
 Remove with `sudo dpkg -r mediadeepa` or `rpm -e mediadeepa`.
@@ -101,13 +102,13 @@ After, on Linux, run `mediadeepa [parameters]`, and `man mediadeepa` for the int
 
 ### Run simple JAR file
 
-On Windows/macOS, just run `java -jar mediadeepa-0.0.53.jar [options]`.
+On Windows/macOS, just run `java -jar mediadeepa-0.0.54.jar [options]`.
 
-And simply run the application with `java -jar mediadeepa-0.0.53.jar`.
+And simply run the application with `java -jar mediadeepa-0.0.54.jar`.
 
 Mediadeepa contain embedded help, displayed with the `-h` parameter.
 
-You can set the command line parameters with `java -jar mediadeepa-0.0.53.jar [parameters]`.
+You can set the command line parameters with `java -jar mediadeepa-0.0.54.jar [parameters]`.
 
 ### Make a Java executable JAR file
 
@@ -121,7 +122,7 @@ cd mediadeepa
 mvn install -DskipTests
 ```
 
-Build jar will be founded on `target` directory as `mediadeepa-0.0.53.jar`
+Build jar will be founded on `target` directory as `mediadeepa-0.0.54.jar`
 
 <h2 id="examples">🛫 Examples</h2>
 
