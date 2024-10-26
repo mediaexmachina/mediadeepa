@@ -34,6 +34,8 @@ import media.mexm.mediadeepa.cli.AppCommand;
 import media.mexm.mediadeepa.service.AppSessionService;
 import picocli.CommandLine;
 import picocli.CommandLine.UnmatchedArgumentException;
+import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
+import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 @Component
 @Slf4j
@@ -62,7 +64,10 @@ public class CLIRunner implements CommandLineRunner, ExitCodeGenerator {
 	@Override
 	public void run(final String... args) throws Exception {
 		commandLine.setParameterExceptionHandler((ex, params) -> 0);
-		loggerConfiguration.apply(args, Set.of("media.mexm"), commandLine);
+		loggerConfiguration.apply(args, Set.of(
+				"media.mexm",
+				ExecutableFinder.class.getName(),
+				ProcesslauncherLifecycle.class.getName()), commandLine);
 
 		commandLine.setParameterExceptionHandler((ex, params) -> {
 			final var cmd = ex.getCommandLine();
