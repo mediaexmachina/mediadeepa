@@ -36,6 +36,7 @@ import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
+import media.mexm.mediadeepa.exportformat.ProcessingHandledData;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 
 @Component
@@ -54,6 +55,11 @@ public class FFProbeXMLExportFormat implements ExportFormat {
 	@Override
 	public String getFormatLongName() {
 		return "Media file headers on FFprobe XML";
+	}
+
+	@Override
+	public Set<ProcessingHandledData> canHandleProcessingData() {
+		return Set.of();
 	}
 
 	@Override

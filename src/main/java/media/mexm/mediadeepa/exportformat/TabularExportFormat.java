@@ -19,6 +19,8 @@ package media.mexm.mediadeepa.exportformat;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.CONTAINER_ANALYSIS;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.MEDIA_ANALYSIS;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 import java.io.File;
@@ -40,6 +42,11 @@ public abstract class TabularExportFormat implements ExportFormat, TabularDocume
 								  final OutputFileSupplier outputFileSupplier) {
 		this.engines = Objects.requireNonNull(engines, "\"engines\" can't to be null");
 		this.outputFileSupplier = Objects.requireNonNull(outputFileSupplier, "\"outputFileSupplier\" can't to be null");
+	}
+
+	@Override
+	public Set<ProcessingHandledData> canHandleProcessingData() {
+		return Set.of(MEDIA_ANALYSIS, CONTAINER_ANALYSIS);
 	}
 
 	@Override

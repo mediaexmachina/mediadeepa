@@ -22,6 +22,8 @@ import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_WITH_CONTEXT_TIME_ZONE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Locale.ENGLISH;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.CONTAINER_ANALYSIS;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.MEDIA_ANALYSIS;
 import static media.mexm.mediadeepa.exportformat.report.JsonContentProvider.createModule;
 import static org.apache.commons.io.FileUtils.write;
 
@@ -46,6 +48,7 @@ import media.mexm.mediadeepa.components.RendererEngineComparator;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
+import media.mexm.mediadeepa.exportformat.ProcessingHandledData;
 import media.mexm.mediadeepa.exportformat.report.ReportDocument;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 
@@ -87,6 +90,11 @@ public class ReportJsonExportFormat implements ExportFormat, ConstStrings {
 	@Override
 	public String getFormatDescription() {
 		return "with the same informations as html report";
+	}
+
+	@Override
+	public Set<ProcessingHandledData> canHandleProcessingData() {
+		return Set.of(MEDIA_ANALYSIS, CONTAINER_ANALYSIS);
 	}
 
 	private String getJson(final Object object) {

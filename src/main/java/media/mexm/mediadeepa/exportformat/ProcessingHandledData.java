@@ -11,32 +11,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
- * Copyright (C) Media ex Machina 2023
+ * Copyright (C) hdsdi3g for hd3g.tv 2024
  *
  */
 package media.mexm.mediadeepa.exportformat;
 
-import java.io.File;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+public enum ProcessingHandledData {
 
-public interface ExportFormat {
-
-	Map<String, File> exportResult(DataResult result);
-
-	String getFormatName();
-
-	String getFormatLongName();
-
-	default String getFormatDescription() {
-		return "";
-	}
-
-	Set<String> getInternalProducedFileNames();
-
-	Optional<byte[]> makeSingleExport(DataResult result, String internalFileName);
-
-	Set<ProcessingHandledData> canHandleProcessingData();
+	MEDIA_ANALYSIS,
+	CONTAINER_ANALYSIS,
+	WAVEFORM,
+	SNAPSHOT_IMAGE;
 
 }

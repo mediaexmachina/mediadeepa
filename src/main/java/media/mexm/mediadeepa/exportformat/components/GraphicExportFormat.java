@@ -20,6 +20,8 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.CONTAINER_ANALYSIS;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.MEDIA_ANALYSIS;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 import java.io.File;
@@ -36,6 +38,7 @@ import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
+import media.mexm.mediadeepa.exportformat.ProcessingHandledData;
 import media.mexm.mediadeepa.rendererengine.GraphicRendererEngine;
 
 @Component
@@ -49,6 +52,11 @@ public class GraphicExportFormat implements ExportFormat {
 	private AppCommand appCommand;
 	@Autowired
 	private OutputFileSupplier outputFileSupplier;
+
+	@Override
+	public Set<ProcessingHandledData> canHandleProcessingData() {
+		return Set.of(CONTAINER_ANALYSIS, MEDIA_ANALYSIS);
+	}
 
 	@Override
 	public Map<String, File> exportResult(final DataResult result) {

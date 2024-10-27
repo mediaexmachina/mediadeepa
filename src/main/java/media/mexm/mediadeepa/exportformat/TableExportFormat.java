@@ -17,6 +17,8 @@
 package media.mexm.mediadeepa.exportformat;
 
 import static media.mexm.mediadeepa.ImpExArchiveExtractionSession.TEN_MB;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.CONTAINER_ANALYSIS;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.MEDIA_ANALYSIS;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -51,6 +53,11 @@ public abstract class TableExportFormat implements ExportFormat {
 		this.engines = Objects.requireNonNull(engines, "\"engines\" can't to be null");
 		this.numberUtils = Objects.requireNonNull(numberUtils, "\"numberUtils\" can't to be null");
 		this.outputFileSupplier = Objects.requireNonNull(outputFileSupplier, "\"outputFileSupplier\" can't to be null");
+	}
+
+	@Override
+	public Set<ProcessingHandledData> canHandleProcessingData() {
+		return Set.of(MEDIA_ANALYSIS, CONTAINER_ANALYSIS);
 	}
 
 	public abstract String getInternalFileName();

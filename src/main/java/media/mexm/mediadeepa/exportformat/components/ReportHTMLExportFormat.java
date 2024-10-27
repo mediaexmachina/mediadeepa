@@ -17,6 +17,10 @@
 package media.mexm.mediadeepa.exportformat.components;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.CONTAINER_ANALYSIS;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.MEDIA_ANALYSIS;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.SNAPSHOT_IMAGE;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.WAVEFORM;
 import static org.apache.commons.io.FileUtils.write;
 
 import java.io.File;
@@ -39,6 +43,7 @@ import media.mexm.mediadeepa.components.RendererEngineComparator;
 import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
+import media.mexm.mediadeepa.exportformat.ProcessingHandledData;
 import media.mexm.mediadeepa.exportformat.report.ReportDocument;
 import media.mexm.mediadeepa.rendererengine.ReportRendererEngine;
 
@@ -77,13 +82,8 @@ public class ReportHTMLExportFormat implements ExportFormat, ConstStrings {
 	}
 
 	@Override
-	public boolean canHandleMeasuredWaveForm() {
-		return true;
-	}
-
-	@Override
-	public boolean canHandleSnapshotImage() {
-		return true;
+	public Set<ProcessingHandledData> canHandleProcessingData() {
+		return Set.of(MEDIA_ANALYSIS, CONTAINER_ANALYSIS, WAVEFORM, SNAPSHOT_IMAGE);
 	}
 
 	@Override

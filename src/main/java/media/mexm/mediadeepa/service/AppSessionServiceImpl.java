@@ -23,10 +23,15 @@ import static java.util.Collections.unmodifiableMap;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableMap;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static java.util.stream.Stream.concat;
 import static media.mexm.mediadeepa.App.NAME;
 import static media.mexm.mediadeepa.ExportOnlyParamConfiguration.fromOutputCmd;
 import static media.mexm.mediadeepa.ImpExArchiveExtractionSession.TEN_MB;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.CONTAINER_ANALYSIS;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.MEDIA_ANALYSIS;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.SNAPSHOT_IMAGE;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.WAVEFORM;
 import static org.apache.commons.io.FileUtils.forceMkdir;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.io.FilenameUtils.getExtension;
@@ -45,6 +50,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import java.util.zip.ZipInputStream;
 
@@ -578,7 +584,18 @@ public class AppSessionServiceImpl implements AppSessionService {
 		log.info("Source file: {}", ffprobeResult);
 		dataResult.setFfprobeResult(ffprobeResult);
 
-		if (processFileCmd.isNoMediaAnalysing() == false) {
+		final var allProcessingHandledDatas = mediaAnalyticsTransformerService.getSelectedExportFormats(
+				appCommand.getOutputCmd().getExportToCmd(),
+				fromOutputCmd(appCommand.getOutputCmd(), commandLine)
+						.map(ExportOnlyParamConfiguration::internalFileName))
+				.map(ExportFormat::canHandleProcessingData)
+				.flatMap(Set::stream)
+				.distinct()
+				.collect(toUnmodifiableSet());
+		log.trace("allProcessingHandledDatas={}", allProcessingHandledDatas);
+
+		if (processFileCmd.isNoMediaAnalysing() == false
+			&& allProcessingHandledDatas.contains(MEDIA_ANALYSIS)) {
 			log.debug("Prepare media analysing...");
 
 			final var lavfiSecondaryFile = prepareTempFile(tempDir);
@@ -593,35 +610,25 @@ public class AppSessionServiceImpl implements AppSessionService {
 			FileUtils.deleteQuietly(lavfiSecondaryFile);
 		}
 
-		if (processFileCmd.isContainerAnalysing()) {
+		if (processFileCmd.isContainerAnalysing()
+			&& allProcessingHandledDatas.contains(CONTAINER_ANALYSIS)) {
 			log.info("Start container analysing...");
 			final var caResult = ffmpegService.processContainer(
 					inputFile, processFileCmd, ffprobeResult.getDuration().orElse(ZERO));
 			dataResult.setContainerAnalyserProcessResult(caResult);
 		}
 
-		final var canHandleWaveForm = getSessionUsedExportFormats()
-				.anyMatch(ExportFormat::canHandleMeasuredWaveForm);
-		if (canHandleWaveForm) {
+		if (allProcessingHandledDatas.contains(WAVEFORM)) {
 			ffmpegService.measureWav(inputFile, ffprobeResult, processFileCmd)
 					.ifPresent(dataResult::setWavForm);
 		}
 
-		final var canHandleSnapshots = getSessionUsedExportFormats()
-				.anyMatch(ExportFormat::canHandleSnapshotImage);
-		if (canHandleSnapshots) {
+		if (allProcessingHandledDatas.contains(SNAPSHOT_IMAGE)) {
 			ffmpegService.extractVideoImageSnapshots(inputFile, ffprobeResult, processFileCmd)
 					.ifPresent(dataResult::setVideoImageSnapshots);
 		}
 
 		return exportAnalytics(dataResult);
-	}
-
-	private Stream<ExportFormat> getSessionUsedExportFormats() {
-		return mediaAnalyticsTransformerService.getSelectedExportFormats(
-				appCommand.getOutputCmd().getExportToCmd(),
-				fromOutputCmd(appCommand.getOutputCmd(), commandLine)
-						.map(ExportOnlyParamConfiguration::internalFileName));
 	}
 
 	private boolean checkIfSourceIsZIP(final File zipFile) {

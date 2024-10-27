@@ -19,6 +19,7 @@ package media.mexm.mediadeepa.exportformat.components;
 import static java.lang.String.format;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Optional.empty;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.SNAPSHOT_IMAGE;
 import static org.apache.commons.io.FileUtils.writeByteArrayToFile;
 
 import java.io.File;
@@ -39,6 +40,7 @@ import media.mexm.mediadeepa.config.AppConfig;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
 import media.mexm.mediadeepa.exportformat.ImageArtifact;
+import media.mexm.mediadeepa.exportformat.ProcessingHandledData;
 import media.mexm.mediadeepa.rendererengine.components.SignificantSnapshotImageRendererEngine;
 import media.mexm.mediadeepa.rendererengine.components.StripSnapshotImagesRendererEngine;
 
@@ -56,8 +58,8 @@ public class SnapshotImageExportFormat implements ExportFormat {
 	private AppConfig appConfig;
 
 	@Override
-	public boolean canHandleSnapshotImage() {
-		return true;
+	public Set<ProcessingHandledData> canHandleProcessingData() {
+		return Set.of(SNAPSHOT_IMAGE);
 	}
 
 	@Override

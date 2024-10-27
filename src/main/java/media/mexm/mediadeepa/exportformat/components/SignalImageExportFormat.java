@@ -18,6 +18,7 @@ package media.mexm.mediadeepa.exportformat.components;
 
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.WAVEFORM;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +36,7 @@ import media.mexm.mediadeepa.components.OutputFileSupplier;
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
 import media.mexm.mediadeepa.exportformat.ImageArtifact;
+import media.mexm.mediadeepa.exportformat.ProcessingHandledData;
 import media.mexm.mediadeepa.rendererengine.SignalImageRendererEngine;
 
 @Component
@@ -46,8 +48,8 @@ public class SignalImageExportFormat implements ExportFormat {
 	private List<SignalImageRendererEngine> engines;
 
 	@Override
-	public boolean canHandleMeasuredWaveForm() {
-		return true;
+	public Set<ProcessingHandledData> canHandleProcessingData() {
+		return Set.of(WAVEFORM);
 	}
 
 	@Override

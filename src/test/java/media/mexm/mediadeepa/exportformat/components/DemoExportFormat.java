@@ -17,6 +17,8 @@
 package media.mexm.mediadeepa.exportformat.components;
 
 import static java.util.stream.Collectors.toUnmodifiableMap;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.CONTAINER_ANALYSIS;
+import static media.mexm.mediadeepa.exportformat.ProcessingHandledData.MEDIA_ANALYSIS;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Component;
 
 import media.mexm.mediadeepa.exportformat.DataResult;
 import media.mexm.mediadeepa.exportformat.ExportFormat;
+import media.mexm.mediadeepa.exportformat.ProcessingHandledData;
 import net.datafaker.Faker;
 
 @Component
@@ -63,6 +66,11 @@ public class DemoExportFormat implements ExportFormat {
 		singleExport = new ArrayList<>();
 		singleExportData = faker.numerify("singleExportData###").getBytes();
 		singleExportFileName = faker.numerify("singleExportFileName###");
+	}
+
+	@Override
+	public Set<ProcessingHandledData> canHandleProcessingData() {
+		return Set.of(MEDIA_ANALYSIS, CONTAINER_ANALYSIS);
 	}
 
 	public String getSingleExportFileName() {
