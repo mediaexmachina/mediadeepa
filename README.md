@@ -7,7 +7,7 @@
 
 Audio/video medias and streams deep analyzer in Java with FFmpeg as back-end: extract/process technical information from audio/videos files/streams.
 
-**This application is currently in alpha version, and should not be ready yet for production**
+This application is currently in beta version, and _should be_ ready for production.
 
 > [🚩 About](#about)\
 > [🏪 Features](#features)\
@@ -90,10 +90,10 @@ Install/update with
 
 ```bash
 # DEB file on Debian/Ubuntu Linux distribs
-sudo dpkg -i mediadeepa-0.0.54.deb
+sudo dpkg -i mediadeepa-0.1.0.deb
 
 # RPM file on RHEL/CentOS Linux distribs
-sudo rpm -U mediadeepa-0.0.54.rpm
+sudo rpm -U mediadeepa-0.1.0.rpm
 ```
 
 Remove with `sudo dpkg -r mediadeepa` or `rpm -e mediadeepa`.
@@ -102,13 +102,13 @@ After, on Linux, run `mediadeepa [parameters]`, and `man mediadeepa` for the int
 
 ### Run simple JAR file
 
-On Windows/macOS, just run `java -jar mediadeepa-0.0.54.jar [options]`.
+On Windows/macOS, just run `java -jar mediadeepa-0.1.0.jar [options]`.
 
-And simply run the application with `java -jar mediadeepa-0.0.54.jar`.
+And simply run the application with `java -jar mediadeepa-0.1.0.jar`.
 
 Mediadeepa contain embedded help, displayed with the `-h` parameter.
 
-You can set the command line parameters with `java -jar mediadeepa-0.0.54.jar [parameters]`.
+You can set the command line parameters with `java -jar mediadeepa-0.1.0.jar [parameters]`.
 
 ### Make a Java executable JAR file
 
@@ -122,7 +122,7 @@ cd mediadeepa
 mvn install -DskipTests
 ```
 
-Build jar will be founded on `target` directory as `mediadeepa-0.0.54.jar`
+Build jar will be founded on `target` directory as `mediadeepa-0.1.0.jar`
 
 <h2 id="examples">🛫 Examples</h2>
 
