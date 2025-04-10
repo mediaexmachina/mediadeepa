@@ -27,7 +27,7 @@
         <opencsv.version>5.9</opencsv.version>
         <jaxb-runtime.version>2.3.8</jaxb-runtime.version>
         <picocli.version>4.7.6</picocli.version>
-        <apache.poi.version>5.2.3</apache.poi.version>
+        <apache.poi.version>5.4.0</apache.poi.version>
         <jfreechart.version>1.5.4</jfreechart.version>
         <commonmark.version>0.21.0</commonmark.version>
         <exec-maven-plugin.version>3.4.1</exec-maven-plugin.version>
